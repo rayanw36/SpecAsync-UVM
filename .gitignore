@@ -1,0 +1,36 @@
+﻿# Large profiler outputs
+*.nsys-rep
+*.sqlite
+*.qdrep
+*.qdstrm
+
+# CUDA build products
+bench_*
+*.o
+*.so
+*.a
+
+# Python cache
+__pycache__/
+*.pyc
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# NVIDIA source trees (DO NOT commit)
+SpecAsync_Project/
+# Profiler outputs / large DBs
+*.nsys-rep
+*.sqlite
+*.qdrep
+
+# Linux build artifacts
+*.o
+*.ko
+*.mod
+*.cmd
+Module.symvers
+modules.order
