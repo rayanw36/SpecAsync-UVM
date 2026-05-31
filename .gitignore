@@ -4,8 +4,9 @@
 *.qdrep
 *.qdstrm
 
-# CUDA build products
+# CUDA compiled binaries (ignore binary, track .cu sources)
 bench_*
+!bench_*.cu
 *.o
 *.so
 *.a

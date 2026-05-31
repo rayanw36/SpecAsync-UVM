@@ -89,3 +89,65 @@ Forest ISCA 2025 DOI, Hermes MICRO 2022, Liao BaM ASPLOS 2023, Zheng ISCA 2020,
 Kim ASPLOS 2020, Ganguly ISCA 2019, Parravicini venue. All marked "needs verification".
 
 ---
+
+## Priority 4 — Benchmark sources + oversubscription benchmarks
+
+**Committed:** Phase 2 P4: reconstructed benchmark sources + oversub + graph BFS
+
+### What was done
+
+**Core benchmark reconstruction** (`benchmarks/bench_*.cu`):
+- `bench_stream.cu`: STREAM Triad, 3× cudaMallocManaged float arrays
+- `bench_sgemm.cu`: cuBLAS SGEMM N×N, 3× cudaMallocManaged float matrices
+- `bench_stencil.cu`: 2D 5-point stencil, 20 ping-pong iters, 16×16 thread block
+- `bench_cufft.cu`: 1D C2C FFT, cufftPlan1d on cudaMallocManaged complex array
+- All match `[RESULT] Time: X.XX ms\nBandwidth: X.XX GB/s` output format
+- `.gitignore` updated: `bench_*` + `!bench_*.cu` to allow source tracking
+
+**Oversubscription benchmark** (`benchmarks/stencil_oversub/`):
+- Same 5-point stencil with sizes targeting 1.31×, 1.51×, 1.98× VRAM (N=51200, 55000, 63000)
+
+**Graph BFS benchmark** (`benchmarks/graph_bfs/`):
+- R-MAT generator (a=0.57/b=0.19/c=0.19/d=0.05), frontier BFS, all arrays managed
+- log2_vertices argument for scalable size sweep
+
+**`benchmarks/RECONSTRUCTION_NOTES.md`**: documents every reconstruction decision,
+expected baseline ballpark numbers, and Phase B validation plan.
+
+**`benchmarks/Makefile`** and subdirectory Makefiles: nvcc -O3 -arch=sm_89.
+
+### Validated on iPad
+
+Source syntax reviewed manually. `.gitignore` fix verified. Compilation deferred to Phase B.
+
+### Deferred to Phase B
+
+- Compilation and timing validation against baseline CSV (±20% tolerance)
+- See `RECONSTRUCTION_NOTES.md` Phase B validation plan
+
+---
+
+## Priority 6 — Run harness
+
+**Committed:** Phase 2 P6: run_all_experiments.sh
+
+### What was done
+
+Created `benchmarks/run_all_experiments.sh`:
+- Pre-flight: module loaded check, srcversion check (SPECASYNC_SRCVERSION env var), debugfs path check, binary check, Python tool check
+- Sweeps: policy ∈ {0,1,2,3} × depth ∈ {0,1}, skipping (p=0, d>0)
+- Per (policy, depth, benchmark, size): warmup → clear debugfs → 50 timed trials → dump binary logs → parse with specasync_parse.py
+- Idempotent: skips existing result dirs unless `--force`; `--dry-run` mode
+- All output tee'd to `results/run_<timestamp>.log`
+- Post-processing: calls cost_benefit.py after sweep
+
+### Validated on iPad
+
+`set -euo pipefail` confirmed. Cannot test execution without hardware.
+
+### Deferred to Phase B
+
+- Full execution test
+- Fill in SPECASYNC_SRCVERSION after Phase B build
+
+---
