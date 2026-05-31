@@ -151,3 +151,44 @@ Created `benchmarks/run_all_experiments.sh`:
 - Fill in SPECASYNC_SRCVERSION after Phase B build
 
 ---
+
+## Priority 1 — Critical-path latency telemetry + debugfs
+
+**Committed:** Phase 2 P1-P3: driver instrumentation, residency offload, policies
+
+### What was done
+
+Created `driver/src/`:
+
+| File | Purpose |
+|------|---------|
+| `specasync_telemetry.h` | Struct definitions (batch_record 72B, work_record 48B), ring-buffer types and inline push functions, hit-table hash (256 entries × VA space), module-param externs |
+| `specasync_debugfs.c` | Global ring buffers (131k slots each), module params (log_enabled, policy, offload_depth, oracle_trace_path), debugfs file ops (read binary, clear), oracle trace loader (filp_open + kernel_read) |
+| `specasync_faults_instrumentation.c` | Reference implementation: T0–T4 placement pseudocode, specasync_enqueue() with overhead tracking, specasync_worker update with work-record telemetry, stride/Markov/oracle prediction policy dispatch |
+
+### Priority 2 — Residency offload depth=1
+
+- `specasync_residency_prep()` pseudocode with 3 safety gates (queue depth, lock
+  ownership, VRAM utilization heuristic)
+- Depth=2 stub with `pr_warn_once` and honest fallback to depth=1
+- VRAM utilization gating documented as TODO if counter not available in v580.95.05
+
+### Priority 3 — Stride, Markov, oracle policies
+
+- Policy 0: disabled
+- Policy 1: adjacent-page (original)
+- Policy 2: stride detector — per-VA-space (last_fault_addr, last_delta, confidence u8 saturating at 4), fallback when confidence < 2
+- Policy 3: Markov next-page — per-VA-space open-addressed hash (256 slots × ~48B = ~4KB), linear probe, fallback when count ≤ 1
+- Policy 4: oracle — reads pre-loaded trace via specasync_oracle_next_addr(), wraps around, fallback on empty trace
+
+### Validated on iPad
+
+Source reviewed for internal consistency. Struct sizes asserted in header.
+Cannot compile without kernel headers.
+
+### Deferred to Phase B
+
+All wiring into the actual patched source. See `PHASE_B_INTEGRATION.md` for
+complete integration checklist (§1–§9).
+
+---
