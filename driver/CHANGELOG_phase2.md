@@ -43,3 +43,49 @@ Created `benchmarks/tools/`:
 - Phase breakdown PDF requires matplotlib (may need `pip install matplotlib`).
 
 ---
+
+## Priority 7 — Reframed abstract + intro revisions
+
+**Committed:** Phase 2 P7: reframed abstract and intro revision notes
+
+### What was done
+
+Created `paper/`:
+
+| File | Purpose |
+|------|---------|
+| `abstract_v2.md` | Revised abstract. Repositions primary contribution as in-driver speculation *infrastructure* (telemetry, policy framework, debugfs). Honestly reports cuFFT ≤4.4% with other workloads within noise. Frames Phase 2 as the evidence-gathering step for critical-path shortening. |
+| `intro_revisions.md` | Two drop-in paragraph replacements: (1) contribution list rewritten to lead with infrastructure, not speedup numbers; (2) hypothesis paragraph rewritten to frame Phase 1 as consistent-but-not-conclusive, with Phase 2 as the direct-evidence step. |
+
+### Key framing decisions
+
+- "modest and workload-dependent" replaces any language implying broad speedup
+- Phase 1 cuFFT result (4.4%) is stated as the best case, not the typical case
+- Phase 2 is explicitly positioned as the critical-path evidence the reviewers asked for
+- Limitation (metadata-only, no oversubscription) is stated honestly
+
+### Validated on iPad
+
+Plain Markdown, no execution required.
+
+---
+
+## Priority 8 — References cleanup
+
+**Committed:** Phase 2 P8: references review for reviewer Comment 5
+
+### What was done
+
+Created `paper/references_review.md`:
+- [9] Forest (ISCA 2025): confirmed peer-reviewed; action: verify DOI when proceedings finalise
+- [8] Long et al. (arXiv): needs-replacement; three peer-reviewed substitutes provided
+- [10] Anonymous arXiv: needs-replacement; three peer-reviewed substitutes provided
+- [19] Parravicini (arXiv): find-venue-version; action: check DBLP
+- General arXiv policy guidance and list of confirmed-safe references
+
+### Cannot verify without web access
+
+Forest ISCA 2025 DOI, Hermes MICRO 2022, Liao BaM ASPLOS 2023, Zheng ISCA 2020,
+Kim ASPLOS 2020, Ganguly ISCA 2019, Parravicini venue. All marked "needs verification".
+
+---
