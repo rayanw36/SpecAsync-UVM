@@ -1,0 +1,194 @@
+# Phase 2 Changelog
+
+All work lives on branch `claude/specasync-phase2-instrumentation-3r7Jc`.
+Phase B = work that requires real hardware (GPU box with Linux 6.14, NVIDIA
+Open Kernel Modules v580.95.05 applied via `git lfs pull` + patch).
+
+---
+
+## Priority 5 — Userspace parser + cost-benefit + synthetic validation
+
+**Committed:** Phase 2 P5: userspace parser, cost-benefit tool, synthetic test
+
+### What was done
+
+Created `benchmarks/tools/`:
+
+| File | Purpose |
+|------|---------|
+| `specasync_parse.py` | Binary log parser. Reads `specasync_log` and `specasync_worker_log` debugfs dumps; outputs CSV + statistics. |
+| `cost_benefit.py` | Analysis tool. Discovers `results/p*_d*` configs, computes cost-benefit metrics, outputs `results/summary/cost_benefit.md` and (if matplotlib available) `results/summary/phase_breakdown.pdf`. |
+| `synthetic_test.py` | Correctness validation. Generates 1000 batch + 5000 work records with known values, packs as binary, parses back, asserts all 97 checks pass. |
+| `synthetic_test_results.txt` | Committed test output — proof parser is correct on this Python version. |
+
+### Struct sizes validated on iPad (Python 3.11.15)
+
+- `specasync_batch_record`: **72 bytes**, fmt `<6Q6I`
+  - Offsets: batch_id(0), t0–t4(8–40), num_faults(48), spec_enqueues(52),
+    spec_drops(56), spec_hits(60), enqueue_overhead_ns(64), _pad(68)
+- `specasync_work_record`: **48 bytes**, fmt `<4Q4I`
+  - Offsets: enqueue_ts(0), dequeue_ts(8), completion_ts(16), va_addr(24),
+    result(32), policy_used(36), _pad[2](40-44)
+
+### Validated on iPad
+
+- **97/97 synthetic checks pass** (see `synthetic_test_results.txt`)
+- Struct packing, field ordering, statistics (mean/median/p50/p95/p99),
+  hit rate, wasted-spec rate, CSV derived columns, trailing-byte handling
+
+### Deferred to Phase B
+
+- `cost_benefit.py`: full metric computation requires Phase 2 telemetry from
+  `run_all_experiments.sh`. Markdown + PDF output not exercised on iPad.
+- Phase breakdown PDF requires matplotlib (may need `pip install matplotlib`).
+
+---
+
+## Priority 7 — Reframed abstract + intro revisions
+
+**Committed:** Phase 2 P7: reframed abstract and intro revision notes
+
+### What was done
+
+Created `paper/`:
+
+| File | Purpose |
+|------|---------|
+| `abstract_v2.md` | Revised abstract. Repositions primary contribution as in-driver speculation *infrastructure* (telemetry, policy framework, debugfs). Honestly reports cuFFT ≤4.4% with other workloads within noise. Frames Phase 2 as the evidence-gathering step for critical-path shortening. |
+| `intro_revisions.md` | Two drop-in paragraph replacements: (1) contribution list rewritten to lead with infrastructure, not speedup numbers; (2) hypothesis paragraph rewritten to frame Phase 1 as consistent-but-not-conclusive, with Phase 2 as the direct-evidence step. |
+
+### Key framing decisions
+
+- "modest and workload-dependent" replaces any language implying broad speedup
+- Phase 1 cuFFT result (4.4%) is stated as the best case, not the typical case
+- Phase 2 is explicitly positioned as the critical-path evidence the reviewers asked for
+- Limitation (metadata-only, no oversubscription) is stated honestly
+
+### Validated on iPad
+
+Plain Markdown, no execution required.
+
+---
+
+## Priority 8 — References cleanup
+
+**Committed:** Phase 2 P8: references review for reviewer Comment 5
+
+### What was done
+
+Created `paper/references_review.md`:
+- [9] Forest (ISCA 2025): confirmed peer-reviewed; action: verify DOI when proceedings finalise
+- [8] Long et al. (arXiv): needs-replacement; three peer-reviewed substitutes provided
+- [10] Anonymous arXiv: needs-replacement; three peer-reviewed substitutes provided
+- [19] Parravicini (arXiv): find-venue-version; action: check DBLP
+- General arXiv policy guidance and list of confirmed-safe references
+
+### Cannot verify without web access
+
+Forest ISCA 2025 DOI, Hermes MICRO 2022, Liao BaM ASPLOS 2023, Zheng ISCA 2020,
+Kim ASPLOS 2020, Ganguly ISCA 2019, Parravicini venue. All marked "needs verification".
+
+---
+
+## Priority 4 — Benchmark sources + oversubscription benchmarks
+
+**Committed:** Phase 2 P4: reconstructed benchmark sources + oversub + graph BFS
+
+### What was done
+
+**Core benchmark reconstruction** (`benchmarks/bench_*.cu`):
+- `bench_stream.cu`: STREAM Triad, 3× cudaMallocManaged float arrays
+- `bench_sgemm.cu`: cuBLAS SGEMM N×N, 3× cudaMallocManaged float matrices
+- `bench_stencil.cu`: 2D 5-point stencil, 20 ping-pong iters, 16×16 thread block
+- `bench_cufft.cu`: 1D C2C FFT, cufftPlan1d on cudaMallocManaged complex array
+- All match `[RESULT] Time: X.XX ms\nBandwidth: X.XX GB/s` output format
+- `.gitignore` updated: `bench_*` + `!bench_*.cu` to allow source tracking
+
+**Oversubscription benchmark** (`benchmarks/stencil_oversub/`):
+- Same 5-point stencil with sizes targeting 1.31×, 1.51×, 1.98× VRAM (N=51200, 55000, 63000)
+
+**Graph BFS benchmark** (`benchmarks/graph_bfs/`):
+- R-MAT generator (a=0.57/b=0.19/c=0.19/d=0.05), frontier BFS, all arrays managed
+- log2_vertices argument for scalable size sweep
+
+**`benchmarks/RECONSTRUCTION_NOTES.md`**: documents every reconstruction decision,
+expected baseline ballpark numbers, and Phase B validation plan.
+
+**`benchmarks/Makefile`** and subdirectory Makefiles: nvcc -O3 -arch=sm_89.
+
+### Validated on iPad
+
+Source syntax reviewed manually. `.gitignore` fix verified. Compilation deferred to Phase B.
+
+### Deferred to Phase B
+
+- Compilation and timing validation against baseline CSV (±20% tolerance)
+- See `RECONSTRUCTION_NOTES.md` Phase B validation plan
+
+---
+
+## Priority 6 — Run harness
+
+**Committed:** Phase 2 P6: run_all_experiments.sh
+
+### What was done
+
+Created `benchmarks/run_all_experiments.sh`:
+- Pre-flight: module loaded check, srcversion check (SPECASYNC_SRCVERSION env var), debugfs path check, binary check, Python tool check
+- Sweeps: policy ∈ {0,1,2,3} × depth ∈ {0,1}, skipping (p=0, d>0)
+- Per (policy, depth, benchmark, size): warmup → clear debugfs → 50 timed trials → dump binary logs → parse with specasync_parse.py
+- Idempotent: skips existing result dirs unless `--force`; `--dry-run` mode
+- All output tee'd to `results/run_<timestamp>.log`
+- Post-processing: calls cost_benefit.py after sweep
+
+### Validated on iPad
+
+`set -euo pipefail` confirmed. Cannot test execution without hardware.
+
+### Deferred to Phase B
+
+- Full execution test
+- Fill in SPECASYNC_SRCVERSION after Phase B build
+
+---
+
+## Priority 1 — Critical-path latency telemetry + debugfs
+
+**Committed:** Phase 2 P1-P3: driver instrumentation, residency offload, policies
+
+### What was done
+
+Created `driver/src/`:
+
+| File | Purpose |
+|------|---------|
+| `specasync_telemetry.h` | Struct definitions (batch_record 72B, work_record 48B), ring-buffer types and inline push functions, hit-table hash (256 entries × VA space), module-param externs |
+| `specasync_debugfs.c` | Global ring buffers (131k slots each), module params (log_enabled, policy, offload_depth, oracle_trace_path), debugfs file ops (read binary, clear), oracle trace loader (filp_open + kernel_read) |
+| `specasync_faults_instrumentation.c` | Reference implementation: T0–T4 placement pseudocode, specasync_enqueue() with overhead tracking, specasync_worker update with work-record telemetry, stride/Markov/oracle prediction policy dispatch |
+
+### Priority 2 — Residency offload depth=1
+
+- `specasync_residency_prep()` pseudocode with 3 safety gates (queue depth, lock
+  ownership, VRAM utilization heuristic)
+- Depth=2 stub with `pr_warn_once` and honest fallback to depth=1
+- VRAM utilization gating documented as TODO if counter not available in v580.95.05
+
+### Priority 3 — Stride, Markov, oracle policies
+
+- Policy 0: disabled
+- Policy 1: adjacent-page (original)
+- Policy 2: stride detector — per-VA-space (last_fault_addr, last_delta, confidence u8 saturating at 4), fallback when confidence < 2
+- Policy 3: Markov next-page — per-VA-space open-addressed hash (256 slots × ~48B = ~4KB), linear probe, fallback when count ≤ 1
+- Policy 4: oracle — reads pre-loaded trace via specasync_oracle_next_addr(), wraps around, fallback on empty trace
+
+### Validated on iPad
+
+Source reviewed for internal consistency. Struct sizes asserted in header.
+Cannot compile without kernel headers.
+
+### Deferred to Phase B
+
+All wiring into the actual patched source. See `PHASE_B_INTEGRATION.md` for
+complete integration checklist (§1–§9).
+
+---

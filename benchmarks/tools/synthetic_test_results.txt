@@ -1,0 +1,118 @@
+
+=== Test 1: Struct size constants ===
+  [PASS] BATCH_FMT calcsize == 72
+  [PASS] WORK_FMT  calcsize == 48
+
+=== Test 2: Batch record binary round-trip ===
+  [PASS] packed size == NUM_BATCHES × BATCH_SIZE
+  [PASS] parsed record count
+  [PASS] batch[0].batch_id
+  [PASS] batch[0].t0_ns
+  [PASS] batch[0].t1_ns
+  [PASS] batch[0].t2_ns
+  [PASS] batch[0].t3_ns
+  [PASS] batch[0].t4_ns
+  [PASS] batch[0].num_faults
+  [PASS] batch[0].spec_enqueues
+  [PASS] batch[0].spec_drops
+  [PASS] batch[0].spec_hits
+  [PASS] batch[0].enqueue_overhead_ns
+  [PASS] batch[500].batch_id
+  [PASS] batch[500].t0_ns
+  [PASS] batch[500].t1_ns
+  [PASS] batch[500].t2_ns
+  [PASS] batch[500].t3_ns
+  [PASS] batch[500].t4_ns
+  [PASS] batch[500].num_faults
+  [PASS] batch[500].spec_enqueues
+  [PASS] batch[500].spec_drops
+  [PASS] batch[500].spec_hits
+  [PASS] batch[500].enqueue_overhead_ns
+  [PASS] batch[999].batch_id
+  [PASS] batch[999].t0_ns
+  [PASS] batch[999].t1_ns
+  [PASS] batch[999].t2_ns
+  [PASS] batch[999].t3_ns
+  [PASS] batch[999].t4_ns
+  [PASS] batch[999].num_faults
+  [PASS] batch[999].spec_enqueues
+  [PASS] batch[999].spec_drops
+  [PASS] batch[999].spec_hits
+  [PASS] batch[999].enqueue_overhead_ns
+  [PASS] full sweep mismatch count
+
+=== Test 3: Work record binary round-trip ===
+  [PASS] packed size == NUM_WORKS × WORK_SIZE
+  [PASS] parsed work record count
+  [PASS] work[0].enqueue_ts_ns
+  [PASS] work[0].dequeue_ts_ns
+  [PASS] work[0].completion_ts_ns
+  [PASS] work[0].va_addr
+  [PASS] work[0].result
+  [PASS] work[0].policy_used
+  [PASS] work[2500].enqueue_ts_ns
+  [PASS] work[2500].dequeue_ts_ns
+  [PASS] work[2500].completion_ts_ns
+  [PASS] work[2500].va_addr
+  [PASS] work[2500].result
+  [PASS] work[2500].policy_used
+  [PASS] work[4999].enqueue_ts_ns
+  [PASS] work[4999].dequeue_ts_ns
+  [PASS] work[4999].completion_ts_ns
+  [PASS] work[4999].va_addr
+  [PASS] work[4999].result
+  [PASS] work[4999].policy_used
+  [PASS] full work sweep mismatch count
+
+=== Test 4: Statistics correctness (controlled dataset) ===
+  [PASS] total_service mean  = 7000 ns
+  [PASS] total_service median = 7000 ns
+  [PASS] total_service p50   = 7000 ns
+  [PASS] total_service p95   = 7000 ns
+  [PASS] total_service p99   = 7000 ns
+  [PASS] phase_lock_acq mean  = 1000 ns
+  [PASS] phase_metadata mean  = 2000 ns
+  [PASS] phase_residency mean = 3000 ns
+  [PASS] hit_rate = 0.40
+  [PASS] wasted_spec_rate = 0.60
+  [PASS] total_enqueues = 1000
+  [PASS] total_hits     = 400
+  [PASS] num_batches    = 100
+
+=== Test 5: _percentile() function ===
+  [PASS] p50  of 1..100 = 50.5
+  [PASS] p95  of 1..100 = 95.05
+  [PASS] p99  of 1..100 = 99.01
+  [PASS] p0   of 1..100 = 1.0
+  [PASS] p100 of 1..100 = 100.0
+  [PASS] empty list → NaN
+  [PASS] p50 of [42] = 42.0
+
+=== Test 6: write_batch_csv / write_work_csv round-trip ===
+  [PASS] batch CSV row count = 100
+  [PASS] batch CSV has total_latency_ns col
+  [PASS] batch CSV has phase01_ns col
+  [PASS] batch CSV has phase12_ns col
+  [PASS] batch CSV has phase23_ns col
+  [PASS] batch CSV _pad col absent
+  [PASS] CSV[0] total_latency_ns = 7000
+  [PASS] CSV[0] phase01_ns       = 1000
+  [PASS] CSV[0] phase12_ns       = 2000
+  [PASS] CSV[0] phase23_ns       = 3000
+  [PASS] work CSV row count = 1
+  [PASS] work CSV queue_latency_ns = 10000
+  [PASS] work CSV exec_latency_ns  = 50000
+  [PASS] work CSV result_name = 'hit'
+  [PASS] work CSV _pad0 col absent
+
+=== Test 7: Trailing bytes handled gracefully ===
+  [PASS] only 1 complete record parsed
+  [PASS] first record batch_id correct
+  [PASS] warning emitted to stderr
+
+=================================================================
+ALL TESTS PASSED  (97/97 checks passed)
+Python: 3.11.15
+BATCH_SIZE=72  WORK_SIZE=48
+Synthetic data: 1000 batches, 5000 work records
+=================================================================
