@@ -251,4 +251,35 @@ static inline int specasync_hit_table_consume(struct specasync_hit_table *ht,
 	return found;
 }
 
+/* ── Demand-fault address trace ring (for oracle policy) ───────────────────
+ *
+ * Captures demand-fault addresses in service order for oracle trace files.
+ * Enable with module param specasync_trace_faults=1.
+ * 1M slots × 8 B = 8 MB; ring wraps (old data overwritten).
+ */
+#define SPECASYNC_TRACE_RING_SLOTS  (1U << 20)
+
+struct specasync_trace_ring {
+	u64        *buf;   /* kvmalloc'd at init */
+	u32         head;
+	u32         mask;
+	spinlock_t  lock;
+};
+
+extern struct specasync_trace_ring g_trace_ring;
+extern int specasync_trace_faults;
+
+static inline void specasync_trace_push(u64 va_addr)
+{
+	struct specasync_trace_ring *r = &g_trace_ring;
+	unsigned long flags;
+
+	if (!specasync_trace_faults || !r->buf)
+		return;
+	spin_lock_irqsave(&r->lock, flags);
+	r->buf[r->head & r->mask] = va_addr;
+	r->head++;
+	spin_unlock_irqrestore(&r->lock, flags);
+}
+
 #endif /* SPECASYNC_TELEMETRY_H */

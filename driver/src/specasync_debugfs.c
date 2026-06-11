@@ -28,18 +28,21 @@
 
 /* ── Global ring buffer instances ────────────────────────────────────────── */
 
-struct specasync_batch_ring g_batch_ring;
-struct specasync_work_ring  g_work_ring;
+struct specasync_batch_ring  g_batch_ring;
+struct specasync_work_ring   g_work_ring;
+struct specasync_trace_ring  g_trace_ring;
 
 /* Module parameters — defined here, declared extern in specasync_telemetry.h */
 int   specasync_log_enabled       = 1;
 int   specasync_policy            = 1;   /* 1 = adjacent-page */
 int   specasync_offload_depth     = 0;   /* 0 = metadata-only */
+int   specasync_trace_faults      = 0;   /* 0 = disabled; 1 = record demand-fault addrs */
 char *specasync_oracle_trace_path = NULL;
 
 module_param(specasync_log_enabled,       int,  0644);
 module_param(specasync_policy,            int,  0644);
 module_param(specasync_offload_depth,     int,  0644);
+module_param(specasync_trace_faults,      int,  0644);
 module_param(specasync_oracle_trace_path, charp, 0444);
 
 MODULE_PARM_DESC(specasync_log_enabled,
@@ -57,6 +60,7 @@ static struct dentry *specasync_dir;
 static struct dentry *dentry_batch_log;
 static struct dentry *dentry_worker_log;
 static struct dentry *dentry_clear;
+static struct dentry *dentry_fault_trace;
 
 /* ── Ring-buffer read helper ─────────────────────────────────────────────── */
 
@@ -76,7 +80,7 @@ static ssize_t ring_read_binary(char __user *ubuf, size_t count, loff_t *ppos,
 	size_t bytes_avail, to_copy, pos;
 	u8 *src = (u8 *)ring_buf;
 
-	avail = (head - tail) & (mask + 1);
+	avail = head - tail;  /* u32 unsigned wrap — no masking needed */
 	/* Convert from records to bytes */
 	bytes_avail = (size_t)avail * record_size;
 
@@ -98,13 +102,13 @@ static ssize_t ring_read_binary(char __user *ubuf, size_t count, loff_t *ppos,
 		first_chunk  = min(copy_slots, (mask + 1) - start_slot);
 		second_chunk = copy_slots - first_chunk;
 
-		if (copy_raw_buf_to_user(ubuf,
+		if (copy_to_user(ubuf,
 				src + start_slot * record_size,
 				first_chunk * record_size))
 			return -EFAULT;
 
 		if (second_chunk > 0) {
-			if (copy_raw_buf_to_user(ubuf + first_chunk * record_size,
+			if (copy_to_user(ubuf + first_chunk * record_size,
 					src,
 					second_chunk * record_size))
 				return -EFAULT;
@@ -172,16 +176,30 @@ static ssize_t clear_write(struct file *filp, const char __user *ubuf,
 			   size_t count, loff_t *ppos)
 {
 	unsigned long flags;
+	void *bbuf, *wbuf;
 
+	/*
+	 * Reset head/tail under the lock so the ring appears empty immediately.
+	 * Then zero the backing buffers outside the lock — a 9 MB memset inside
+	 * a spinlock would block hardware IRQs for milliseconds.  New records
+	 * written during the memset will overwrite zeros, which is harmless.
+	 */
 	spin_lock_irqsave(&g_batch_ring.lock, flags);
-	g_batch_ring.tail  = g_batch_ring.head;
-	g_batch_ring.drops = 0;
+	g_batch_ring.head = g_batch_ring.tail = g_batch_ring.drops = 0;
+	bbuf = g_batch_ring.buf;
 	spin_unlock_irqrestore(&g_batch_ring.lock, flags);
 
 	spin_lock_irqsave(&g_work_ring.lock, flags);
-	g_work_ring.tail  = g_work_ring.head;
-	g_work_ring.drops = 0;
+	g_work_ring.head = g_work_ring.tail = g_work_ring.drops = 0;
+	wbuf = g_work_ring.buf;
 	spin_unlock_irqrestore(&g_work_ring.lock, flags);
+
+	if (bbuf)
+		memset(bbuf, 0,
+		       SPECASYNC_BATCH_RING_SLOTS * sizeof(struct specasync_batch_record));
+	if (wbuf)
+		memset(wbuf, 0,
+		       SPECASYNC_WORK_RING_SLOTS * sizeof(struct specasync_work_record));
 
 	return (ssize_t)count;
 }
@@ -295,6 +313,51 @@ static int alloc_work_ring(void)
 	return 0;
 }
 
+static int alloc_trace_ring(void)
+{
+	g_trace_ring.buf = kvmalloc_array(SPECASYNC_TRACE_RING_SLOTS,
+					  sizeof(u64), GFP_KERNEL | __GFP_ZERO);
+	if (!g_trace_ring.buf)
+		return -ENOMEM;
+	g_trace_ring.mask = SPECASYNC_TRACE_RING_SLOTS - 1;
+	g_trace_ring.head = 0;
+	spin_lock_init(&g_trace_ring.lock);
+	return 0;
+}
+
+/* debugfs read for the fault-address trace ring (flat u64 array, no tail ptr) */
+static ssize_t trace_ring_read(struct file *filp, char __user *ubuf,
+			       size_t count, loff_t *ppos)
+{
+	struct specasync_trace_ring *r = &g_trace_ring;
+	u32 head;
+	size_t bytes_avail, to_copy;
+	unsigned long flags;
+
+	spin_lock_irqsave(&r->lock, flags);
+	head = r->head;
+	spin_unlock_irqrestore(&r->lock, flags);
+
+	/* Clamp to ring size; head may have wrapped beyond one revolution */
+	if (head > SPECASYNC_TRACE_RING_SLOTS)
+		head = SPECASYNC_TRACE_RING_SLOTS;
+
+	bytes_avail = (size_t)head * sizeof(u64);
+	if (*ppos >= (loff_t)bytes_avail)
+		return 0;
+	to_copy = min(count, bytes_avail - (size_t)*ppos);
+	if (copy_to_user(ubuf, (u8 *)r->buf + *ppos, to_copy))
+		return -EFAULT;
+	*ppos += to_copy;
+	return (ssize_t)to_copy;
+}
+
+static const struct file_operations trace_ring_fops = {
+	.owner  = THIS_MODULE,
+	.read   = trace_ring_read,
+	.llseek = default_llseek,
+};
+
 /* ── Public init / exit ──────────────────────────────────────────────────── */
 
 /*
@@ -318,6 +381,10 @@ int specasync_debugfs_init(struct dentry *parent_dentry)
 	if (ret)
 		goto err_work;
 
+	ret = alloc_trace_ring();
+	if (ret)
+		goto err_trace;
+
 	specasync_dir = debugfs_create_dir("specasync", parent_dentry);
 	if (IS_ERR_OR_NULL(specasync_dir)) {
 		ret = specasync_dir ? PTR_ERR(specasync_dir) : -ENOMEM;
@@ -333,10 +400,14 @@ int specasync_debugfs_init(struct dentry *parent_dentry)
 	dentry_clear      = debugfs_create_file("specasync_clear", 0222,
 						parent_dentry, NULL,
 						&clear_fops);
+	dentry_fault_trace = debugfs_create_file("specasync_fault_trace", 0444,
+						 parent_dentry, NULL,
+						 &trace_ring_fops);
 
 	if (IS_ERR_OR_NULL(dentry_batch_log) ||
 	    IS_ERR_OR_NULL(dentry_worker_log) ||
-	    IS_ERR_OR_NULL(dentry_clear)) {
+	    IS_ERR_OR_NULL(dentry_clear) ||
+	    IS_ERR_OR_NULL(dentry_fault_trace)) {
 		ret = -EIO;
 		goto err_files;
 	}
@@ -351,6 +422,9 @@ int specasync_debugfs_init(struct dentry *parent_dentry)
 err_files:
 	debugfs_remove_recursive(specasync_dir);
 err_dir:
+	kvfree(g_trace_ring.buf);
+	g_trace_ring.buf = NULL;
+err_trace:
 	kvfree(g_work_ring.buf);
 	g_work_ring.buf = NULL;
 err_work:
@@ -371,6 +445,9 @@ void specasync_debugfs_exit(void)
 
 	kvfree(g_work_ring.buf);
 	g_work_ring.buf = NULL;
+
+	kvfree(g_trace_ring.buf);
+	g_trace_ring.buf = NULL;
 
 	if (g_oracle_trace) {
 		vfree(g_oracle_trace);
