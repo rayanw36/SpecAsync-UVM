@@ -1,118 +1,121 @@
-# Phase B Experiment Execution Guide
+# Phase B Experiment Reproduction Guide
 
-Step-by-step instructions for running Phase 2 experiments on the GPU box.
-This file assumes the phase2 branch is already cloned and you are on a machine
-with Linux 6.14, NVIDIA Open Kernel Modules v580.95.05, and CUDA toolkit.
-
----
-
-## 0. Repository and build workflow
-
-The repository uses the **patch-only** pattern:
-- The modified driver source is **not** stored as an extracted tree.
-- The full diff is in `driver/patches/specasync_uvm_v580.95.05.patch`, stored
-  via Git LFS (~190 MB).
-- The upstream source tree (nvidia-open-580.95.05) must be obtained separately
-  and the patch applied to it.
-
-**Upstream source:** NVIDIA Open Kernel Modules v580.95.05
-Obtain from: https://github.com/NVIDIA/open-gpu-kernel-modules/releases/tag/580.95.05
-(tag `580.95.05`, tarball `nvidia-open-gpu-kernel-modules-580.95.05.tar.gz`)
-
-The patch applies at the top of the extracted tree with `-p1`.
+Full step-by-step instructions to reproduce SpecAsync-UVM Phase B results on
+an AWS g4dn.xlarge (Tesla T4, sm_75) running NVIDIA driver 595.71.05.
 
 ---
 
-## 1. Clone and pull LFS
+## Environment
+
+| Item | Value |
+|------|-------|
+| Instance | AWS g4dn.xlarge |
+| GPU | Tesla T4 (sm_75, 16 GiB VRAM) |
+| Kernel | 6.17.0-1017-aws |
+| Driver | NVIDIA 595.71.05 (nvidia-uvm) |
+| CUDA | 12.0 (nvcc at `/usr/bin/nvcc`) |
+| DLAMI | Deep Learning AMI (Ubuntu) |
+| EBS | `~/SpecAsync-UVM/` — persistent across stop/start |
+| NVMe | `/opt/dlami/nvme/work/` — **wiped on instance stop** |
+
+---
+
+## Step 0: Clone and prepare
 
 ```bash
-git clone https://github.com/rayanw36/specasync-uvm.git SpecAsync-UVM
-cd SpecAsync-UVM
-git checkout claude/specasync-phase2-instrumentation-3r7Jc
-git lfs pull        # fetches the 190 MB patch file
+git clone https://github.com/rayanw36/specasync-uvm.git ~/SpecAsync-UVM
+cd ~/SpecAsync-UVM
+git checkout phaseB-v595-port
 ```
 
-Verify:
-```bash
-file driver/patches/specasync_uvm_v580.95.05.patch
-# Should say: unified diff output, ...
-# NOT: ASCII text (that would mean LFS pointer still present)
-```
+The patch file is at `driver/patches/specasync_uvm_v595.71.05.patch` (real
+unified diff, not LFS pointer).
 
 ---
 
-## 2. Apply Phase 2 driver additions
+## Step 1: Copy source and apply patch
 
-The Phase 2 code in `driver/src/` contains:
-- `specasync_telemetry.h` — struct definitions and ring-buffer inline functions
-- `specasync_debugfs.c` — debugfs interface, module params, ring-buffer alloc
-- `specasync_faults_instrumentation.c` — reference implementation for T0–T4
-  instrumentation, prediction policies, residency offload
-
-These files are NOT yet applied to the upstream source tree. Before building,
-complete the integration steps in `driver/PHASE_B_INTEGRATION.md` (§1–§9).
-Each section has grep commands to find the exact integration points.
-
-**Quick summary of integration work:**
-1. Copy `driver/src/specasync_debugfs.c` into `kernel-open/nvidia-uvm/`
-2. Add `nvidia-uvm-objs += specasync_debugfs.o` to the Kbuild
-3. Copy `driver/src/specasync_telemetry.h` into `kernel-open/nvidia-uvm/`
-4. In `uvm_gpu_replayable_faults.c`: add T0–T4 timestamps, spec_hits check,
-   enqueue call, policy dispatch — following Section 2–5 of the .c reference file
-5. In `uvm_va_space.h`: add `specasync_pred` field
-6. In `uvm_va_space.c`: alloc/free the per-VA-space prediction state
-
-Expected integration time: 2–4 hours for a developer familiar with the UVM source.
-
----
-
-## 3. Build the modified nvidia_uvm module
+The patch uses absolute-path headers (`--- /usr/src/nvidia-595.71.05/...`)
+and must be applied with `-p4`:
 
 ```bash
-# Obtain upstream source (adjust URL/path as needed)
-wget https://github.com/NVIDIA/open-gpu-kernel-modules/archive/refs/tags/580.95.05.tar.gz
-tar xf 580.95.05.tar.gz
-cd open-gpu-kernel-modules-580.95.05
+# Stock source is pre-installed at:
+ls /usr/src/nvidia-595.71.05/nvidia-uvm/
 
-# Apply Phase 1 patch
-patch -p1 < ~/SpecAsync-UVM/driver/patches/specasync_uvm_v580.95.05.patch
+# Create work directory on NVMe:
+sudo mkdir -p /opt/dlami/nvme/work
+sudo cp -r /usr/src/nvidia-595.71.05 /opt/dlami/nvme/work/nvidia-595.71.05-specasync
 
-# Apply Phase 2 additions (after completing PHASE_B_INTEGRATION.md steps)
-# ... (copy files, edit sources as described above) ...
-
-# Build
-make modules -j$(nproc) 2>&1 | tee ~/SpecAsync-UVM/results/build.log
+# Apply patch:
+cd /opt/dlami/nvme/work/nvidia-595.71.05-specasync
+patch -p4 < ~/SpecAsync-UVM/driver/patches/specasync_uvm_v595.71.05.patch
 ```
 
 ---
 
-## 4. Install and verify the module
+## Step 2: Build the modified module
 
 ```bash
 KVER=$(uname -r)
-MODDIR="/lib/modules/$KVER/kernel/nvidia-580-open"
-sudo cp nvidia-uvm.ko "$MODDIR/nvidia-uvm.ko"
-sudo depmod -a
-sudo modprobe -r nvidia_uvm
-sudo modprobe nvidia_uvm \
-    specasync_log_enabled=1 \
-    specasync_policy=1 \
-    specasync_offload_depth=0
-
-# Verify it's YOUR build (not the stock module)
-cat /sys/module/nvidia_uvm/srcversion
-# Save this hash — you'll need it for SPECASYNC_SRCVERSION in the run harness
+WORK_SRC="/opt/dlami/nvme/work/nvidia-595.71.05-specasync/nvidia-uvm"
+cd "${WORK_SRC}"
+make -C /lib/modules/${KVER}/build M="${WORK_SRC}" \
+    -f "${WORK_SRC}/nvidia-uvm-sources.Kbuild" modules 2>&1 | tee build.log
 ```
 
-Verify debugfs entries exist:
+Or use the convenience script:
 ```bash
-ls /sys/kernel/debug/nvidia_uvm/specasync*
-# Expected: specasync_clear  specasync_log  specasync_worker_log
+sudo bash ~/SpecAsync-UVM/scripts/rebuild_and_reload.sh
 ```
 
 ---
 
-## 5. Build benchmarks
+## Step 3: Safe module hot-swap
+
+**IMPORTANT:** Never touch `nvidia.ko`, `nvidia-modeset`, or `nvidia-drm`.
+
+```bash
+# Verify stock backup exists:
+ls ~/SpecAsync-UVM/driver/stock_backup/nvidia-uvm.ko.stock
+# Stock srcversion: 85A79790636BBD99BA3E43B
+
+# Stop persistenced and hot-swap:
+sudo systemctl stop nvidia-persistenced
+sudo rmmod nvidia_uvm
+sudo insmod /opt/dlami/nvme/work/nvidia-595.71.05-specasync/nvidia-uvm/nvidia-uvm.ko
+
+# Verify our build is loaded:
+cat /sys/module/nvidia_uvm/srcversion
+# Must NOT be: 85A79790636BBD99BA3E43B (that is the stock module)
+
+# Save the srcversion for the run harness:
+export SPECASYNC_SRCVERSION="$(cat /sys/module/nvidia_uvm/srcversion)"
+
+sudo systemctl start nvidia-persistenced
+```
+
+Restore stock module if anything goes wrong:
+```bash
+sudo rmmod nvidia_uvm
+sudo insmod ~/SpecAsync-UVM/driver/stock_backup/nvidia-uvm.ko.stock
+```
+
+---
+
+## Step 4: Verify debugfs
+
+```bash
+ls /sys/kernel/debug/specasync_log          # batch telemetry
+ls /sys/kernel/debug/specasync_worker_log   # per-work-item telemetry
+ls /sys/kernel/debug/specasync_clear        # write any byte to reset
+ls /sys/kernel/debug/specasync_fault_trace  # demand-fault VA trace (oracle)
+dmesg | grep specasync | tail -5
+# Expect: specasync: init OK  log_enabled=1 policy=1 offload_depth=0
+```
+
+---
+
+## Step 5: Build benchmarks
 
 ```bash
 cd ~/SpecAsync-UVM/benchmarks
@@ -121,124 +124,131 @@ make -C stencil_oversub
 make -C graph_bfs
 ```
 
-Validate timing ballpark (single trial each):
+Smoke-test (should print `[RESULT] Time: ... ms`):
 ```bash
-./bench_stream  134217728  # expect ~88 ms
-./bench_sgemm   8192       # expect ~152 ms
-./bench_stencil 8192       # expect ~28.7 ms
-./bench_cufft   67108864   # expect ~23.4 ms
+./bench_sgemm   8192
+./bench_stencil 8192
+./bench_stream  67108864
+./bench_cufft   67108864
+./graph_bfs/bench_graph_bfs 20
+./stencil_oversub/bench_stencil_oversub 1000 5 0
 ```
-
-Acceptable range: ±20% vs `results/baseline/robust_results_baseline.csv` means.
-See `benchmarks/RECONSTRUCTION_NOTES.md` for per-benchmark targets.
 
 ---
 
-## 6. Run the full experiment sweep
+## Step 6: Policy sweep (p0–p3)
 
 ```bash
 cd ~/SpecAsync-UVM/benchmarks
+export SPECASYNC_SRCVERSION="<hash from step 3>"
 
-# Set the srcversion hash from step 4:
-export SPECASYNC_SRCVERSION="<hash from step 4>"
-
-# Dry run first to check everything is wired:
+# Dry run first:
 sudo bash run_all_experiments.sh --dry-run
 
-# Full run (will take several hours):
-sudo bash run_all_experiments.sh 2>&1 | tee /tmp/specasync_run.log
-
-# With --force to rerun if needed:
-sudo bash run_all_experiments.sh --force --policy 1,2,3
+# Full sweep (4 policies × 6 benchmarks × 3 sizes × 20 runs ≈ 7–8 hours):
+sudo bash run_all_experiments.sh 2>&1 | tee ~/SpecAsync-UVM/results/phaseB/logs/sweep_run1.log &
+echo "Sweep PID: $!"
 ```
 
-Results land in:
-```
-results/
-  p0_d0/   (speculation disabled — baseline)
-  p1_d0/   (adjacent-page, metadata-only)
-  p1_d1/   (adjacent-page, residency offload)
-  p2_d0/   (stride, metadata-only)
-  p2_d1/   (stride, residency offload)
-  p3_d0/   (markov, metadata-only)
-  p3_d1/   (markov, residency offload)
-  summary/ (generated by cost_benefit.py)
-  run_<timestamp>.log
-```
+Results go to `results/p{0,1,2,3}_d0/`.
+
+**Benchmark configuration:**
+| Benchmark | Sizes | Notes |
+|-----------|-------|-------|
+| SGEMM | 8192, 16384, 24000 | N×N FP32 gemm |
+| Stencil | 8192, 16384, 24000 | 2D 5-pt stencil |
+| STREAM | 67M, 134M, 268M, 537M | triad bandwidth |
+| cuFFT | 64M, 128M, 256M floats | cufftExecC2C |
+| GraphBFS | log₂=22,23,24 | BFS on random graph |
+| Stencil_OvSub | 25000 20 11264, 28300 20 11264, 32000 20 11264 | 1.25×/1.6×/2.05× oversub (11 GiB balloon) |
 
 ---
 
-## 7. Oracle policy run (optional)
+## Step 7: Oracle trace collection (after step 6 + rebuild)
 
-To measure the upper bound of speculation benefit:
+After the policy sweep completes, rebuild the module (step 2–3) to get the
+clean `clear_write` fix and the `specasync_fault_trace` debugfs file.
+
 ```bash
-# Collect a fault trace for one benchmark (using existing nsys tooling):
-nsys profile --trace=cuda --cuda-um-gpu-page-faults=true \
-  --output=/tmp/oracle_trace ./bench_cufft 67108864
-# Extract fault addresses as u64 binary:
-python3 benchmarks/tools/extract_fault_trace.py /tmp/oracle_trace.nsys-rep \
-  > /tmp/oracle_cufft_64m.bin
+# Collect demand-fault VA traces:
+sudo bash ~/SpecAsync-UVM/scripts/collect_oracle_traces.sh
 
-# Load oracle at module init:
-sudo modprobe -r nvidia_uvm
-sudo modprobe nvidia_uvm \
-  specasync_policy=4 \
-  specasync_oracle_trace_path=/tmp/oracle_cufft_64m.bin
-
-# Run one benchmark with oracle:
-sudo bash run_all_experiments.sh --policy 4 --force
+# Run oracle (p4) experiments:
+sudo bash ~/SpecAsync-UVM/scripts/oracle_sweep.sh
 ```
 
-Note: `extract_fault_trace.py` is not yet implemented (deferred to Phase B).
-The oracle policy requires a binary file of u64 fault addresses. You can
-generate this from nsys SQLite output or by adding a kernel-side trace dump.
+Oracle traces go to `~/SpecAsync-UVM/oracles/{bench}/{size}/oracle_trace.bin`.
+Oracle results go to `results/p4_d0/`.
 
 ---
 
-## 8. Analyze results
+## Step 8: Analyze results
 
 ```bash
 cd ~/SpecAsync-UVM
+
+# Aggregate timing + telemetry, produce plots and SUMMARY.md:
+python3 benchmarks/tools/analyze_phaseB.py
+
+# Cost-benefit table and phase-breakdown chart:
 python3 benchmarks/tools/cost_benefit.py
-# Outputs: results/summary/cost_benefit.md + results/summary/phase_breakdown.pdf
 
-# For per-benchmark plots using Phase 1 analysis scripts:
-cd benchmarks
-python3 analyze_results_3way.py
+# Outputs:
+#   results/phaseB/SUMMARY.md
+#   results/phaseB/phaseB_timing.csv
+#   results/phaseB/phaseB_telemetry.csv
+#   results/phaseB/plots/
+#   results/summary/cost_benefit.md
+#   results/summary/phase_breakdown.pdf
 ```
 
 ---
 
-## 9. Push results to branch
+## Step 9: Commit and push
 
 ```bash
 cd ~/SpecAsync-UVM
-git add results/
-git commit -m "Phase 2 results: $(date +%Y%m%d)"
-git push origin claude/specasync-phase2-instrumentation-3r7Jc
+git add benchmarks/tools/ scripts/ EXPERIMENTS.md results/phaseB/
+git commit -m "Phase B: v595 port, T4 sweep results, oracle infrastructure"
+git push origin phaseB-v595-port
+```
+
+---
+
+## Module parameters
+
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `specasync_log_enabled` | 1 | Enable telemetry ring buffers |
+| `specasync_policy` | 1 | 0=disabled, 1=adjacent, 2=stride, 3=markov, 4=oracle |
+| `specasync_offload_depth` | 0 | Async prefetch depth (0=sync only) |
+| `specasync_trace_faults` | 0 | Enable demand-fault VA trace ring |
+| `specasync_oracle_trace_path` | NULL | Path to oracle trace binary |
+
+Change at runtime (no reload needed):
+```bash
+echo 2 | sudo tee /sys/module/nvidia_uvm/parameters/specasync_policy
 ```
 
 ---
 
 ## Troubleshooting
 
-**debugfs files missing:** Module loaded but `specasync_*` files absent —
-`specasync_debugfs_init()` may not have been called. Check
-`dmesg | grep specasync` for init log line.
+**`rmmod nvidia_uvm` fails:** GPU is in use. Stop all CUDA processes first
+(`fuser /dev/nvidia*`), then retry.
 
-**All batches show spec_hits=0:** Hit table may not be wired. Check that
-`specasync_hit_table_consume()` is actually called in service_fault_batch()
-(§3 of PHASE_B_INTEGRATION.md).
+**debugfs files missing:** `specasync_debugfs_init()` not called, or
+`/sys/kernel/debug` not mounted. Check `dmesg | grep specasync`.
 
-**enqueue_overhead_ns always 0:** Enqueue overhead accumulation is in the
-`specasync_enqueue()` function body. Verify it is called with the `sa_rec`
-pointer (not a copy).
+**Hit rate = 0 for p1/p2/p3:** Worker thread not running or enqueue not wired.
+Check `dmesg` for specasync worker-related messages.
 
-**WARN: srcversion mismatch:** You are running the stock NVIDIA driver.
-Reload with `sudo modprobe -r nvidia_uvm && sudo modprobe nvidia_uvm` after
-installing the SpecAsync build.
+**Telemetry shows cross-session garbage (lat >> 1 s):** Ring buffer not cleared
+between sessions. Write `echo 1 > /sys/kernel/debug/specasync_clear`. Fixed in
+the v595 rebuild (clear_write now zeroes the entire ring buffer).
 
-**Parser assertion failure:** Struct sizes changed during integration. Run
-`python3 benchmarks/tools/synthetic_test.py` — it will immediately show any
-size mismatch. Fix by checking BUILD_BUG_ON assertions from §8 of
-PHASE_B_INTEGRATION.md.
+**OOM in GraphBFS:** log₂ ≥ 25 requires > 4 GB host memory for edge buffer.
+Use log₂ ≤ 24.
+
+**Stencil_OvSub too slow:** Each run takes ~38 s for N=25000. This is expected;
+the benchmark stresses the full UVM demand-paging path.

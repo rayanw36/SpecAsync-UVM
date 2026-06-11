@@ -52,8 +52,14 @@ def find_phase2_configs(results_dir):
 
 
 def load_batch_csv(csv_path):
-    """Load a batch_records.csv produced by specasync_parse.py."""
+    """Load a batch_records.csv produced by specasync_parse.py.
+
+    Filters out stale/zero records (ring-buffer wrap-around artefacts):
+    t0_ns == 0 or total_latency_ns <= 0 marks a record as invalid.
+    """
+    MAX_LATENCY = 30e9   # 30 s — cross-session stale records show billions of ns
     recs = []
+    skipped = 0
     with open(csv_path, newline='') as fh:
         for row in csv.DictReader(fh):
             parsed = {}
@@ -62,7 +68,14 @@ def load_batch_csv(csv_path):
                     parsed[k] = float(v)
                 except (ValueError, TypeError):
                     parsed[k] = v
+            tl = parsed.get('total_latency_ns', -1)
+            if parsed.get('t0_ns', 0) == 0 or tl <= 0 or tl > MAX_LATENCY:
+                skipped += 1
+                continue
             recs.append(parsed)
+    if skipped:
+        import sys
+        print(f"[cost_benefit] {csv_path}: skipped {skipped} stale records", file=sys.stderr)
     return recs
 
 

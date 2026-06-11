@@ -77,7 +77,12 @@ RESULT_NAMES = {0: 'null', 1: 'miss', 2: 'hit', 3: 'migration_done', 4: 'throttl
 # ── Parsers ──────────────────────────────────────────────────────────────────
 
 def parse_batch_log(path):
-    """Read binary batch log; return list of dicts (one per record)."""
+    """Read binary batch log; return list of dicts (one per record).
+
+    Filters out stale/zero records that can appear when the ring buffer wraps
+    around and re-reads physical slots written before the last clear_logs call.
+    A valid record must have t0_ns > 0 and t4_ns >= t0_ns.
+    """
     raw  = Path(path).read_bytes()
     n    = len(raw) // BATCH_SIZE
     tail = len(raw) % BATCH_SIZE
@@ -85,10 +90,19 @@ def parse_batch_log(path):
         print(f"Warning: {path}: {tail} trailing byte(s) ignored (incomplete record)",
               file=sys.stderr)
     recs = []
+    stale = 0
     for i in range(n):
         chunk = raw[i * BATCH_SIZE : (i + 1) * BATCH_SIZE]
         vals  = struct.unpack(BATCH_FMT, chunk)
-        recs.append(dict(zip(BATCH_FIELDS, vals)))
+        d = dict(zip(BATCH_FIELDS, vals))
+        total_ns = d['t4_ns'] - d['t0_ns']
+        if d['t0_ns'] == 0 or d['t4_ns'] < d['t0_ns'] or total_ns > 30_000_000_000:
+            stale += 1
+            continue
+        recs.append(d)
+    if stale:
+        print(f"Warning: {path}: {stale}/{n} stale records filtered (ring wrap-around)",
+              file=sys.stderr)
     return recs
 
 
