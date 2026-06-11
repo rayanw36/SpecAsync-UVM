@@ -12,7 +12,7 @@
 #   ./bench_stencil_oversub 63000 20
 
 NVCC      := nvcc
-NVCCFLAGS := -O3 -arch=sm_89
+NVCCFLAGS := -O3 -arch=sm_75
 
 TARGET := bench_stencil_oversub
 

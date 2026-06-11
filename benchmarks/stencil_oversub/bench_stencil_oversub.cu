@@ -78,12 +78,15 @@ static double now_sec(void)
 int main(int argc, char **argv)
 {
     if (argc < 2) {
-        fprintf(stderr, "Usage: %s <N> [iters]\n", argv[0]);
+        fprintf(stderr, "Usage: %s <N> [iters] [balloon_mib]\n", argv[0]);
+        fprintf(stderr, "  balloon_mib: MiB of VRAM to pin (cudaMalloc) before managed alloc\n");
+        fprintf(stderr, "               e.g. 11264 leaves ~4 GiB usable on a 15 GiB GPU\n");
         return EXIT_FAILURE;
     }
 
-    long long N    = atoll(argv[1]);
-    int       iters = (argc >= 3) ? atoi(argv[2]) : 20;
+    long long N         = atoll(argv[1]);
+    int       iters     = (argc >= 3) ? atoi(argv[2]) : 20;
+    long long balloon_mib = (argc >= 4) ? atoll(argv[3]) : 0;
 
     if (N <= 2) {
         fprintf(stderr, "N must be > 2\n");
@@ -94,11 +97,26 @@ int main(int argc, char **argv)
         return EXIT_FAILURE;
     }
 
+    /* Balloon: pin VRAM to force oversubscription at smaller managed sizes */
+    void *balloon = NULL;
+    if (balloon_mib > 0) {
+        size_t balloon_bytes = (size_t)balloon_mib * 1024ULL * 1024ULL;
+        cudaError_t berr = cudaMalloc(&balloon, balloon_bytes);
+        if (berr != cudaSuccess) {
+            fprintf(stderr, "[WARN] Balloon alloc failed (%lld MiB): %s — continuing without\n",
+                    balloon_mib, cudaGetErrorString(berr));
+            balloon = NULL;
+            balloon_mib = 0;
+        } else {
+            fprintf(stderr, "[INFO] Balloon: %lld MiB VRAM pinned\n", balloon_mib);
+        }
+    }
+
     long long elems     = N * N;
     double    grid_gb   = 2.0 * (double)elems * sizeof(float) / 1e9;
 
-    fprintf(stderr, "[INFO] Grid %lldx%lld = %.2f GB managed memory\n",
-            N, N, grid_gb);
+    fprintf(stderr, "[INFO] Grid %lldx%lld = %.2f GB managed memory balloon=%lld MiB\n",
+            N, N, grid_gb, balloon_mib);
 
     float *grid0, *grid1;
     CUDA_CHECK(cudaMallocManaged(&grid0, elems * sizeof(float)));
@@ -146,6 +164,7 @@ int main(int argc, char **argv)
 
     CUDA_CHECK(cudaFree(grid0));
     CUDA_CHECK(cudaFree(grid1));
+    if (balloon) cudaFree(balloon);
 
     return EXIT_SUCCESS;
 }

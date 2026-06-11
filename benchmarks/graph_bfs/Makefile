@@ -16,7 +16,7 @@
 
 NVCC      := nvcc
 # std=c++14 needed for std::sort with a lambda-comparable struct
-NVCCFLAGS := -O3 -arch=sm_89 -std=c++14
+NVCCFLAGS := -O3 -arch=sm_75 -std=c++14
 
 TARGET := bench_graph_bfs
 

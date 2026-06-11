@@ -1,0 +1,2 @@
+Stock srcversion: 85A79790636BBD99BA3E43B
+Stock path: /lib/modules/6.17.0-1017-aws/updates/dkms/nvidia-uvm.ko

@@ -6,11 +6,10 @@
 #   bench_stencil    2D 5-point stencil (NxN float, 20 iters, UVM)
 #   bench_cufft      1D C2C FFT (N complex floats, UVM)
 #
-# Architecture: sm_89 = Ada Lovelace (RTX 4000/5000 series)
-# Adjust -arch= for other hardware (sm_80 = A100, sm_86 = RTX 3000 series)
+# Architecture: sm_75 = Turing (Tesla T4, RTX 2000 series)
 
 NVCC    := nvcc
-NVCCFLAGS := -O3 -arch=sm_89
+NVCCFLAGS := -O3 -arch=sm_75
 
 TARGETS := bench_stream bench_sgemm bench_stencil bench_cufft
 

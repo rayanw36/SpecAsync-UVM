@@ -34,7 +34,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 RESULTS_DIR="$REPO_ROOT/results"
 TOOLS_DIR="$SCRIPT_DIR/tools"
-DEBUGFS_BASE="/sys/kernel/debug/nvidia_uvm"
+DEBUGFS_BASE="/sys/kernel/debug"
 BATCH_LOG="$DEBUGFS_BASE/specasync_log"
 WORKER_LOG="$DEBUGFS_BASE/specasync_worker_log"
 CLEAR_LOG="$DEBUGFS_BASE/specasync_clear"
@@ -45,25 +45,30 @@ MODULE_PARAM_BASE="/sys/module/nvidia_uvm/parameters"
 # and paste the hash here so the pre-flight check works.
 EXPECTED_SRCVERSION="${SPECASYNC_SRCVERSION:-}"   # override via env var
 
-NUM_STAT_RUNS=50
+NUM_STAT_RUNS=20
 WARMUP_RUNS=1
 
 # ── Policy × depth matrix ─────────────────────────────────────────────────────
 # policy: 0=disabled 1=adjacent 2=stride 3=markov   (4=oracle needs trace file)
 # depth:  0=metadata-only 1=residency-prep
 # Skip: (policy=0, depth=1) — nonsensical (disabled + residency offload)
+# Phase B: depth=0 only for initial sweep; depth=1 after validation
 declare -a POLICY_LIST=(0 1 2 3)
-declare -a DEPTH_LIST=(0 1)
+declare -a DEPTH_LIST=(0)
 
 # ── Benchmark definitions ─────────────────────────────────────────────────────
 # Format: "NAME:BINARY:SIZE1,SIZE2,SIZE3"
+# T4-calibrated sizes (sm_75, 15 GiB VRAM, 14 GiB host RAM):
+#   BFS log2=26 requires 8 GB host malloc — OOM; capped at 24.
+#   Oversub uses balloon_mib=11264 to pin ~11 GiB VRAM leaving ~4 GiB usable;
+#     25000→5 GB (1.25x), 28300→6.4 GB (1.6x), 32000→8.2 GB (2.05x) oversubscription.
 declare -a BENCHMARKS=(
     "STREAM:./bench_stream:134217728,268435456,536870912"
     "SGEMM:./bench_sgemm:8192,16384,24000"
     "Stencil:./bench_stencil:8192,16384,24000"
     "cuFFT:./bench_cufft:67108864,134217728,268435456"
-    "Stencil_OvSub:./stencil_oversub/bench_stencil_oversub:51200,55000,63000"
-    "GraphBFS:./graph_bfs/bench_graph_bfs:24,25,26"
+    "Stencil_OvSub:./stencil_oversub/bench_stencil_oversub:25000 20 11264,28300 20 11264,32000 20 11264"
+    "GraphBFS:./graph_bfs/bench_graph_bfs:22,23,24"
 )
 
 # ── Argument parsing ──────────────────────────────────────────────────────────
@@ -226,7 +231,9 @@ for policy in "${POLICY_LIST[@]}"; do
             IFS=',' read -ra sizes <<< "$sizes_str"
 
             for size in "${sizes[@]}"; do
-                OUTDIR="$RESULTS_DIR/$CONFIG/$bname/$size"
+                # Sanitise size string for use as directory name (spaces → _)
+                size_label="${size// /_}"
+                OUTDIR="$RESULTS_DIR/$CONFIG/$bname/$size_label"
 
                 # Idempotency: skip if done unless --force
                 if [[ -d "$OUTDIR" && "$FORCE" -eq 0 ]]; then
