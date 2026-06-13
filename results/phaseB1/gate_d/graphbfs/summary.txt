@@ -1,0 +1,44 @@
+############ Gate D: graphbfs (23), 4 runs/policy ############
+== graphbfs p0 ==
+  batches=1820 demand_faults=16828 enqueued=0 hits=0 drops=0
+  hit_rate(hits/enq)=0.0000
+  service T4-T0 ns: median=256047 mean=325457
+  phase median ns: lock_acq=199  metadata(T1->T2)=255662  residency(T2->T3)=0
+  service median ns — hit-batches=nan (n=0)  miss-batches=256047 (n=1820)
+== graphbfs p1 ==
+  batches=1820 demand_faults=16887 enqueued=1820 hits=3 drops=0
+  hit_rate(hits/enq)=0.0016
+  service T4-T0 ns: median=267422 mean=326162
+  phase median ns: lock_acq=2635  metadata(T1->T2)=264106  residency(T2->T3)=0
+  service median ns — hit-batches=359345 (n=3)  miss-batches=267393 (n=1817)
+  per-hit service delta vs miss: +34.4%  (negative = hit batches faster)
+== graphbfs p2 ==
+  batches=1820 demand_faults=16812 enqueued=1820 hits=2 drops=0
+  hit_rate(hits/enq)=0.0011
+  service T4-T0 ns: median=261693 mean=324286
+  phase median ns: lock_acq=2644  metadata(T1->T2)=259067  residency(T2->T3)=0
+  service median ns — hit-batches=530062 (n=2)  miss-batches=261588 (n=1818)
+  per-hit service delta vs miss: +102.6%  (negative = hit batches faster)
+== graphbfs p3 ==
+  batches=1820 demand_faults=16750 enqueued=1820 hits=8 drops=0
+  hit_rate(hits/enq)=0.0044
+  service T4-T0 ns: median=233916 mean=289596
+  phase median ns: lock_acq=2670  metadata(T1->T2)=230364  residency(T2->T3)=0
+  service median ns — hit-batches=470166 (n=8)  miss-batches=232844 (n=1812)
+  per-hit service delta vs miss: +101.9%  (negative = hit batches faster)
+[oracle] collect trace (policy=0, trace_faults=1)
+[oracle] trace entries: 4431
+[oracle] reload policy=4 with trace
+== graphbfs p4(oracle) ==
+  batches=1820 demand_faults=16691 enqueued=1820 hits=118 drops=0
+  hit_rate(hits/enq)=0.0648
+  service T4-T0 ns: median=235581 mean=311040
+  phase median ns: lock_acq=2834  metadata(T1->T2)=231354  residency(T2->T3)=0
+  service median ns — hit-batches=30082 (n=118)  miss-batches=266870 (n=1702)
+  per-hit service delta vs miss: -88.7%  (negative = hit batches faster)
+[gate_d] wall-time medians (s):
+  p0: median=55.295s  Δvs p0=+0.0%  (n=4)
+  p1: median=55.170s  Δvs p0=-0.2%  (n=4)
+  p2: median=55.260s  Δvs p0=-0.1%  (n=4)
+  p3: median=54.235s  Δvs p0=-1.9%  (n=4)
+  p4: median=54.425s  Δvs p0=-1.6%  (n=4)
