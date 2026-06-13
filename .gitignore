@@ -46,3 +46,6 @@ results/phaseB1/hit_probe/*.bin
 tests/coalesce_probe
 results/phaseB1/oracle_probe/*.bin
 results/phaseB1/oracle_coalesce/*.bin
+results/phaseB1/gate_c/*.csv
+results/phaseB1/gate_d/**/*.bin
+results/phaseB1/gate_d/**/oracle_trace.bin

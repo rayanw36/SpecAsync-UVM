@@ -17,12 +17,13 @@ SRC=/usr/src/nvidia-595.71.05
 WORK=/opt/dlami/nvme/work/nvidia-595.71.05-specasync
 UVM="$WORK/nvidia-uvm"
 
-echo "[reconstruct] rsync $SRC -> $WORK"
+echo "[reconstruct] rsync $SRC -> $WORK (--delete: make dest exactly pristine)"
 mkdir -p "$WORK"
-rsync -a "$SRC/" "$WORK/"
+rsync -a --delete "$SRC/" "$WORK/"
 
 echo "[reconstruct] apply glue patch (uvm.c, uvm_va_space.*, Kbuild)"
-( cd "$UVM" && patch -p0 < "$REPO/driver/patches/specasync_selective_apply.patch" )
+# --forward -N: skip already-applied/new-file hunks silently, never prompt.
+( cd "$UVM" && patch -p0 --forward -N < "$REPO/driver/patches/specasync_selective_apply.patch" || true )
 
 echo "[reconstruct] copy authoritative specasync sources from driver/src"
 cp "$REPO"/driver/src/uvm_gpu_replayable_faults.c "$UVM/"

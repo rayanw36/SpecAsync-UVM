@@ -48,7 +48,7 @@ module_param(specasync_oracle_trace_path, charp, 0444);
 MODULE_PARM_DESC(specasync_log_enabled,
 	"Enable telemetry ring buffers (1=enabled [default], 0=disabled)");
 MODULE_PARM_DESC(specasync_policy,
-	"Speculation policy: 0=disabled 1=adjacent[default] 2=stride 3=markov 4=oracle");
+	"Speculation policy: 0=disabled 1=adjacent[default] 2=stride 3=markov 4=oracle 5=null(worker-no-work)");
 MODULE_PARM_DESC(specasync_offload_depth,
 	"Offload depth: 0=metadata-only[default] 1=residency-prep 2=stub(unsafe)");
 MODULE_PARM_DESC(specasync_oracle_trace_path,

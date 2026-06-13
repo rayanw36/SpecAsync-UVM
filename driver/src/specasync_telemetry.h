@@ -77,6 +77,14 @@ struct specasync_work_record {
 #define SPECASYNC_RESULT_MIGRATION_DONE 3
 #define SPECASYNC_RESULT_THROTTLED      4
 
+/* Speculation policy values for the specasync_policy module param. */
+#define SPECASYNC_POLICY_DISABLED 0
+#define SPECASYNC_POLICY_ADJACENT 1
+#define SPECASYNC_POLICY_STRIDE   2
+#define SPECASYNC_POLICY_MARKOV   3
+#define SPECASYNC_POLICY_ORACLE   4
+#define SPECASYNC_POLICY_NULL     5   /* Gate C: worker wakes/dequeues, no lookup */
+
 /* ── Ring buffer (single-producer / single-consumer via spinlock fallback) ─
  *
  * Sized for 100k records each.  Lock-free SPSC would be cleaner but the

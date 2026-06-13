@@ -194,6 +194,11 @@ static u64 specasync_predict_next(uvm_va_space_t *va_space, u64 fault_addr,
 			return mk->table[slot].next_page << PAGE_SHIFT;
 		return fault_addr + PAGE_SIZE;
 
+	case 5: /* null — Gate C control: enqueue a worker that does no work.
+		 * Return a non-zero addr so specasync_enqueue() fires; the worker
+		 * checks the policy and skips the lookup (see specasync_worker_fn). */
+		return fault_addr + PAGE_SIZE;
+
 	case 4: /* oracle */
 		/*
 		 * Gate B fix: the demand stream consumes `batch_faults` trace
@@ -233,6 +238,17 @@ static void specasync_worker_fn(struct work_struct *work)
 	wrec.va_addr       = item->speculative_addr;
 	wrec.policy_used   = specasync_policy;
 
+	/*
+	 * Null policy (5): the worker wakes and dequeues but performs ZERO
+	 * lookup/work.  This is the Gate C control that isolates "the worker
+	 * thread exists and runs" from "the worker does a VA-block lookup",
+	 * needed to interpret the STREAM worker-presence effect.
+	 */
+	if (specasync_policy == SPECASYNC_POLICY_NULL) {
+		wrec.result = SPECASYNC_RESULT_NULL;
+		goto out;
+	}
+
 	/* Metadata-only speculative lookup: acquire read lock, find block, release */
 	uvm_va_space_down_read(item->va_space);
 	status = uvm_va_block_find(item->va_space, item->speculative_addr, &va_block);
@@ -247,6 +263,7 @@ static void specasync_worker_fn(struct work_struct *work)
 		wrec.result = SPECASYNC_RESULT_MISS;
 	}
 
+out:
 	wrec.completion_ts_ns = ktime_get_ns();
 	specasync_work_ring_push(&wrec);
 
