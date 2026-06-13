@@ -77,7 +77,7 @@ All runs `setarch -R`, telemetry on, fixed module `81CDE275`. Hit rate = hits/en
 |-----------|------|-------:|-------:|-------:|--------------------:|---------:|---------:|-----------------|
 | Stencil   | 24000 | 0.0000 | 0.0003 | 0.0005 | **0.0066** | +0.9 % | +0.2 % | no (+1.8 %) |
 | GraphBFS  | 23 | 0.0016 | 0.0044 | 0.0044 | **0.0648** | −0.2 % | **−1.6 %** | no |
-| Stencil_OvSub | 28300 20 11264 | _pending_ | | | | | | |
+| Stencil_OvSub | 28300 20 11264 | 0.0006 | 0.0007 | 0.0025 | **0.0026** | +1.6 % | −0.1 % | no |
 
 **The "100× slower" oracle does NOT reproduce.** Phase B reported GraphBFS oracle
 +10,027 %. Under controlled measurement (setarch -R, matched per-run trace) the
@@ -95,7 +95,24 @@ fault streams. **No policy yields wall-clock speedup** (all within ±2 % of base
 i.e. noise), and hits do not reduce per-batch service time — the metadata-only
 mechanism has no consumable product, so its speedup ceiling is ~0 by construction.
 
-_(Stencil_OvSub row filled when its run completes.)_
+Across all three fault-heavy workloads (Stencil, GraphBFS, Stencil_OvSub × p0–p4):
+**no policy produced a wall-clock speedup** (all within ±2 %), per-hit service time
+shows **hits save no time**, and cost-benefit is **net-negative for every policy**
+(enqueue overhead ~2.4–2.8 µs/fault dominates). The fixed oracle predicts genuinely
+(hit rate ≫ p1–p3 on Stencil/GraphBFS; it only ties p3 under oversubscription, where
+the fault stream is thrash-dominated and unpredictable) — and still yields nothing.
+
+---
+
+## What changed vs the original Phase B writeup
+
+| original claim | corrected |
+|---|---|
+| oracle 0.000 hits everywhere (counter suspect) | counter sound; oracle had a real cursor-desync + ASLR bug, now **fixed** → hit rate ≫ p1–p3 |
+| oracle up to 100× slower | **not reproduced** in any ko under controlled measurement; oracle ≈ baseline; original was a sweep artifact |
+| STREAM −8.8 % speedup | **host noise**; interleaved it is +1.5–2 % slowdown = worker presence (null reproduces it) |
+| metadata ≈ 99 % of service time | **timer artifact**; residency phase is zero-width and migration DMA is off-window |
+| near-zero p1–p3 hits, negative cost-benefit (headline) | **confirmed and explained** — real prediction failure under prefetch/coalescing + zero-saving metadata-only hits |
 
 ---
 

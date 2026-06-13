@@ -11,7 +11,15 @@ wall Δ vs p0 from median of N timed runs.
 |-----------|------|-----:|---:|---:|---:|--------------:|---------:|---:|---:|-------------:|
 | Stencil   | 24000 | 6 | 0.0000 | 0.0003 | 0.0005 | **0.0066** | +0.9 % | +0.6 % | +0.9 % | **+0.2 %** |
 | GraphBFS  | 23 | 4 | 0.0016 | 0.0011 | 0.0044 | **0.0648** | −0.2 % | −0.1 % | −1.9 % | **−1.6 %** |
-| Stencil_OvSub | 28300 20 11264 | 4 | _pending_ | | | | | | | |
+| Stencil_OvSub | 28300 20 11264 | 4 | 0.0006 | 0.0007 | 0.0025 | **0.0026** | +1.6 % | −0.2 % | −0.1 % | **−0.1 %** |
+
+**Oversubscription collapses the oracle advantage.** On Stencil_OvSub the oracle
+(0.0026) barely beats p3 (0.0025) — unlike Stencil/GraphBFS where it dominated. The
+oversubscribed fault stream is **eviction/thrash-dominated** (trace = 180,094 entries
+for ~4,350 faults/run: the same pages fault repeatedly as they are evicted and
+re-migrated), so it is not predictable and the one-prediction-per-batch oracle cannot
+keep pace. A legitimate finding: the speculation ceiling is lowest exactly where
+memory pressure is highest.
 
 ## Per-hit service-time saving (does a hit save time?)
 
@@ -38,6 +46,7 @@ dominates while the hit term is ≈0:
 |-----------|---:|---:|---:|---:|
 | Stencil   | −2427 | −2392 | −2487 | −2428 |
 | GraphBFS  | −2798 | −2740 | −2287 | −1869 |
+| Stencil_OvSub | −2763 | −2417 | −2373 | −2346 |
 
 (ns/fault; caveat: Δsvc is CPU-side latency only — migration excluded per Gate C — so
 even this telemetry-bounded figure overstates any benefit.)
