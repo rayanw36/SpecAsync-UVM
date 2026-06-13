@@ -9,9 +9,10 @@
 set -euo pipefail
 
 BENCH_DIR="$(cd "$(dirname "$0")/../benchmarks" && pwd)"
-ORACLE_DIR="${HOME}/SpecAsync-UVM/oracles"
-RESULTS_DIR="${HOME}/SpecAsync-UVM/results/p4_d0"
-DEBUGFS="/sys/kernel/debug"
+UBUNTU_HOME="/home/ubuntu"
+ORACLE_DIR="${UBUNTU_HOME}/SpecAsync-UVM/oracles"
+RESULTS_DIR="${UBUNTU_HOME}/SpecAsync-UVM/results/p4_d0"
+DEBUGFS="/sys/kernel/debug/specasync"
 TOOLS_DIR="${BENCH_DIR}/tools"
 PARSE="${TOOLS_DIR}/specasync_parse.py"
 
@@ -35,10 +36,30 @@ if [[ "${ACTUAL_SRCVER}" == "85A79790636BBD99BA3E43B" ]]; then
     exit 1
 fi
 
-echo "[oracle_sweep] Setting policy=4 ..."
-echo 1 | sudo tee /sys/module/nvidia_uvm/parameters/specasync_log_enabled > /dev/null
-echo 4 | sudo tee /sys/module/nvidia_uvm/parameters/specasync_policy > /dev/null
-echo 0 | sudo tee /sys/module/nvidia_uvm/parameters/specasync_trace_faults > /dev/null
+echo "[oracle_sweep] Policy=4 is set per module reload (oracle trace loaded at init)."
+
+UBUNTU_HOME="/home/ubuntu"
+EBS_KO="${UBUNTU_HOME}/SpecAsync-UVM/driver/build/nvidia-uvm-specasync.ko"
+NVME_KO="/opt/dlami/nvme/work/nvidia-595.71.05-specasync/nvidia-uvm.ko"
+# Use EBS copy when NVMe is wiped (stop/start clears instance store)
+if [[ -f "${NVME_KO}" ]]; then
+    PATCHED_KO="${NVME_KO}"
+else
+    PATCHED_KO="${EBS_KO}"
+fi
+STOCK_KO="/lib/modules/$(uname -r)/updates/dkms/nvidia-uvm.ko"
+echo "[oracle_sweep] Using module: ${PATCHED_KO}"
+
+reload_module_with_trace() {
+    local trace_path="$1"
+    rmmod nvidia_uvm 2>/dev/null || true
+    if ! insmod "${PATCHED_KO}" specasync_oracle_trace_path="${trace_path}" \
+                                specasync_policy=4 specasync_log_enabled=1; then
+        echo "[oracle_sweep] ERROR: insmod failed, restoring stock module" >&2
+        insmod "${STOCK_KO}" || true
+        exit 1
+    fi
+}
 
 for entry in "${BENCHMARKS[@]}"; do
     IFS=':' read -r name binary size_str <<< "${entry}"
@@ -53,14 +74,12 @@ for entry in "${BENCHMARKS[@]}"; do
     outdir="${RESULTS_DIR}/${name}/${size_label}"
     mkdir -p "${outdir}"
 
-    # Point module to oracle trace for this benchmark
-    echo "${oracle_bin}" | sudo tee /sys/module/nvidia_uvm/parameters/specasync_oracle_trace_path > /dev/null
+    # Reload module with this benchmark's oracle trace (trace is loaded at init only)
+    echo "[p4_d0] Reloading module with oracle trace for ${name} ..."
+    reload_module_with_trace "${oracle_bin}"
 
     echo ""
     echo "[p4_d0] ${name} size=${size_str}"
-
-    # Clear ring buffers
-    echo 1 > "${DEBUGFS}/specasync_clear"
 
     # Warmup
     echo "  Warmup (${WARMUP_RUNS} run(s)) ..."
@@ -68,7 +87,6 @@ for entry in "${BENCHMARKS[@]}"; do
         # shellcheck disable=SC2086
         ${binary} ${size_str} > /dev/null 2>&1 || true
     done
-    echo 1 > "${DEBUGFS}/specasync_clear"
 
     # Timed runs
     echo "  Timing (${NUM_STAT_RUNS} runs) ..."
@@ -88,22 +106,20 @@ for entry in "${BENCHMARKS[@]}"; do
     cp "${DEBUGFS}/specasync_log"        "${outdir}/raw_batch.bin" 2>/dev/null || true
     cp "${DEBUGFS}/specasync_worker_log" "${outdir}/raw_worker.bin" 2>/dev/null || true
 
-    # Parse telemetry
+    # Parse telemetry (batch_log is positional; worker via --work-log; CSVs land in --out-dir)
     if [[ -s "${outdir}/raw_batch.bin" ]]; then
-        python3 "${PARSE}" batch "${outdir}/raw_batch.bin" \
-            --out "${outdir}/batch_records.csv" 2>&1 || true
-    fi
-    if [[ -s "${outdir}/raw_worker.bin" ]]; then
-        python3 "${PARSE}" work "${outdir}/raw_worker.bin" \
-            --out "${outdir}/work_records.csv" 2>&1 || true
+        python3 "${PARSE}" "${outdir}/raw_batch.bin" \
+            --work-log "${outdir}/raw_worker.bin" \
+            --out-dir "${outdir}" 2>&1 || true
     fi
 
-    echo 1 > "${DEBUGFS}/specasync_clear"
     echo "  Done → ${outdir}"
 done
 
-# Restore policy=1 (adjacent) for future experiments
-echo 1 | sudo tee /sys/module/nvidia_uvm/parameters/specasync_policy > /dev/null
+# Reload module without oracle trace, restore policy=1 for future experiments
+rmmod nvidia_uvm 2>/dev/null || true
+insmod "${PATCHED_KO}" specasync_policy=1 specasync_log_enabled=1 || \
+    insmod "${STOCK_KO}" || true
 
 echo ""
 echo "=== Oracle sweep complete ==="

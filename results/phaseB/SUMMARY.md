@@ -1,0 +1,159 @@
+# SpecAsync-UVM Phase B — Results Summary
+
+## Reviewer Comment C4: Expanded Evaluation (T4, 5 benchmarks)
+
+**Platform:** AWS g4dn.xlarge · Tesla T4 (sm_75) · 15 GiB VRAM · 14 GiB host RAM · Driver 595.71.05
+
+**Methodology:** 20 runs per config (N reduced from 50 for slow benchmarks), 1 warm-up, mean ± std.
+
+- **GraphBFS** size=22  p1 vs p0: 269.5ms → 273.1ms  (+1.3%)
+- **GraphBFS** size=23  p1 vs p0: 523.9ms → 528.8ms  (+0.9%)
+- **GraphBFS** size=24  p1 vs p0: 1034.3ms → 1039.2ms  (+0.5%)
+- **SGEMM** size=16384  p1 vs p0: 2241.6ms → 2242.3ms  (+0.0%)
+- **SGEMM** size=24000  p1 vs p0: 6866.5ms → 6888.9ms  (+0.3%)
+- **SGEMM** size=8192  p1 vs p0: 366.2ms → 368.6ms  (+0.7%)
+- **STREAM** size=134217728  p1 vs p0: 380.8ms → 347.1ms  (-8.9%)
+- **STREAM** size=268435456  p1 vs p0: 738.5ms → 674.9ms  (-8.6%)
+- **STREAM** size=536870912  p1 vs p0: 1307.8ms → 1320.9ms  (+1.0%)
+- **Stencil** size=16384  p1 vs p0: 687.1ms → 687.7ms  (+0.1%)
+- **Stencil** size=24000  p1 vs p0: 1514.2ms → 1527.5ms  (+0.9%)
+- **Stencil** size=8192  p1 vs p0: 192.1ms → 193.0ms  (+0.4%)
+- **Stencil_OvSub** size=25000_20_11264  p1 vs p0: 38819.5ms → 39029.1ms  (+0.5%)
+- **Stencil_OvSub** size=28300_20_11264  p1 vs p0: 49469.9ms → 50067.9ms  (+1.2%)
+- **Stencil_OvSub** size=32000_20_11264  p1 vs p0: 63688.1ms → 64851.2ms  (+1.8%)
+- **cuFFT** size=134217728  p1 vs p0: 229.4ms → 230.7ms  (+0.5%)
+- **cuFFT** size=268435456  p1 vs p0: 462.2ms → 460.7ms  (-0.3%)
+- **cuFFT** size=67108864  p1 vs p0: 116.9ms → 116.6ms  (-0.2%)
+- **GraphBFS** size=22  p2 vs p0: 269.5ms → 271.9ms  (+0.9%)
+- **GraphBFS** size=23  p2 vs p0: 523.9ms → 528.4ms  (+0.9%)
+- **GraphBFS** size=24  p2 vs p0: 1034.3ms → 1038.1ms  (+0.4%)
+- **SGEMM** size=16384  p2 vs p0: 2241.6ms → 2256.4ms  (+0.7%)
+- **SGEMM** size=24000  p2 vs p0: 6866.5ms → 6879.8ms  (+0.2%)
+- **SGEMM** size=8192  p2 vs p0: 366.2ms → 370.9ms  (+1.3%)
+- **STREAM** size=134217728  p2 vs p0: 380.8ms → 347.4ms  (-8.8%)
+- **STREAM** size=268435456  p2 vs p0: 738.5ms → 672.8ms  (-8.9%)
+- **STREAM** size=536870912  p2 vs p0: 1307.8ms → 1325.3ms  (+1.3%)
+- **Stencil** size=16384  p2 vs p0: 687.1ms → 689.6ms  (+0.4%)
+- **Stencil** size=24000  p2 vs p0: 1514.2ms → 1536.7ms  (+1.5%)
+- **Stencil** size=8192  p2 vs p0: 192.1ms → 191.7ms  (-0.2%)
+- **Stencil_OvSub** size=25000_20_11264  p2 vs p0: 38819.5ms → 39076.6ms  (+0.7%)
+- **Stencil_OvSub** size=28300_20_11264  p2 vs p0: 49469.9ms → 50080.7ms  (+1.2%)
+- **Stencil_OvSub** size=32000_20_11264  p2 vs p0: 63688.1ms → 64782.8ms  (+1.7%)
+- **cuFFT** size=134217728  p2 vs p0: 229.4ms → 230.7ms  (+0.6%)
+- **cuFFT** size=268435456  p2 vs p0: 462.2ms → 465.4ms  (+0.7%)
+- **cuFFT** size=67108864  p2 vs p0: 116.9ms → 118.1ms  (+1.1%)
+- **GraphBFS** size=22  p3 vs p0: 269.5ms → 273.5ms  (+1.5%)
+- **GraphBFS** size=23  p3 vs p0: 523.9ms → 528.3ms  (+0.8%)
+- **GraphBFS** size=24  p3 vs p0: 1034.3ms → 1040.8ms  (+0.6%)
+- **SGEMM** size=16384  p3 vs p0: 2241.6ms → 2270.9ms  (+1.3%)
+- **SGEMM** size=24000  p3 vs p0: 6866.5ms → 6973.2ms  (+1.6%)
+- **SGEMM** size=8192  p3 vs p0: 366.2ms → 371.1ms  (+1.4%)
+- **STREAM** size=134217728  p3 vs p0: 380.8ms → 347.1ms  (-8.9%)
+- **STREAM** size=268435456  p3 vs p0: 738.5ms → 673.3ms  (-8.8%)
+- **STREAM** size=536870912  p3 vs p0: 1307.8ms → 1317.3ms  (+0.7%)
+- **Stencil** size=16384  p3 vs p0: 687.1ms → 686.8ms  (-0.0%)
+- **Stencil** size=24000  p3 vs p0: 1514.2ms → 1530.5ms  (+1.1%)
+- **Stencil** size=8192  p3 vs p0: 192.1ms → 191.1ms  (-0.6%)
+- **Stencil_OvSub** size=25000_20_11264  p3 vs p0: 38819.5ms → 39012.2ms  (+0.5%)
+- **Stencil_OvSub** size=28300_20_11264  p3 vs p0: 49469.9ms → 50122.5ms  (+1.3%)
+- **Stencil_OvSub** size=32000_20_11264  p3 vs p0: 63688.1ms → 64696.9ms  (+1.6%)
+- **cuFFT** size=134217728  p3 vs p0: 229.4ms → 229.1ms  (-0.2%)
+- **cuFFT** size=268435456  p3 vs p0: 462.2ms → 461.1ms  (-0.2%)
+- **cuFFT** size=67108864  p3 vs p0: 116.9ms → 115.0ms  (-1.6%)
+- **GraphBFS** size=23  p4 vs p0: 523.9ms → 53057.9ms  (+10027.2%)
+- **SGEMM** size=24000  p4 vs p0: 6866.5ms → 15880.4ms  (+131.3%)
+- **STREAM** size=268435456  p4 vs p0: 738.5ms → 2328.2ms  (+215.3%)
+- **Stencil** size=24000  p4 vs p0: 1514.2ms → 4111.9ms  (+171.6%)
+- **Stencil_OvSub** size=28300_20_11264  p4 vs p0: 49469.9ms → 53714.9ms  (+8.6%)
+- **cuFFT** size=268435456  p4 vs p0: 462.2ms → 1751.9ms  (+279.0%)
+
+## Reviewer Comment C3: Critical-Path Evidence (Fault Latency)
+
+- **GraphBFS** size=22 p0: hit_rate=0.000 lat_median=226.4µs lock_acq_median=0.2µs metadata_median=226.1µs
+- **GraphBFS** size=23 p0: hit_rate=0.000 lat_median=229.7µs lock_acq_median=0.2µs metadata_median=229.4µs
+- **GraphBFS** size=24 p0: hit_rate=0.000 lat_median=199.4µs lock_acq_median=0.2µs metadata_median=199.1µs
+- **SGEMM** size=16384 p0: hit_rate=0.000 lat_median=46.5µs lock_acq_median=0.1µs metadata_median=46.2µs
+- **SGEMM** size=24000 p0: hit_rate=0.000 lat_median=49.9µs lock_acq_median=0.1µs metadata_median=49.6µs
+- **SGEMM** size=8192 p0: hit_rate=0.000 lat_median=40.3µs lock_acq_median=0.1µs metadata_median=40.0µs
+- **STREAM** size=134217728 p0: hit_rate=0.000 lat_median=156.7µs lock_acq_median=0.2µs metadata_median=156.3µs
+- **STREAM** size=268435456 p0: hit_rate=0.000 lat_median=168.3µs lock_acq_median=0.2µs metadata_median=168.0µs
+- **STREAM** size=536870912 p0: hit_rate=0.000 lat_median=125.0µs lock_acq_median=0.1µs metadata_median=124.8µs
+- **Stencil** size=16384 p0: hit_rate=0.000 lat_median=62.6µs lock_acq_median=0.2µs metadata_median=62.3µs
+- **Stencil** size=24000 p0: hit_rate=0.000 lat_median=61.1µs lock_acq_median=0.1µs metadata_median=60.8µs
+- **Stencil** size=8192 p0: hit_rate=0.000 lat_median=57.0µs lock_acq_median=0.2µs metadata_median=56.6µs
+- **Stencil_OvSub** size=25000_20_11264 p0: hit_rate=0.000 lat_median=57.2µs lock_acq_median=0.2µs metadata_median=56.9µs
+- **Stencil_OvSub** size=28300_20_11264 p0: hit_rate=0.000 lat_median=54.9µs lock_acq_median=0.2µs metadata_median=54.6µs
+- **Stencil_OvSub** size=32000_20_11264 p0: hit_rate=0.000 lat_median=48.2µs lock_acq_median=0.1µs metadata_median=47.9µs
+- **cuFFT** size=134217728 p0: hit_rate=0.000 lat_median=424.5µs lock_acq_median=0.2µs metadata_median=424.2µs
+- **cuFFT** size=268435456 p0: hit_rate=0.000 lat_median=429.4µs lock_acq_median=0.2µs metadata_median=428.9µs
+- **cuFFT** size=67108864 p0: hit_rate=0.000 lat_median=397.0µs lock_acq_median=0.2µs metadata_median=395.9µs
+- **GraphBFS** size=22 p1: hit_rate=0.002 lat_median=232.9µs lock_acq_median=2.5µs metadata_median=229.4µs
+- **GraphBFS** size=23 p1: hit_rate=0.001 lat_median=248.3µs lock_acq_median=2.6µs metadata_median=245.9µs
+- **GraphBFS** size=24 p1: hit_rate=0.001 lat_median=218.2µs lock_acq_median=2.4µs metadata_median=215.6µs
+- **SGEMM** size=16384 p1: hit_rate=0.001 lat_median=52.1µs lock_acq_median=2.4µs metadata_median=49.6µs
+- **SGEMM** size=24000 p1: hit_rate=0.003 lat_median=54.2µs lock_acq_median=2.5µs metadata_median=51.6µs
+- **SGEMM** size=8192 p1: hit_rate=0.000 lat_median=47.9µs lock_acq_median=2.3µs metadata_median=45.6µs
+- **STREAM** size=134217728 p1: hit_rate=0.004 lat_median=107.9µs lock_acq_median=2.2µs metadata_median=105.5µs
+- **STREAM** size=268435456 p1: hit_rate=0.011 lat_median=118.5µs lock_acq_median=2.2µs metadata_median=116.1µs
+- **STREAM** size=536870912 p1: hit_rate=0.016 lat_median=129.4µs lock_acq_median=2.5µs metadata_median=126.8µs
+- **Stencil** size=16384 p1: hit_rate=0.000 lat_median=66.1µs lock_acq_median=2.4µs metadata_median=63.4µs
+- **Stencil** size=24000 p1: hit_rate=0.000 lat_median=65.2µs lock_acq_median=2.3µs metadata_median=62.8µs
+- **Stencil** size=8192 p1: hit_rate=0.000 lat_median=53.5µs lock_acq_median=2.4µs metadata_median=51.0µs
+- **Stencil_OvSub** size=25000_20_11264 p1: hit_rate=0.001 lat_median=61.8µs lock_acq_median=2.5µs metadata_median=59.1µs
+- **Stencil_OvSub** size=28300_20_11264 p1: hit_rate=0.001 lat_median=58.1µs lock_acq_median=2.5µs metadata_median=55.4µs
+- **Stencil_OvSub** size=32000_20_11264 p1: hit_rate=0.003 lat_median=52.3µs lock_acq_median=2.5µs metadata_median=49.6µs
+- **cuFFT** size=134217728 p1: hit_rate=0.000 lat_median=427.2µs lock_acq_median=2.7µs metadata_median=424.0µs
+- **cuFFT** size=268435456 p1: hit_rate=0.000 lat_median=426.5µs lock_acq_median=2.5µs metadata_median=424.0µs
+- **cuFFT** size=67108864 p1: hit_rate=0.000 lat_median=404.1µs lock_acq_median=2.6µs metadata_median=400.8µs
+- **GraphBFS** size=22 p2: hit_rate=0.002 lat_median=234.1µs lock_acq_median=2.6µs metadata_median=231.6µs
+- **GraphBFS** size=23 p2: hit_rate=0.004 lat_median=231.7µs lock_acq_median=2.4µs metadata_median=229.4µs
+- **GraphBFS** size=24 p2: hit_rate=0.002 lat_median=214.6µs lock_acq_median=2.4µs metadata_median=211.8µs
+- **SGEMM** size=16384 p2: hit_rate=0.001 lat_median=61.6µs lock_acq_median=2.5µs metadata_median=58.9µs
+- **SGEMM** size=24000 p2: hit_rate=0.002 lat_median=55.3µs lock_acq_median=2.5µs metadata_median=52.6µs
+- **SGEMM** size=8192 p2: hit_rate=0.001 lat_median=46.5µs lock_acq_median=2.4µs metadata_median=43.5µs
+- **STREAM** size=134217728 p2: hit_rate=0.007 lat_median=109.8µs lock_acq_median=2.5µs metadata_median=107.2µs
+- **STREAM** size=268435456 p2: hit_rate=0.017 lat_median=114.6µs lock_acq_median=2.4µs metadata_median=111.9µs
+- **STREAM** size=536870912 p2: hit_rate=0.026 lat_median=127.2µs lock_acq_median=2.6µs metadata_median=124.4µs
+- **Stencil** size=16384 p2: hit_rate=0.000 lat_median=66.2µs lock_acq_median=2.5µs metadata_median=63.5µs
+- **Stencil** size=24000 p2: hit_rate=0.000 lat_median=66.2µs lock_acq_median=2.3µs metadata_median=63.7µs
+- **Stencil** size=8192 p2: hit_rate=0.000 lat_median=52.5µs lock_acq_median=2.4µs metadata_median=50.0µs
+- **Stencil_OvSub** size=25000_20_11264 p2: hit_rate=0.001 lat_median=61.1µs lock_acq_median=2.6µs metadata_median=58.2µs
+- **Stencil_OvSub** size=28300_20_11264 p2: hit_rate=0.001 lat_median=58.1µs lock_acq_median=2.5µs metadata_median=55.3µs
+- **Stencil_OvSub** size=32000_20_11264 p2: hit_rate=0.003 lat_median=53.4µs lock_acq_median=2.4µs metadata_median=50.7µs
+- **cuFFT** size=134217728 p2: hit_rate=0.001 lat_median=424.0µs lock_acq_median=2.6µs metadata_median=421.4µs
+- **cuFFT** size=268435456 p2: hit_rate=0.000 lat_median=447.6µs lock_acq_median=2.7µs metadata_median=444.9µs
+- **cuFFT** size=67108864 p2: hit_rate=0.255 lat_median=421.0µs lock_acq_median=2.8µs metadata_median=416.9µs
+- **GraphBFS** size=22 p3: hit_rate=0.009 lat_median=235.9µs lock_acq_median=2.7µs metadata_median=232.7µs
+- **GraphBFS** size=23 p3: hit_rate=0.007 lat_median=229.2µs lock_acq_median=2.6µs metadata_median=226.6µs
+- **GraphBFS** size=24 p3: hit_rate=0.002 lat_median=218.6µs lock_acq_median=2.4µs metadata_median=216.2µs
+- **SGEMM** size=16384 p3: hit_rate=0.001 lat_median=48.9µs lock_acq_median=2.6µs metadata_median=46.3µs
+- **SGEMM** size=24000 p3: hit_rate=0.004 lat_median=55.5µs lock_acq_median=2.4µs metadata_median=52.9µs
+- **SGEMM** size=8192 p3: hit_rate=0.000 lat_median=47.6µs lock_acq_median=2.4µs metadata_median=45.3µs
+- **STREAM** size=134217728 p3: hit_rate=0.004 lat_median=107.2µs lock_acq_median=2.5µs metadata_median=104.5µs
+- **STREAM** size=268435456 p3: hit_rate=0.012 lat_median=117.4µs lock_acq_median=2.5µs metadata_median=114.8µs
+- **STREAM** size=536870912 p3: hit_rate=0.018 lat_median=129.9µs lock_acq_median=2.3µs metadata_median=127.3µs
+- **Stencil** size=16384 p3: hit_rate=0.001 lat_median=64.7µs lock_acq_median=2.6µs metadata_median=62.0µs
+- **Stencil** size=24000 p3: hit_rate=0.000 lat_median=65.7µs lock_acq_median=2.3µs metadata_median=63.3µs
+- **Stencil** size=8192 p3: hit_rate=0.002 lat_median=51.2µs lock_acq_median=2.6µs metadata_median=48.5µs
+- **Stencil_OvSub** size=25000_20_11264 p3: hit_rate=0.006 lat_median=60.1µs lock_acq_median=2.6µs metadata_median=57.2µs
+- **Stencil_OvSub** size=28300_20_11264 p3: hit_rate=0.003 lat_median=56.9µs lock_acq_median=2.6µs metadata_median=54.1µs
+- **Stencil_OvSub** size=32000_20_11264 p3: hit_rate=0.021 lat_median=51.9µs lock_acq_median=2.6µs metadata_median=49.1µs
+- **cuFFT** size=134217728 p3: hit_rate=0.000 lat_median=418.6µs lock_acq_median=2.6µs metadata_median=415.7µs
+- **cuFFT** size=268435456 p3: hit_rate=0.000 lat_median=417.5µs lock_acq_median=2.5µs metadata_median=414.9µs
+- **cuFFT** size=67108864 p3: hit_rate=0.000 lat_median=374.2µs lock_acq_median=2.7µs metadata_median=371.3µs
+- **GraphBFS** size=23 p4: hit_rate=0.000 lat_median=261.7µs lock_acq_median=2.5µs metadata_median=258.4µs
+- **SGEMM** size=24000 p4: hit_rate=0.000 lat_median=58.0µs lock_acq_median=2.4µs metadata_median=55.5µs
+- **STREAM** size=268435456 p4: hit_rate=0.000 lat_median=112.3µs lock_acq_median=2.4µs metadata_median=109.7µs
+- **Stencil** size=24000 p4: hit_rate=0.000 lat_median=63.4µs lock_acq_median=2.5µs metadata_median=60.8µs
+- **Stencil_OvSub** size=28300_20_11264 p4: hit_rate=0.000 lat_median=58.2µs lock_acq_median=2.5µs metadata_median=55.3µs
+- **cuFFT** size=268435456 p4: hit_rate=0.000 lat_median=422.0µs lock_acq_median=2.7µs metadata_median=419.2µs
+
+## Platform Notes: T4 vs RTX 5070 Ti
+
+- T4 (Turing sm_75): PCIe 3.0, 15.36 GiB VRAM, ~320 GB/s memory BW.
+- Original experiments used RTX 5070 Ti (Ada Lovelace sm_89): PCIe 5.0, higher peak BW.
+- T4 shows higher fault latency (µs range) due to slower PCIe bandwidth and older fault-service pipeline.
+- Speculation benefit expected to be *more pronounced* on T4 due to higher latency baseline (more headroom to save).
+- Oversubscription experiments use balloon trick: 11 GiB VRAM pinned leaving ~4 GiB usable; sizes 25000/28300/32000 give 1.25×/1.6×/2.05× oversubscription.
+- BFS sizes capped at log₂=24 (log₂=25/26 OOM: 4.3/8 GB host malloc for edge buffer).
+

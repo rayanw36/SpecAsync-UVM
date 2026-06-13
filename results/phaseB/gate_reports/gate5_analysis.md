@@ -1,7 +1,11 @@
 # Gate 5 — Cost-Benefit Analysis and Final Report
 
-**Date:** 2026-06-11
-**Status:** PENDING (requires sweep completion and analysis)
+**Date:** 2026-06-11 (planned) · 2026-06-13 (completed)
+**Status:** PASS — analysis run over p0–p4; all output files regenerated 2026-06-13
+
+All output files below were produced by `analyze_phaseB.py` + `cost_benefit.py`
+(78 timing + 78 telemetry configs loaded, incl. p4). SUMMARY.md, both aggregated
+CSVs, 12 plots, cost_benefit.md, and phase_breakdown.pdf are present and current.
 
 ## Analysis commands
 

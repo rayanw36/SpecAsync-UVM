@@ -11,12 +11,13 @@
 set -euo pipefail
 
 WORK_SRC="/opt/dlami/nvme/work/nvidia-595.71.05-specasync/nvidia-uvm"
+TOP_DIR="/opt/dlami/nvme/work/nvidia-595.71.05-specasync"
 STOCK_KO="/lib/modules/6.17.0-1017-aws/updates/dkms/nvidia-uvm.ko"
 STOCK_BACKUP="/home/ubuntu/SpecAsync-UVM/driver/stock_backup/nvidia-uvm.ko.stock"
-NEW_KO="${WORK_SRC}/nvidia-uvm.ko"
+NEW_KO="${TOP_DIR}/nvidia-uvm.ko"
 KVER="$(uname -r)"
 
-echo "[rebuild] Working dir: ${WORK_SRC}"
+echo "[rebuild] Working dir: ${TOP_DIR}"
 echo "[rebuild] Kernel: ${KVER}"
 
 # ── 0. Guard: ensure stock backup exists ──────────────────────────────────────
@@ -27,10 +28,8 @@ fi
 
 # ── 1. Build ──────────────────────────────────────────────────────────────────
 echo "[rebuild] Building nvidia-uvm module ..."
-cd "${WORK_SRC}"
-make -C /lib/modules/${KVER}/build M="${WORK_SRC}" \
-    -f "${WORK_SRC}/nvidia-uvm-sources.Kbuild" \
-    modules 2>&1 | tail -20
+cd "${TOP_DIR}"
+make NV_KERNEL_MODULES="nvidia-uvm" KBUILD_EXTRA_SYMBOLS="${TOP_DIR}/Module.symvers" modules 2>&1 | tail -30
 
 if [[ ! -f "${NEW_KO}" ]]; then
     echo "[rebuild] ERROR: build failed — ${NEW_KO} not found" >&2

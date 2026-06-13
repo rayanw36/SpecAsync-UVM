@@ -35,3 +35,7 @@ SpecAsync_Project/
 *.cmd
 Module.symvers
 modules.order
+
+# Phase B large intermediates (raw ring dumps + regenerable worker CSVs) — kept on EBS only
+raw_*.bin
+work_records.csv

@@ -392,16 +392,16 @@ int specasync_debugfs_init(struct dentry *parent_dentry)
 	}
 
 	dentry_batch_log = debugfs_create_file("specasync_log", 0444,
-					       parent_dentry, NULL,
+					       specasync_dir, NULL,
 					       &batch_log_fops);
 	dentry_worker_log = debugfs_create_file("specasync_worker_log", 0444,
-						parent_dentry, NULL,
+						specasync_dir, NULL,
 						&worker_log_fops);
 	dentry_clear      = debugfs_create_file("specasync_clear", 0222,
-						parent_dentry, NULL,
+						specasync_dir, NULL,
 						&clear_fops);
 	dentry_fault_trace = debugfs_create_file("specasync_fault_trace", 0444,
-						 parent_dentry, NULL,
+						 specasync_dir, NULL,
 						 &trace_ring_fops);
 
 	if (IS_ERR_OR_NULL(dentry_batch_log) ||

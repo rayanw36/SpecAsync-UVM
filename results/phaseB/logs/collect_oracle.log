@@ -1,0 +1,54 @@
+[oracle] Setting up module parameters ...
+
+[oracle] SGEMM size=24000
+  Collecting fault trace (1 warm run) ...
+  Reading trace ring from debugfs ...
+168840 /home/ubuntu/SpecAsync-UVM/oracles/SGEMM/24000/raw_fault_trace.bin
+  21105 fault addresses captured
+  Written: /home/ubuntu/SpecAsync-UVM/oracles/SGEMM/24000/oracle_trace.bin
+
+[oracle] Stencil size=24000
+  Collecting fault trace (1 warm run) ...
+  Reading trace ring from debugfs ...
+217000 /home/ubuntu/SpecAsync-UVM/oracles/Stencil/24000/raw_fault_trace.bin
+  27125 fault addresses captured
+  Written: /home/ubuntu/SpecAsync-UVM/oracles/Stencil/24000/oracle_trace.bin
+
+[oracle] STREAM size=268435456
+  Collecting fault trace (1 warm run) ...
+  Reading trace ring from debugfs ...
+298552 /home/ubuntu/SpecAsync-UVM/oracles/STREAM/268435456/raw_fault_trace.bin
+  37319 fault addresses captured
+  Written: /home/ubuntu/SpecAsync-UVM/oracles/STREAM/268435456/oracle_trace.bin
+
+[oracle] GraphBFS size=23
+  Collecting fault trace (1 warm run) ...
+  Reading trace ring from debugfs ...
+333376 /home/ubuntu/SpecAsync-UVM/oracles/GraphBFS/23/raw_fault_trace.bin
+  41672 fault addresses captured
+  Written: /home/ubuntu/SpecAsync-UVM/oracles/GraphBFS/23/oracle_trace.bin
+
+[oracle] cuFFT size=268435456
+  Collecting fault trace (1 warm run) ...
+  Reading trace ring from debugfs ...
+382568 /home/ubuntu/SpecAsync-UVM/oracles/cuFFT/268435456/raw_fault_trace.bin
+  47821 fault addresses captured
+  Written: /home/ubuntu/SpecAsync-UVM/oracles/cuFFT/268435456/oracle_trace.bin
+
+[oracle] Stencil_OvSub size=28300 20 11264
+  Collecting fault trace (1 warm run) ...
+  Reading trace ring from debugfs ...
+1819720 /home/ubuntu/SpecAsync-UVM/oracles/Stencil_OvSub/28300_20_11264/raw_fault_trace.bin
+  227465 fault addresses captured
+  Written: /home/ubuntu/SpecAsync-UVM/oracles/Stencil_OvSub/28300_20_11264/oracle_trace.bin
+
+=== Oracle traces collected ===
+/home/ubuntu/SpecAsync-UVM/oracles/GraphBFS/23/oracle_trace.bin
+/home/ubuntu/SpecAsync-UVM/oracles/SGEMM/24000/oracle_trace.bin
+/home/ubuntu/SpecAsync-UVM/oracles/STREAM/268435456/oracle_trace.bin
+/home/ubuntu/SpecAsync-UVM/oracles/Stencil/24000/oracle_trace.bin
+/home/ubuntu/SpecAsync-UVM/oracles/Stencil_OvSub/28300_20_11264/oracle_trace.bin
+/home/ubuntu/SpecAsync-UVM/oracles/cuFFT/268435456/oracle_trace.bin
+
+Next: run oracle sweep with policy=4
+  sudo bash scripts/oracle_sweep.sh

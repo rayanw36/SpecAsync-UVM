@@ -13,7 +13,8 @@
 set -euo pipefail
 
 BENCH_DIR="$(cd "$(dirname "$0")/../benchmarks" && pwd)"
-ORACLE_DIR="${HOME}/SpecAsync-UVM/oracles"
+UBUNTU_HOME="/home/ubuntu"
+ORACLE_DIR="${UBUNTU_HOME}/SpecAsync-UVM/oracles"
 DEBUGFS="/sys/kernel/debug"
 TOOLS_DIR="${BENCH_DIR}/tools"
 
@@ -40,9 +41,6 @@ for entry in "${BENCHMARKS[@]}"; do
     echo ""
     echo "[oracle] ${name} size=${size_str}"
 
-    # Clear ring buffers
-    echo 1 > "${DEBUGFS}/specasync_clear"
-
     # Run benchmark once to collect fault trace
     echo "  Collecting fault trace (1 warm run) ..."
     # shellcheck disable=SC2086
@@ -64,9 +62,6 @@ for entry in "${BENCHMARKS[@]}"; do
     # Copy the raw trace as the oracle input (already in packed u64 LE format)
     cp "${outdir}/raw_fault_trace.bin" "${outdir}/oracle_trace.bin"
     echo "  Written: ${outdir}/oracle_trace.bin"
-
-    echo "  Clearing ring for next benchmark ..."
-    echo 1 > "${DEBUGFS}/specasync_clear"
 done
 
 # Disable trace recording to avoid overhead in subsequent runs

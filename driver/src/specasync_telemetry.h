@@ -130,7 +130,7 @@ static inline void specasync_batch_ring_push(const struct specasync_batch_record
 	struct specasync_batch_ring *r = &g_batch_ring;
 	unsigned long flags;
 
-	if (!specasync_log_enabled)
+	if (!specasync_log_enabled || !r->buf)
 		return;
 
 	spin_lock_irqsave(&r->lock, flags);
@@ -150,7 +150,7 @@ static inline void specasync_work_ring_push(const struct specasync_work_record *
 	struct specasync_work_ring *r = &g_work_ring;
 	unsigned long flags;
 
-	if (!specasync_log_enabled)
+	if (!specasync_log_enabled || !r->buf)
 		return;
 
 	spin_lock_irqsave(&r->lock, flags);

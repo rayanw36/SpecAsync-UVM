@@ -1,0 +1,76 @@
+[oracle_sweep] Module srcversion: B83C15DAA1370D525B70185
+[oracle_sweep] Policy=4 is set per module reload (oracle trace loaded at init).
+[oracle_sweep] Using module: /home/ubuntu/SpecAsync-UVM/driver/build/nvidia-uvm-specasync.ko
+[p4_d0] Reloading module with oracle trace for SGEMM ...
+
+[p4_d0] SGEMM size=24000
+  Warmup (1 run(s)) ...
+  Timing (20 runs) ...
+      ... run 1/20 (16171 ms)      ... run 2/20 (15924 ms)      ... run 3/20 (15794 ms)      ... run 4/20 (15780 ms)      ... run 5/20 (15826 ms)      ... run 6/20 (15985 ms)      ... run 7/20 (15935 ms)      ... run 8/20 (15922 ms)      ... run 9/20 (15895 ms)      ... run 10/20 (15839 ms)      ... run 11/20 (15776 ms)      ... run 12/20 (16010 ms)      ... run 13/20 (15991 ms)      ... run 14/20 (16020 ms)      ... run 15/20 (15803 ms)      ... run 16/20 (15778 ms)      ... run 17/20 (15794 ms)      ... run 18/20 (15768 ms)      ... run 19/20 (15801 ms)      ... run 20/20 (15796 ms)
+usage: specasync_parse.py [-h] [--work-log PATH] [--out-dir DIR] batch_log
+specasync_parse.py: error: unrecognized arguments: /home/ubuntu/SpecAsync-UVM/results/p4_d0/SGEMM/24000/raw_batch.bin
+usage: specasync_parse.py [-h] [--work-log PATH] [--out-dir DIR] batch_log
+specasync_parse.py: error: unrecognized arguments: /home/ubuntu/SpecAsync-UVM/results/p4_d0/SGEMM/24000/raw_worker.bin
+  Done → /home/ubuntu/SpecAsync-UVM/results/p4_d0/SGEMM/24000
+[p4_d0] Reloading module with oracle trace for Stencil ...
+
+[p4_d0] Stencil size=24000
+  Warmup (1 run(s)) ...
+  Timing (20 runs) ...
+      ... run 1/20 (4140 ms)      ... run 2/20 (4127 ms)      ... run 3/20 (4136 ms)      ... run 4/20 (4115 ms)      ... run 5/20 (4103 ms)      ... run 6/20 (4132 ms)      ... run 7/20 (4145 ms)      ... run 8/20 (4149 ms)      ... run 9/20 (4129 ms)      ... run 10/20 (4102 ms)      ... run 11/20 (4096 ms)      ... run 12/20 (4093 ms)      ... run 13/20 (4119 ms)      ... run 14/20 (4118 ms)      ... run 15/20 (4121 ms)      ... run 16/20 (4117 ms)      ... run 17/20 (4085 ms)      ... run 18/20 (4070 ms)      ... run 19/20 (4052 ms)      ... run 20/20 (4090 ms)
+usage: specasync_parse.py [-h] [--work-log PATH] [--out-dir DIR] batch_log
+specasync_parse.py: error: unrecognized arguments: /home/ubuntu/SpecAsync-UVM/results/p4_d0/Stencil/24000/raw_batch.bin
+usage: specasync_parse.py [-h] [--work-log PATH] [--out-dir DIR] batch_log
+specasync_parse.py: error: unrecognized arguments: /home/ubuntu/SpecAsync-UVM/results/p4_d0/Stencil/24000/raw_worker.bin
+  Done → /home/ubuntu/SpecAsync-UVM/results/p4_d0/Stencil/24000
+[p4_d0] Reloading module with oracle trace for STREAM ...
+
+[p4_d0] STREAM size=268435456
+  Warmup (1 run(s)) ...
+  Timing (20 runs) ...
+      ... run 1/20 (2319 ms)      ... run 2/20 (2325 ms)      ... run 3/20 (2329 ms)      ... run 4/20 (2320 ms)      ... run 5/20 (2337 ms)      ... run 6/20 (2305 ms)      ... run 7/20 (2327 ms)      ... run 8/20 (2339 ms)      ... run 9/20 (2330 ms)      ... run 10/20 (2304 ms)      ... run 11/20 (2332 ms)      ... run 12/20 (2322 ms)      ... run 13/20 (2339 ms)      ... run 14/20 (2309 ms)      ... run 15/20 (2303 ms)      ... run 16/20 (2314 ms)      ... run 17/20 (2330 ms)      ... run 18/20 (2365 ms)      ... run 19/20 (2389 ms)      ... run 20/20 (2326 ms)
+usage: specasync_parse.py [-h] [--work-log PATH] [--out-dir DIR] batch_log
+specasync_parse.py: error: unrecognized arguments: /home/ubuntu/SpecAsync-UVM/results/p4_d0/STREAM/268435456/raw_batch.bin
+usage: specasync_parse.py [-h] [--work-log PATH] [--out-dir DIR] batch_log
+specasync_parse.py: error: unrecognized arguments: /home/ubuntu/SpecAsync-UVM/results/p4_d0/STREAM/268435456/raw_worker.bin
+  Done → /home/ubuntu/SpecAsync-UVM/results/p4_d0/STREAM/268435456
+[p4_d0] Reloading module with oracle trace for GraphBFS ...
+
+[p4_d0] GraphBFS size=23
+  Warmup (1 run(s)) ...
+  Timing (20 runs) ...
+      ... run 1/20 (52822 ms)      ... run 2/20 (53504 ms)      ... run 3/20 (53573 ms)      ... run 4/20 (53390 ms)      ... run 5/20 (52866 ms)      ... run 6/20 (52567 ms)      ... run 7/20 (52460 ms)      ... run 8/20 (52497 ms)      ... run 9/20 (52858 ms)      ... run 10/20 (52639 ms)      ... run 11/20 (52578 ms)      ... run 12/20 (52618 ms)      ... run 13/20 (53269 ms)      ... run 14/20 (53473 ms)      ... run 15/20 (53434 ms)      ... run 16/20 (53385 ms)      ... run 17/20 (53013 ms)      ... run 18/20 (53650 ms)      ... run 19/20 (53103 ms)      ... run 20/20 (53460 ms)
+usage: specasync_parse.py [-h] [--work-log PATH] [--out-dir DIR] batch_log
+specasync_parse.py: error: unrecognized arguments: /home/ubuntu/SpecAsync-UVM/results/p4_d0/GraphBFS/23/raw_batch.bin
+usage: specasync_parse.py [-h] [--work-log PATH] [--out-dir DIR] batch_log
+specasync_parse.py: error: unrecognized arguments: /home/ubuntu/SpecAsync-UVM/results/p4_d0/GraphBFS/23/raw_worker.bin
+  Done → /home/ubuntu/SpecAsync-UVM/results/p4_d0/GraphBFS/23
+[p4_d0] Reloading module with oracle trace for cuFFT ...
+
+[p4_d0] cuFFT size=268435456
+  Warmup (1 run(s)) ...
+  Timing (20 runs) ...
+      ... run 1/20 (1752 ms)      ... run 2/20 (1752 ms)      ... run 3/20 (1753 ms)      ... run 4/20 (1748 ms)      ... run 5/20 (1754 ms)      ... run 6/20 (1753 ms)      ... run 7/20 (1747 ms)      ... run 8/20 (1753 ms)      ... run 9/20 (1749 ms)      ... run 10/20 (1746 ms)      ... run 11/20 (1747 ms)      ... run 12/20 (1747 ms)      ... run 13/20 (1752 ms)      ... run 14/20 (1751 ms)      ... run 15/20 (1763 ms)      ... run 16/20 (1762 ms)      ... run 17/20 (1757 ms)      ... run 18/20 (1744 ms)      ... run 19/20 (1756 ms)      ... run 20/20 (1752 ms)
+usage: specasync_parse.py [-h] [--work-log PATH] [--out-dir DIR] batch_log
+specasync_parse.py: error: unrecognized arguments: /home/ubuntu/SpecAsync-UVM/results/p4_d0/cuFFT/268435456/raw_batch.bin
+usage: specasync_parse.py [-h] [--work-log PATH] [--out-dir DIR] batch_log
+specasync_parse.py: error: unrecognized arguments: /home/ubuntu/SpecAsync-UVM/results/p4_d0/cuFFT/268435456/raw_worker.bin
+  Done → /home/ubuntu/SpecAsync-UVM/results/p4_d0/cuFFT/268435456
+[p4_d0] Reloading module with oracle trace for Stencil_OvSub ...
+
+[p4_d0] Stencil_OvSub size=28300 20 11264
+  Warmup (1 run(s)) ...
+  Timing (20 runs) ...
+      ... run 1/20 (54361 ms)      ... run 2/20 (54123 ms)      ... run 3/20 (53757 ms)      ... run 4/20 (53652 ms)      ... run 5/20 (53720 ms)      ... run 6/20 (53848 ms)      ... run 7/20 (53760 ms)      ... run 8/20 (53542 ms)      ... run 9/20 (53921 ms)      ... run 10/20 (53567 ms)      ... run 11/20 (53427 ms)      ... run 12/20 (53486 ms)      ... run 13/20 (53531 ms)      ... run 14/20 (53950 ms)      ... run 15/20 (53685 ms)      ... run 16/20 (53691 ms)      ... run 17/20 (53540 ms)      ... run 18/20 (53661 ms)      ... run 19/20 (53712 ms)      ... run 20/20 (53365 ms)
+usage: specasync_parse.py [-h] [--work-log PATH] [--out-dir DIR] batch_log
+specasync_parse.py: error: unrecognized arguments: /home/ubuntu/SpecAsync-UVM/results/p4_d0/Stencil_OvSub/28300_20_11264/raw_batch.bin
+usage: specasync_parse.py [-h] [--work-log PATH] [--out-dir DIR] batch_log
+specasync_parse.py: error: unrecognized arguments: /home/ubuntu/SpecAsync-UVM/results/p4_d0/Stencil_OvSub/28300_20_11264/raw_worker.bin
+  Done → /home/ubuntu/SpecAsync-UVM/results/p4_d0/Stencil_OvSub/28300_20_11264
+
+=== Oracle sweep complete ===
+Results: /home/ubuntu/SpecAsync-UVM/results/p4_d0
+
+Next: run full analysis
+  python3 /home/ubuntu/SpecAsync-UVM/benchmarks/tools/analyze_phaseB.py
+  python3 /home/ubuntu/SpecAsync-UVM/benchmarks/tools/cost_benefit.py

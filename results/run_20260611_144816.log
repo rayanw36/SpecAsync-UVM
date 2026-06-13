@@ -1,0 +1,60 @@
+============================================================
+ SpecAsync-UVM Phase 2 Experiment Run
+ Started: Thu Jun 11 14:48:16 UTC 2026
+ Force: 0  DryRun: 1
+ Log: /home/ubuntu/SpecAsync-UVM/results/run_20260611_144816.log
+============================================================
+
+[preflight] Checking environment...
+[preflight] nvidia_uvm loaded: OK
+[preflight] srcversion: 251C8BBDE47D3B328768262 (set SPECASYNC_SRCVERSION to enforce)
+[preflight] debugfs paths: OK
+[preflight] Binary check done (warnings above if any missing)
+[preflight] Python tools: OK
+
+[preflight] All checks passed. Beginning sweep.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ Config: p0_d0  (policy=0 depth=0)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  [p0_d0] STREAM size=134217728
+    Timing (50 runs)...
+  [dryrun] /home/ubuntu/SpecAsync-UVM/benchmarks/./bench_stream 134217728 (run 1)
+  [dryrun] /home/ubuntu/SpecAsync-UVM/benchmarks/./bench_stream 134217728 (run 2)
+  [dryrun] /home/ubuntu/SpecAsync-UVM/benchmarks/./bench_stream 134217728 (run 3)
+  [dryrun] /home/ubuntu/SpecAsync-UVM/benchmarks/./bench_stream 134217728 (run 4)
+  [dryrun] /home/ubuntu/SpecAsync-UVM/benchmarks/./bench_stream 134217728 (run 5)
+  [dryrun] /home/ubuntu/SpecAsync-UVM/benchmarks/./bench_stream 134217728 (run 6)
+  [dryrun] /home/ubuntu/SpecAsync-UVM/benchmarks/./bench_stream 134217728 (run 7)
+  [dryrun] /home/ubuntu/SpecAsync-UVM/benchmarks/./bench_stream 134217728 (run 8)
+  [dryrun] /home/ubuntu/SpecAsync-UVM/benchmarks/./bench_stream 134217728 (run 9)
+  [dryrun] /home/ubuntu/SpecAsync-UVM/benchmarks/./bench_stream 134217728 (run 10)
+      ... run 10/50
+  [dryrun] /home/ubuntu/SpecAsync-UVM/benchmarks/./bench_stream 134217728 (run 11)
+  [dryrun] /home/ubuntu/SpecAsync-UVM/benchmarks/./bench_stream 134217728 (run 12)
+  [dryrun] /home/ubuntu/SpecAsync-UVM/benchmarks/./bench_stream 134217728 (run 13)
+  [dryrun] /home/ubuntu/SpecAsync-UVM/benchmarks/./bench_stream 134217728 (run 14)
+  [dryrun] /home/ubuntu/SpecAsync-UVM/benchmarks/./bench_stream 134217728 (run 15)
+  [dryrun] /home/ubuntu/SpecAsync-UVM/benchmarks/./bench_stream 134217728 (run 16)
+  [dryrun] /home/ubuntu/SpecAsync-UVM/benchmarks/./bench_stream 134217728 (run 17)
+  [dryrun] /home/ubuntu/SpecAsync-UVM/benchmarks/./bench_stream 134217728 (run 18)
+  [dryrun] /home/ubuntu/SpecAsync-UVM/benchmarks/./bench_stream 134217728 (run 19)
+  [dryrun] /home/ubuntu/SpecAsync-UVM/benchmarks/./bench_stream 134217728 (run 20)
+      ... run 20/50
+  [dryrun] /home/ubuntu/SpecAsync-UVM/benchmarks/./bench_stream 134217728 (run 21)
+  [dryrun] /home/ubuntu/SpecAsync-UVM/benchmarks/./bench_stream 134217728 (run 22)
+  [dryrun] /home/ubuntu/SpecAsync-UVM/benchmarks/./bench_stream 134217728 (run 23)
+  [dryrun] /home/ubuntu/SpecAsync-UVM/benchmarks/./bench_stream 134217728 (run 24)
+  [dryrun] /home/ubuntu/SpecAsync-UVM/benchmarks/./bench_stream 134217728 (run 25)
+  [dryrun] /home/ubuntu/SpecAsync-UVM/benchmarks/./bench_stream 134217728 (run 26)
+  [dryrun] /home/ubuntu/SpecAsync-UVM/benchmarks/./bench_stream 134217728 (run 27)
+  [dryrun] /home/ubuntu/SpecAsync-UVM/benchmarks/./bench_stream 134217728 (run 28)
+  [dryrun] /home/ubuntu/SpecAsync-UVM/benchmarks/./bench_stream 134217728 (run 29)
+  [dryrun] /home/ubuntu/SpecAsync-UVM/benchmarks/./bench_stream 134217728 (run 30)
+      ... run 30/50
+  [dryrun] /home/ubuntu/SpecAsync-UVM/benchmarks/./bench_stream 134217728 (run 31)
+  [dryrun] /home/ubuntu/SpecAsync-UVM/benchmarks/./bench_stream 134217728 (run 32)
+  [dryrun] /home/ubuntu/SpecAsync-UVM/benchmarks/./bench_stream 134217728 (run 33)
+  [dryrun] /home/ubuntu/SpecAsync-UVM/benchmarks/./bench_stream 134217728 (run 34)
+  [dryrun] /home/ubuntu/SpecAsync-UVM/benchmarks/./bench_stream 134217728 (run 35)

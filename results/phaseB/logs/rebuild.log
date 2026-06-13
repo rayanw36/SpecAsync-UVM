@@ -1,0 +1,6 @@
+[rebuild] Working dir: /opt/dlami/nvme/work/nvidia-595.71.05-specasync/nvidia-uvm
+[rebuild] Kernel: 6.17.0-1017-aws
+[rebuild] Building nvidia-uvm module ...
+make: Entering directory '/usr/src/linux-headers-6.17.0-1017-aws'
+make: *** No rule to make target 'modules'.  Stop.
+make: Leaving directory '/usr/src/linux-headers-6.17.0-1017-aws'

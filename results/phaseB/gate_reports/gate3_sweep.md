@@ -1,7 +1,7 @@
 # Gate 3 — Policy Sweep Execution
 
-**Date:** 2026-06-11
-**Status:** IN PROGRESS (sweep running)
+**Date:** 2026-06-11 (started) · 2026-06-13 (completed)
+**Status:** PASS — p0–p3 sweep complete (72 experiments: 6 benchmarks × 3 sizes × 4 policies × 20 runs)
 
 ## Sweep configuration
 
@@ -65,12 +65,13 @@ The primary timing metric (`timing_raw.csv`) is NOT affected by this issue.
 Most time is in Stencil_OvSub (~38.7s/run × 21 × 3 sizes = 41 min per policy)
 and GraphBFS (~2 min/run × 21 × 3 sizes = 126 min per policy).
 
-## Progress (as of Gate 3 writeup)
+## Progress — COMPLETE
 
-- [x] p0_d0/SGEMM × 3 sizes
-- [x] p0_d0/Stencil × 3 sizes
-- [x] p0_d0/STREAM × 3 sizes
-- [x] p0_d0/cuFFT × 3 sizes
-- [ ] p0_d0/Stencil_OvSub × 3 sizes (size 25000 complete, 28300 in progress)
-- [ ] p0_d0/GraphBFS × 3 sizes
-- [ ] p1_d0 through p3_d0
+- [x] p0_d0 — all 6 benchmarks × 3 sizes
+- [x] p1_d0 — all 6 benchmarks × 3 sizes
+- [x] p2_d0 — all 6 benchmarks × 3 sizes
+- [x] p3_d0 — all 6 benchmarks × 3 sizes
+
+All configs have `timing_raw.csv` (20 rows) plus parsed `batch_records.csv` /
+`work_records.csv`. Aggregated into `results/phaseB/phaseB_timing.csv` and
+`phaseB_telemetry.csv` (78 timing + 78 telemetry configs incl. p4).

@@ -1,0 +1,1932 @@
+============================================================
+ SpecAsync-UVM Phase 2 Experiment Run
+ Started: Thu Jun 11 14:58:54 UTC 2026
+ Force: 0  DryRun: 0
+ Log: /home/ubuntu/SpecAsync-UVM/results/run_20260611_145854.log
+============================================================
+
+[preflight] Checking environment...
+[preflight] nvidia_uvm loaded: OK
+[preflight] srcversion: 251C8BBDE47D3B328768262 (set SPECASYNC_SRCVERSION to enforce)
+[preflight] debugfs paths: OK
+[preflight] Binary check done (warnings above if any missing)
+[preflight] Python tools: OK
+
+[preflight] All checks passed. Beginning sweep.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ Config: p0_d0  (policy=0 depth=0)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Module params set: policy=0 depth=0
+
+  [p0_d0] STREAM size=134217728
+    Warmup (1 run(s))...
+    Timing (20 runs)...
+      ... run 10/20
+      ... run 20/20
+[batch] Parsing: /home/ubuntu/SpecAsync-UVM/results/p0_d0/STREAM/134217728/raw_batch.bin
+        23829 records  (72 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p0_d0/STREAM/134217728/batch_records.csv
+  Batches          : 23829
+  Spec enqueues    : 7802312
+  Spec hits        : 7800867
+  Hit rate         : 0.9998
+  Wasted spec rate : 0.0002
+  Service latency T4-T0 (ns):
+    mean=182990414069.2  median=239516.0  p95=2642777695054.6  p99=2644089563565.4
+  Phase breakdown — mean (ns):
+    lock_acq  = -161887863.5
+    metadata  = -163279351.8
+    residency = 183642783334.4
+
+[work]  Parsing: /home/ubuntu/SpecAsync-UVM/results/p0_d0/STREAM/134217728/raw_worker.bin
+        0 records  (48 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p0_d0/STREAM/134217728/work_records.csv
+    Done → /home/ubuntu/SpecAsync-UVM/results/p0_d0/STREAM/134217728
+
+  [p0_d0] STREAM size=268435456
+    Warmup (1 run(s))...
+    Timing (20 runs)...
+      ... run 10/20
+      ... run 20/20
+[batch] Parsing: /home/ubuntu/SpecAsync-UVM/results/p0_d0/STREAM/268435456/raw_batch.bin
+        42176 records  (72 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p0_d0/STREAM/268435456/batch_records.csv
+  Batches          : 42176
+  Spec enqueues    : 13771634
+  Spec hits        : 13769670
+  Hit rate         : 0.9999
+  Wasted spec rate : 0.0001
+  Service latency T4-T0 (ns):
+    mean=18642639336.4  median=177038.0  p95=2693522495332.8  p99=2694099940269.8
+  Phase breakdown — mean (ns):
+    lock_acq  = -186666341.3
+    metadata  = 19382585492.6
+    residency = -279771917.3
+
+[work]  Parsing: /home/ubuntu/SpecAsync-UVM/results/p0_d0/STREAM/268435456/raw_worker.bin
+        0 records  (48 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p0_d0/STREAM/268435456/work_records.csv
+    Done → /home/ubuntu/SpecAsync-UVM/results/p0_d0/STREAM/268435456
+
+  [p0_d0] STREAM size=536870912
+    Warmup (1 run(s))...
+    Timing (20 runs)...
+      ... run 10/20
+      ... run 20/20
+[batch] Parsing: /home/ubuntu/SpecAsync-UVM/results/p0_d0/STREAM/536870912/raw_batch.bin
+        72078 records  (72 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p0_d0/STREAM/536870912/batch_records.csv
+  Batches          : 72078
+  Spec enqueues    : 25143276
+  Spec hits        : 25140379
+  Hit rate         : 0.9999
+  Wasted spec rate : 0.0001
+  Service latency T4-T0 (ns):
+    mean=40848043139.1  median=139304.0  p95=2782797500240.2  p99=2792169090677.3
+  Phase breakdown — mean (ns):
+    lock_acq  = -245579009.5
+    metadata  = -237472452.7
+    residency = 41638385851.2
+
+[work]  Parsing: /home/ubuntu/SpecAsync-UVM/results/p0_d0/STREAM/536870912/raw_worker.bin
+        0 records  (48 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p0_d0/STREAM/536870912/work_records.csv
+    Done → /home/ubuntu/SpecAsync-UVM/results/p0_d0/STREAM/536870912
+
+  [p0_d0] SGEMM size=8192
+    Warmup (1 run(s))...
+    Timing (20 runs)...
+      ... run 10/20
+      ... run 20/20
+[batch] Parsing: /home/ubuntu/SpecAsync-UVM/results/p0_d0/SGEMM/8192/raw_batch.bin
+        17505 records  (72 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p0_d0/SGEMM/8192/batch_records.csv
+  Batches          : 17505
+  Spec enqueues    : 5961201
+  Spec hits        : 5959777
+  Hit rate         : 0.9998
+  Wasted spec rate : 0.0002
+  Service latency T4-T0 (ns):
+    mean=-1442581543.4  median=40299.0  p95=2822835770967.8  p99=2824462260976.8
+  Phase breakdown — mean (ns):
+    lock_acq  = -356032107.5
+    metadata  = -362143533.0
+    residency = -358841325.6
+
+[work]  Parsing: /home/ubuntu/SpecAsync-UVM/results/p0_d0/SGEMM/8192/raw_worker.bin
+        0 records  (48 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p0_d0/SGEMM/8192/work_records.csv
+    Done → /home/ubuntu/SpecAsync-UVM/results/p0_d0/SGEMM/8192
+
+  [p0_d0] SGEMM size=16384
+    Warmup (1 run(s))...
+    Timing (20 runs)...
+      ... run 10/20
+      ... run 20/20
+[batch] Parsing: /home/ubuntu/SpecAsync-UVM/results/p0_d0/SGEMM/16384/raw_batch.bin
+        51696 records  (72 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p0_d0/SGEMM/16384/batch_records.csv
+  Batches          : 51696
+  Spec enqueues    : 18942862
+  Spec hits        : 18936689
+  Hit rate         : 0.9997
+  Wasted spec rate : 0.0003
+  Service latency T4-T0 (ns):
+    mean=39601142961.1  median=55531.0  p95=2946120789647.0  p99=2965164634459.1
+  Phase breakdown — mean (ns):
+    lock_acq  = -489584513.0
+    metadata  = -479460180.2
+    residency = -469030448.0
+
+[work]  Parsing: /home/ubuntu/SpecAsync-UVM/results/p0_d0/SGEMM/16384/raw_worker.bin
+        0 records  (48 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p0_d0/SGEMM/16384/work_records.csv
+    Done → /home/ubuntu/SpecAsync-UVM/results/p0_d0/SGEMM/16384
+
+  [p0_d0] SGEMM size=24000
+    Warmup (1 run(s))...
+    Timing (20 runs)...
+      ... run 10/20
+      ... run 20/20
+Warning: /home/ubuntu/SpecAsync-UVM/results/p0_d0/SGEMM/24000/raw_batch.bin: 71370/107763 stale records filtered (ring wrap-around)
+[batch] Parsing: /home/ubuntu/SpecAsync-UVM/results/p0_d0/SGEMM/24000/raw_batch.bin
+        36393 records  (72 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p0_d0/SGEMM/24000/batch_records.csv
+  Batches          : 36393
+  Spec enqueues    : 17262774
+  Spec hits        : 9283334
+  Hit rate         : 0.5378
+  Wasted spec rate : 0.4622
+  Service latency T4-T0 (ns):
+    mean=2039055739824.7  median=3039755083620.0  p95=3263544448646.4  p99=3277882822209.4
+  Phase breakdown — mean (ns):
+    lock_acq  = 942647972753.2
+    metadata  = 17759.8
+    residency = 158157.3
+
+[work]  Parsing: /home/ubuntu/SpecAsync-UVM/results/p0_d0/SGEMM/24000/raw_worker.bin
+        0 records  (48 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p0_d0/SGEMM/24000/work_records.csv
+    Done → /home/ubuntu/SpecAsync-UVM/results/p0_d0/SGEMM/24000
+
+  [p0_d0] Stencil size=8192
+    Warmup (1 run(s))...
+    Timing (20 runs)...
+      ... run 10/20
+      ... run 20/20
+Warning: /home/ubuntu/SpecAsync-UVM/results/p0_d0/Stencil/8192/raw_batch.bin: 9248/14707 stale records filtered (ring wrap-around)
+[batch] Parsing: /home/ubuntu/SpecAsync-UVM/results/p0_d0/Stencil/8192/raw_batch.bin
+        5459 records  (72 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p0_d0/Stencil/8192/batch_records.csv
+  Batches          : 5459
+  Spec enqueues    : 2798983
+  Spec hits        : 1396992
+  Hit rate         : 0.4991
+  Wasted spec rate : 0.5009
+  Service latency T4-T0 (ns):
+    mean=2203832552260.4  median=3300707728834.0  p95=3311951759765.7  p99=3311995427840.5
+  Phase breakdown — mean (ns):
+    lock_acq  = 1103964305546.7
+    metadata  = 22004.3
+    residency = 149737.8
+
+[work]  Parsing: /home/ubuntu/SpecAsync-UVM/results/p0_d0/Stencil/8192/raw_worker.bin
+        0 records  (48 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p0_d0/Stencil/8192/work_records.csv
+    Done → /home/ubuntu/SpecAsync-UVM/results/p0_d0/Stencil/8192
+
+  [p0_d0] Stencil size=16384
+    Warmup (1 run(s))...
+    Timing (20 runs)...
+      ... run 10/20
+      ... run 20/20
+Warning: /home/ubuntu/SpecAsync-UVM/results/p0_d0/Stencil/16384/raw_batch.bin: 30216/44773 stale records filtered (ring wrap-around)
+[batch] Parsing: /home/ubuntu/SpecAsync-UVM/results/p0_d0/Stencil/16384/raw_batch.bin
+        14557 records  (72 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p0_d0/Stencil/16384/batch_records.csv
+  Batches          : 14557
+  Spec enqueues    : 7055462
+  Spec hits        : 4230994
+  Hit rate         : 0.5997
+  Wasted spec rate : 0.4003
+  Service latency T4-T0 (ns):
+    mean=2082997871380.2  median=3317927447628.0  p95=3346683401928.6  p99=3348356204030.1
+  Phase breakdown — mean (ns):
+    lock_acq  = 833830900171.8
+    metadata  = 24163.7
+    residency = 173527.4
+
+[work]  Parsing: /home/ubuntu/SpecAsync-UVM/results/p0_d0/Stencil/16384/raw_worker.bin
+        0 records  (48 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p0_d0/Stencil/16384/work_records.csv
+    Done → /home/ubuntu/SpecAsync-UVM/results/p0_d0/Stencil/16384
+
+  [p0_d0] Stencil size=24000
+    Warmup (1 run(s))...
+    Timing (20 runs)...
+      ... run 10/20
+      ... run 20/20
+Warning: /home/ubuntu/SpecAsync-UVM/results/p0_d0/Stencil/24000/raw_batch.bin: 68136/104529 stale records filtered (ring wrap-around)
+[batch] Parsing: /home/ubuntu/SpecAsync-UVM/results/p0_d0/Stencil/24000/raw_batch.bin
+        36393 records  (72 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p0_d0/Stencil/24000/batch_records.csv
+  Batches          : 36393
+  Spec enqueues    : 18725104
+  Spec hits        : 10077225
+  Hit rate         : 0.5382
+  Wasted spec rate : 0.4618
+  Service latency T4-T0 (ns):
+    mean=2211609837999.8  median=3375528478396.0  p95=3437399624579.2  p99=3441532495578.3
+  Phase breakdown — mean (ns):
+    lock_acq  = 1021385917870.0
+    metadata  = 22631.8
+    residency = 194815.2
+
+[work]  Parsing: /home/ubuntu/SpecAsync-UVM/results/p0_d0/Stencil/24000/raw_worker.bin
+        0 records  (48 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p0_d0/Stencil/24000/work_records.csv
+    Done → /home/ubuntu/SpecAsync-UVM/results/p0_d0/Stencil/24000
+
+  [p0_d0] cuFFT size=67108864
+    Warmup (1 run(s))...
+    Timing (20 runs)...
+      ... run 10/20
+      ... run 20/20
+[batch] Parsing: /home/ubuntu/SpecAsync-UVM/results/p0_d0/cuFFT/67108864/raw_batch.bin
+        1717 records  (72 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p0_d0/cuFFT/67108864/batch_records.csv
+  Batches          : 1717
+  Spec enqueues    : 0
+  Spec hits        : 0
+  Hit rate         : 0.0000
+  Wasted spec rate : 0.0000
+  Service latency T4-T0 (ns):
+    mean=588355.5  median=396953.0  p95=1992437.2  p99=3143799.8
+  Phase breakdown — mean (ns):
+    lock_acq  = 267.6
+    metadata  = 587926.5
+    residency = 0.0
+
+[work]  Parsing: /home/ubuntu/SpecAsync-UVM/results/p0_d0/cuFFT/67108864/raw_worker.bin
+        0 records  (48 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p0_d0/cuFFT/67108864/work_records.csv
+    Done → /home/ubuntu/SpecAsync-UVM/results/p0_d0/cuFFT/67108864
+
+  [p0_d0] cuFFT size=134217728
+    Warmup (1 run(s))...
+    Timing (20 runs)...
+      ... run 10/20
+      ... run 20/20
+Warning: /home/ubuntu/SpecAsync-UVM/results/p0_d0/cuFFT/134217728/raw_batch.bin: 4/3643 stale records filtered (ring wrap-around)
+[batch] Parsing: /home/ubuntu/SpecAsync-UVM/results/p0_d0/cuFFT/134217728/raw_batch.bin
+        3639 records  (72 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p0_d0/cuFFT/134217728/batch_records.csv
+  Batches          : 3639
+  Spec enqueues    : 1469933
+  Spec hits        : 1469933
+  Hit rate         : 1.0000
+  Wasted spec rate : 0.0000
+  Service latency T4-T0 (ns):
+    mean=1736006367630.6  median=3808728.0  p95=3477415015880.3  p99=3477504412037.2
+  Phase breakdown — mean (ns):
+    lock_acq  = 102.7
+    metadata  = 275709.6
+    residency = 278997.8
+
+[work]  Parsing: /home/ubuntu/SpecAsync-UVM/results/p0_d0/cuFFT/134217728/raw_worker.bin
+        0 records  (48 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p0_d0/cuFFT/134217728/work_records.csv
+    Done → /home/ubuntu/SpecAsync-UVM/results/p0_d0/cuFFT/134217728
+
+  [p0_d0] cuFFT size=268435456
+    Warmup (1 run(s))...
+    Timing (20 runs)...
+      ... run 10/20
+      ... run 20/20
+Warning: /home/ubuntu/SpecAsync-UVM/results/p0_d0/cuFFT/268435456/raw_batch.bin: 3617/7256 stale records filtered (ring wrap-around)
+[batch] Parsing: /home/ubuntu/SpecAsync-UVM/results/p0_d0/cuFFT/268435456/raw_batch.bin
+        3639 records  (72 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p0_d0/cuFFT/268435456/batch_records.csv
+  Batches          : 3639
+  Spec enqueues    : 1478458
+  Spec hits        : 1478459
+  Hit rate         : 1.0000
+  Wasted spec rate : -0.0000
+  Service latency T4-T0 (ns):
+    mean=1746159837100.2  median=3623638.0  p95=3496932578241.9  p99=3497092409623.4
+  Phase breakdown — mean (ns):
+    lock_acq  = 102.1
+    metadata  = 273919.1
+    residency = 281004.8
+
+[work]  Parsing: /home/ubuntu/SpecAsync-UVM/results/p0_d0/cuFFT/268435456/raw_worker.bin
+        0 records  (48 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p0_d0/cuFFT/268435456/work_records.csv
+    Done → /home/ubuntu/SpecAsync-UVM/results/p0_d0/cuFFT/268435456
+
+  [p0_d0] Stencil_OvSub size=25000 20 11264
+    Warmup (1 run(s))...
+    Timing (20 runs)...
+      ... run 10/20
+      ... run 20/20
+Warning: /home/ubuntu/SpecAsync-UVM/results/p0_d0/Stencil_OvSub/25000_20_11264/raw_batch.bin: 116511/131071 stale records filtered (ring wrap-around)
+[batch] Parsing: /home/ubuntu/SpecAsync-UVM/results/p0_d0/Stencil_OvSub/25000_20_11264/raw_batch.bin
+        14560 records  (72 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p0_d0/Stencil_OvSub/25000_20_11264/batch_records.csv
+  Batches          : 14560
+  Spec enqueues    : 0
+  Spec hits        : 0
+  Hit rate         : 0.0000
+  Wasted spec rate : 0.0000
+  Service latency T4-T0 (ns):
+    mean=60952.4  median=57237.0  p95=115387.5  p99=167057.8
+  Phase breakdown — mean (ns):
+    lock_acq  = 178.6
+    metadata  = 60624.3
+    residency = 0.0
+
+[work]  Parsing: /home/ubuntu/SpecAsync-UVM/results/p0_d0/Stencil_OvSub/25000_20_11264/raw_worker.bin
+        0 records  (48 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p0_d0/Stencil_OvSub/25000_20_11264/work_records.csv
+    Done → /home/ubuntu/SpecAsync-UVM/results/p0_d0/Stencil_OvSub/25000_20_11264
+
+  [p0_d0] Stencil_OvSub size=28300 20 11264
+    Warmup (1 run(s))...
+    Timing (20 runs)...
+      ... run 10/20
+      ... run 20/20
+Warning: /home/ubuntu/SpecAsync-UVM/results/p0_d0/Stencil_OvSub/28300_20_11264/raw_batch.bin: 116511/131071 stale records filtered (ring wrap-around)
+[batch] Parsing: /home/ubuntu/SpecAsync-UVM/results/p0_d0/Stencil_OvSub/28300_20_11264/raw_batch.bin
+        14560 records  (72 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p0_d0/Stencil_OvSub/28300_20_11264/batch_records.csv
+  Batches          : 14560
+  Spec enqueues    : 0
+  Spec hits        : 0
+  Hit rate         : 0.0000
+  Wasted spec rate : 0.0000
+  Service latency T4-T0 (ns):
+    mean=60591.5  median=54924.5  p95=117780.4  p99=168532.5
+  Phase breakdown — mean (ns):
+    lock_acq  = 175.6
+    metadata  = 60272.4
+    residency = 0.0
+
+[work]  Parsing: /home/ubuntu/SpecAsync-UVM/results/p0_d0/Stencil_OvSub/28300_20_11264/raw_worker.bin
+        0 records  (48 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p0_d0/Stencil_OvSub/28300_20_11264/work_records.csv
+    Done → /home/ubuntu/SpecAsync-UVM/results/p0_d0/Stencil_OvSub/28300_20_11264
+
+  [p0_d0] Stencil_OvSub size=32000 20 11264
+    Warmup (1 run(s))...
+    Timing (20 runs)...
+      ... run 10/20
+      ... run 20/20
+Warning: /home/ubuntu/SpecAsync-UVM/results/p0_d0/Stencil_OvSub/32000_20_11264/raw_batch.bin: 116511/131071 stale records filtered (ring wrap-around)
+[batch] Parsing: /home/ubuntu/SpecAsync-UVM/results/p0_d0/Stencil_OvSub/32000_20_11264/raw_batch.bin
+        14560 records  (72 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p0_d0/Stencil_OvSub/32000_20_11264/batch_records.csv
+  Batches          : 14560
+  Spec enqueues    : 0
+  Spec hits        : 0
+  Hit rate         : 0.0000
+  Wasted spec rate : 0.0000
+  Service latency T4-T0 (ns):
+    mean=54349.3  median=48159.0  p95=110053.4  p99=132821.7
+  Phase breakdown — mean (ns):
+    lock_acq  = 153.0
+    metadata  = 54060.5
+    residency = 0.0
+
+[work]  Parsing: /home/ubuntu/SpecAsync-UVM/results/p0_d0/Stencil_OvSub/32000_20_11264/raw_worker.bin
+        0 records  (48 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p0_d0/Stencil_OvSub/32000_20_11264/work_records.csv
+    Done → /home/ubuntu/SpecAsync-UVM/results/p0_d0/Stencil_OvSub/32000_20_11264
+
+  [p0_d0] GraphBFS size=22
+    Warmup (1 run(s))...
+    Timing (20 runs)...
+      ... run 10/20
+      ... run 20/20
+Warning: /home/ubuntu/SpecAsync-UVM/results/p0_d0/GraphBFS/22/raw_batch.bin: 3481/5301 stale records filtered (ring wrap-around)
+[batch] Parsing: /home/ubuntu/SpecAsync-UVM/results/p0_d0/GraphBFS/22/raw_batch.bin
+        1820 records  (72 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p0_d0/GraphBFS/22/batch_records.csv
+  Batches          : 1820
+  Spec enqueues    : 0
+  Spec hits        : 0
+  Hit rate         : 0.0000
+  Wasted spec rate : 0.0000
+  Service latency T4-T0 (ns):
+    mean=263262.1  median=226433.0  p95=690343.1  p99=927585.4
+  Phase breakdown — mean (ns):
+    lock_acq  = 181.8
+    metadata  = 262938.0
+    residency = 0.0
+
+[work]  Parsing: /home/ubuntu/SpecAsync-UVM/results/p0_d0/GraphBFS/22/raw_worker.bin
+        0 records  (48 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p0_d0/GraphBFS/22/work_records.csv
+    Done → /home/ubuntu/SpecAsync-UVM/results/p0_d0/GraphBFS/22
+
+  [p0_d0] GraphBFS size=23
+    Warmup (1 run(s))...
+    Timing (20 runs)...
+      ... run 10/20
+      ... run 20/20
+Warning: /home/ubuntu/SpecAsync-UVM/results/p0_d0/GraphBFS/23/raw_batch.bin: 7717/9537 stale records filtered (ring wrap-around)
+[batch] Parsing: /home/ubuntu/SpecAsync-UVM/results/p0_d0/GraphBFS/23/raw_batch.bin
+        1820 records  (72 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p0_d0/GraphBFS/23/batch_records.csv
+  Batches          : 1820
+  Spec enqueues    : 0
+  Spec hits        : 0
+  Hit rate         : 0.0000
+  Wasted spec rate : 0.0000
+  Service latency T4-T0 (ns):
+    mean=281565.5  median=229687.5  p95=757606.7  p99=1558789.0
+  Phase breakdown — mean (ns):
+    lock_acq  = 181.5
+    metadata  = 281233.6
+    residency = 0.0
+
+[work]  Parsing: /home/ubuntu/SpecAsync-UVM/results/p0_d0/GraphBFS/23/raw_worker.bin
+        0 records  (48 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p0_d0/GraphBFS/23/work_records.csv
+    Done → /home/ubuntu/SpecAsync-UVM/results/p0_d0/GraphBFS/23
+
+  [p0_d0] GraphBFS size=24
+    Warmup (1 run(s))...
+    Timing (20 runs)...
+      ... run 10/20
+      ... run 20/20
+Warning: /home/ubuntu/SpecAsync-UVM/results/p0_d0/GraphBFS/24/raw_batch.bin: 14689/18329 stale records filtered (ring wrap-around)
+[batch] Parsing: /home/ubuntu/SpecAsync-UVM/results/p0_d0/GraphBFS/24/raw_batch.bin
+        3640 records  (72 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p0_d0/GraphBFS/24/batch_records.csv
+  Batches          : 3640
+  Spec enqueues    : 0
+  Spec hits        : 0
+  Hit rate         : 0.0000
+  Wasted spec rate : 0.0000
+  Service latency T4-T0 (ns):
+    mean=294485.2  median=199369.0  p95=847698.2  p99=2066185.0
+  Phase breakdown — mean (ns):
+    lock_acq  = 178.9
+    metadata  = 294169.4
+    residency = 0.0
+
+[work]  Parsing: /home/ubuntu/SpecAsync-UVM/results/p0_d0/GraphBFS/24/raw_worker.bin
+        0 records  (48 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p0_d0/GraphBFS/24/work_records.csv
+    Done → /home/ubuntu/SpecAsync-UVM/results/p0_d0/GraphBFS/24
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ Config: p1_d0  (policy=1 depth=0)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Module params set: policy=1 depth=0
+
+  [p1_d0] STREAM size=134217728
+    Warmup (1 run(s))...
+    Timing (20 runs)...
+      ... run 10/20
+      ... run 20/20
+Warning: /home/ubuntu/SpecAsync-UVM/results/p1_d0/STREAM/134217728/raw_batch.bin: 20426/24066 stale records filtered (ring wrap-around)
+[batch] Parsing: /home/ubuntu/SpecAsync-UVM/results/p1_d0/STREAM/134217728/raw_batch.bin
+        3640 records  (72 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p1_d0/STREAM/134217728/batch_records.csv
+  Batches          : 3640
+  Spec enqueues    : 3640
+  Spec hits        : 16
+  Hit rate         : 0.0044
+  Wasted spec rate : 0.9956
+  Service latency T4-T0 (ns):
+    mean=128850.5  median=107860.0  p95=265065.5  p99=410637.5
+  Phase breakdown — mean (ns):
+    lock_acq  = 2302.6
+    metadata  = 126419.0
+    residency = 0.0
+
+[work]  Parsing: /home/ubuntu/SpecAsync-UVM/results/p1_d0/STREAM/134217728/raw_worker.bin
+        24066 records  (48 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p1_d0/STREAM/134217728/work_records.csv
+    Done → /home/ubuntu/SpecAsync-UVM/results/p1_d0/STREAM/134217728
+
+  [p1_d0] STREAM size=268435456
+    Warmup (1 run(s))...
+    Timing (20 runs)...
+      ... run 10/20
+      ... run 20/20
+Warning: /home/ubuntu/SpecAsync-UVM/results/p1_d0/STREAM/268435456/raw_batch.bin: 36929/42389 stale records filtered (ring wrap-around)
+[batch] Parsing: /home/ubuntu/SpecAsync-UVM/results/p1_d0/STREAM/268435456/raw_batch.bin
+        5460 records  (72 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p1_d0/STREAM/268435456/batch_records.csv
+  Batches          : 5460
+  Spec enqueues    : 5460
+  Spec hits        : 59
+  Hit rate         : 0.0108
+  Wasted spec rate : 0.9892
+  Service latency T4-T0 (ns):
+    mean=146222.9  median=118538.5  p95=363861.1  p99=653842.1
+  Phase breakdown — mean (ns):
+    lock_acq  = 2372.7
+    metadata  = 143717.4
+    residency = 0.0
+
+[work]  Parsing: /home/ubuntu/SpecAsync-UVM/results/p1_d0/STREAM/268435456/raw_worker.bin
+        42389 records  (48 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p1_d0/STREAM/268435456/work_records.csv
+    Done → /home/ubuntu/SpecAsync-UVM/results/p1_d0/STREAM/268435456
+
+  [p1_d0] STREAM size=536870912
+    Warmup (1 run(s))...
+    Timing (20 runs)...
+      ... run 10/20
+      ... run 20/20
+Warning: /home/ubuntu/SpecAsync-UVM/results/p1_d0/STREAM/536870912/raw_batch.bin: 62686/71786 stale records filtered (ring wrap-around)
+[batch] Parsing: /home/ubuntu/SpecAsync-UVM/results/p1_d0/STREAM/536870912/raw_batch.bin
+        9100 records  (72 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p1_d0/STREAM/536870912/batch_records.csv
+  Batches          : 9100
+  Spec enqueues    : 9100
+  Spec hits        : 150
+  Hit rate         : 0.0165
+  Wasted spec rate : 0.9835
+  Service latency T4-T0 (ns):
+    mean=170002.8  median=129417.5  p95=485269.3  p99=719872.2
+  Phase breakdown — mean (ns):
+    lock_acq  = 2483.4
+    metadata  = 167379.0
+    residency = 0.0
+
+[work]  Parsing: /home/ubuntu/SpecAsync-UVM/results/p1_d0/STREAM/536870912/raw_worker.bin
+        71786 records  (48 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p1_d0/STREAM/536870912/work_records.csv
+    Done → /home/ubuntu/SpecAsync-UVM/results/p1_d0/STREAM/536870912
+
+  [p1_d0] SGEMM size=8192
+    Warmup (1 run(s))...
+    Timing (20 runs)...
+      ... run 10/20
+      ... run 20/20
+Warning: /home/ubuntu/SpecAsync-UVM/results/p1_d0/SGEMM/8192/raw_batch.bin: 14564/17597 stale records filtered (ring wrap-around)
+[batch] Parsing: /home/ubuntu/SpecAsync-UVM/results/p1_d0/SGEMM/8192/raw_batch.bin
+        3033 records  (72 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p1_d0/SGEMM/8192/batch_records.csv
+  Batches          : 3033
+  Spec enqueues    : 3033
+  Spec hits        : 0
+  Hit rate         : 0.0000
+  Wasted spec rate : 1.0000
+  Service latency T4-T0 (ns):
+    mean=113709.2  median=47856.0  p95=477244.0  p99=660293.7
+  Phase breakdown — mean (ns):
+    lock_acq  = 2383.3
+    metadata  = 111190.8
+    residency = 0.0
+
+[work]  Parsing: /home/ubuntu/SpecAsync-UVM/results/p1_d0/SGEMM/8192/raw_worker.bin
+        17597 records  (48 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p1_d0/SGEMM/8192/work_records.csv
+    Done → /home/ubuntu/SpecAsync-UVM/results/p1_d0/SGEMM/8192
+
+  [p1_d0] SGEMM size=16384
+    Warmup (1 run(s))...
+    Timing (20 runs)...
+      ... run 10/20
+      ... run 20/20
+Warning: /home/ubuntu/SpecAsync-UVM/results/p1_d0/SGEMM/16384/raw_batch.bin: 44721/52001 stale records filtered (ring wrap-around)
+[batch] Parsing: /home/ubuntu/SpecAsync-UVM/results/p1_d0/SGEMM/16384/raw_batch.bin
+        7280 records  (72 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p1_d0/SGEMM/16384/batch_records.csv
+  Batches          : 7280
+  Spec enqueues    : 7280
+  Spec hits        : 10
+  Hit rate         : 0.0014
+  Wasted spec rate : 0.9986
+  Service latency T4-T0 (ns):
+    mean=107411.6  median=52066.0  p95=476850.0  p99=753681.2
+  Phase breakdown — mean (ns):
+    lock_acq  = 2482.0
+    metadata  = 104786.1
+    residency = 0.0
+
+[work]  Parsing: /home/ubuntu/SpecAsync-UVM/results/p1_d0/SGEMM/16384/raw_worker.bin
+        52001 records  (48 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p1_d0/SGEMM/16384/work_records.csv
+    Done → /home/ubuntu/SpecAsync-UVM/results/p1_d0/SGEMM/16384
+
+  [p1_d0] SGEMM size=24000
+    Warmup (1 run(s))...
+    Timing (20 runs)...
+      ... run 10/20
+      ... run 20/20
+Warning: /home/ubuntu/SpecAsync-UVM/results/p1_d0/SGEMM/24000/raw_batch.bin: 94866/107606 stale records filtered (ring wrap-around)
+[batch] Parsing: /home/ubuntu/SpecAsync-UVM/results/p1_d0/SGEMM/24000/raw_batch.bin
+        12740 records  (72 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p1_d0/SGEMM/24000/batch_records.csv
+  Batches          : 12740
+  Spec enqueues    : 12740
+  Spec hits        : 36
+  Hit rate         : 0.0028
+  Wasted spec rate : 0.9972
+  Service latency T4-T0 (ns):
+    mean=54514.5  median=54167.0  p95=77655.3  p99=88055.8
+  Phase breakdown — mean (ns):
+    lock_acq  = 2504.4
+    metadata  = 51854.2
+    residency = 0.0
+
+[work]  Parsing: /home/ubuntu/SpecAsync-UVM/results/p1_d0/SGEMM/24000/raw_worker.bin
+        107606 records  (48 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p1_d0/SGEMM/24000/work_records.csv
+    Done → /home/ubuntu/SpecAsync-UVM/results/p1_d0/SGEMM/24000
+
+  [p1_d0] Stencil size=8192
+    Warmup (1 run(s))...
+    Timing (20 runs)...
+      ... run 10/20
+      ... run 20/20
+Warning: /home/ubuntu/SpecAsync-UVM/results/p1_d0/Stencil/8192/raw_batch.bin: 12853/14673 stale records filtered (ring wrap-around)
+[batch] Parsing: /home/ubuntu/SpecAsync-UVM/results/p1_d0/Stencil/8192/raw_batch.bin
+        1820 records  (72 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p1_d0/Stencil/8192/batch_records.csv
+  Batches          : 1820
+  Spec enqueues    : 1820
+  Spec hits        : 0
+  Hit rate         : 0.0000
+  Wasted spec rate : 1.0000
+  Service latency T4-T0 (ns):
+    mean=63691.1  median=53472.5  p95=113865.5  p99=126693.1
+  Phase breakdown — mean (ns):
+    lock_acq  = 2503.9
+    metadata  = 61039.1
+    residency = 0.0
+
+[work]  Parsing: /home/ubuntu/SpecAsync-UVM/results/p1_d0/Stencil/8192/raw_worker.bin
+        14673 records  (48 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p1_d0/Stencil/8192/work_records.csv
+    Done → /home/ubuntu/SpecAsync-UVM/results/p1_d0/Stencil/8192
+
+  [p1_d0] Stencil size=16384
+    Warmup (1 run(s))...
+    Timing (20 runs)...
+      ... run 10/20
+      ... run 20/20
+Warning: /home/ubuntu/SpecAsync-UVM/results/p1_d0/Stencil/16384/raw_batch.bin: 39460/44920 stale records filtered (ring wrap-around)
+[batch] Parsing: /home/ubuntu/SpecAsync-UVM/results/p1_d0/Stencil/16384/raw_batch.bin
+        5460 records  (72 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p1_d0/Stencil/16384/batch_records.csv
+  Batches          : 5460
+  Spec enqueues    : 5460
+  Spec hits        : 0
+  Hit rate         : 0.0000
+  Wasted spec rate : 1.0000
+  Service latency T4-T0 (ns):
+    mean=65382.1  median=66057.5  p95=114031.5  p99=130342.2
+  Phase breakdown — mean (ns):
+    lock_acq  = 2487.9
+    metadata  = 62754.6
+    residency = 0.0
+
+[work]  Parsing: /home/ubuntu/SpecAsync-UVM/results/p1_d0/Stencil/16384/raw_worker.bin
+        44920 records  (48 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p1_d0/Stencil/16384/work_records.csv
+    Done → /home/ubuntu/SpecAsync-UVM/results/p1_d0/Stencil/16384
+
+  [p1_d0] Stencil size=24000
+    Warmup (1 run(s))...
+    Timing (20 runs)...
+      ... run 10/20
+      ... run 20/20
+Warning: /home/ubuntu/SpecAsync-UVM/results/p1_d0/Stencil/24000/raw_batch.bin: 91931/104671 stale records filtered (ring wrap-around)
+[batch] Parsing: /home/ubuntu/SpecAsync-UVM/results/p1_d0/Stencil/24000/raw_batch.bin
+        12740 records  (72 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p1_d0/Stencil/24000/batch_records.csv
+  Batches          : 12740
+  Spec enqueues    : 12740
+  Spec hits        : 1
+  Hit rate         : 0.0001
+  Wasted spec rate : 0.9999
+  Service latency T4-T0 (ns):
+    mean=66040.1  median=65237.0  p95=112018.5  p99=127626.1
+  Phase breakdown — mean (ns):
+    lock_acq  = 2358.1
+    metadata  = 63539.6
+    residency = 0.0
+
+[work]  Parsing: /home/ubuntu/SpecAsync-UVM/results/p1_d0/Stencil/24000/raw_worker.bin
+        104671 records  (48 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p1_d0/Stencil/24000/work_records.csv
+    Done → /home/ubuntu/SpecAsync-UVM/results/p1_d0/Stencil/24000
+
+  [p1_d0] cuFFT size=67108864
+    Warmup (1 run(s))...
+    Timing (20 runs)...
+      ... run 10/20
+      ... run 20/20
+[batch] Parsing: /home/ubuntu/SpecAsync-UVM/results/p1_d0/cuFFT/67108864/raw_batch.bin
+        1705 records  (72 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p1_d0/cuFFT/67108864/batch_records.csv
+  Batches          : 1705
+  Spec enqueues    : 1705
+  Spec hits        : 0
+  Hit rate         : 0.0000
+  Wasted spec rate : 1.0000
+  Service latency T4-T0 (ns):
+    mean=568112.6  median=404051.0  p95=1949953.6  p99=2891653.0
+  Phase breakdown — mean (ns):
+    lock_acq  = 2808.2
+    metadata  = 565143.9
+    residency = 0.0
+
+[work]  Parsing: /home/ubuntu/SpecAsync-UVM/results/p1_d0/cuFFT/67108864/raw_worker.bin
+        1705 records  (48 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p1_d0/cuFFT/67108864/work_records.csv
+    Done → /home/ubuntu/SpecAsync-UVM/results/p1_d0/cuFFT/67108864
+
+  [p1_d0] cuFFT size=134217728
+    Warmup (1 run(s))...
+    Timing (20 runs)...
+      ... run 10/20
+      ... run 20/20
+Warning: /home/ubuntu/SpecAsync-UVM/results/p1_d0/cuFFT/134217728/raw_batch.bin: 1785/3605 stale records filtered (ring wrap-around)
+[batch] Parsing: /home/ubuntu/SpecAsync-UVM/results/p1_d0/cuFFT/134217728/raw_batch.bin
+        1820 records  (72 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p1_d0/cuFFT/134217728/batch_records.csv
+  Batches          : 1820
+  Spec enqueues    : 1820
+  Spec hits        : 0
+  Hit rate         : 0.0000
+  Wasted spec rate : 1.0000
+  Service latency T4-T0 (ns):
+    mean=535835.7  median=427230.0  p95=1509131.5  p99=2205920.7
+  Phase breakdown — mean (ns):
+    lock_acq  = 2943.1
+    metadata  = 532719.1
+    residency = 0.0
+
+[work]  Parsing: /home/ubuntu/SpecAsync-UVM/results/p1_d0/cuFFT/134217728/raw_worker.bin
+        3605 records  (48 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p1_d0/cuFFT/134217728/work_records.csv
+    Done → /home/ubuntu/SpecAsync-UVM/results/p1_d0/cuFFT/134217728
+
+  [p1_d0] cuFFT size=268435456
+    Warmup (1 run(s))...
+    Timing (20 runs)...
+      ... run 10/20
+      ... run 20/20
+Warning: /home/ubuntu/SpecAsync-UVM/results/p1_d0/cuFFT/268435456/raw_batch.bin: 5330/7150 stale records filtered (ring wrap-around)
+[batch] Parsing: /home/ubuntu/SpecAsync-UVM/results/p1_d0/cuFFT/268435456/raw_batch.bin
+        1820 records  (72 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p1_d0/cuFFT/268435456/batch_records.csv
+  Batches          : 1820
+  Spec enqueues    : 1820
+  Spec hits        : 0
+  Hit rate         : 0.0000
+  Wasted spec rate : 1.0000
+  Service latency T4-T0 (ns):
+    mean=535026.9  median=426480.0  p95=1578245.6  p99=2323432.7
+  Phase breakdown — mean (ns):
+    lock_acq  = 2689.6
+    metadata  = 532183.5
+    residency = 0.0
+
+[work]  Parsing: /home/ubuntu/SpecAsync-UVM/results/p1_d0/cuFFT/268435456/raw_worker.bin
+        7150 records  (48 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p1_d0/cuFFT/268435456/work_records.csv
+    Done → /home/ubuntu/SpecAsync-UVM/results/p1_d0/cuFFT/268435456
+
+  [p1_d0] Stencil_OvSub size=25000 20 11264
+    Warmup (1 run(s))...
+    Timing (20 runs)...
+      ... run 10/20
+      ... run 20/20
+Warning: /home/ubuntu/SpecAsync-UVM/results/p1_d0/Stencil_OvSub/25000_20_11264/raw_batch.bin: 116511/131071 stale records filtered (ring wrap-around)
+[batch] Parsing: /home/ubuntu/SpecAsync-UVM/results/p1_d0/Stencil_OvSub/25000_20_11264/raw_batch.bin
+        14560 records  (72 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p1_d0/Stencil_OvSub/25000_20_11264/batch_records.csv
+  Batches          : 14560
+  Spec enqueues    : 14560
+  Spec hits        : 9
+  Hit rate         : 0.0006
+  Wasted spec rate : 0.9994
+  Service latency T4-T0 (ns):
+    mean=62796.8  median=61824.5  p95=110336.6  p99=126363.3
+  Phase breakdown — mean (ns):
+    lock_acq  = 2550.6
+    metadata  = 60101.6
+    residency = 0.0
+
+[work]  Parsing: /home/ubuntu/SpecAsync-UVM/results/p1_d0/Stencil_OvSub/25000_20_11264/raw_worker.bin
+        131071 records  (48 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p1_d0/Stencil_OvSub/25000_20_11264/work_records.csv
+    Done → /home/ubuntu/SpecAsync-UVM/results/p1_d0/Stencil_OvSub/25000_20_11264
+
+  [p1_d0] Stencil_OvSub size=28300 20 11264
+    Warmup (1 run(s))...
+    Timing (20 runs)...
+      ... run 10/20
+      ... run 20/20
+Warning: /home/ubuntu/SpecAsync-UVM/results/p1_d0/Stencil_OvSub/28300_20_11264/raw_batch.bin: 116511/131071 stale records filtered (ring wrap-around)
+[batch] Parsing: /home/ubuntu/SpecAsync-UVM/results/p1_d0/Stencil_OvSub/28300_20_11264/raw_batch.bin
+        14560 records  (72 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p1_d0/Stencil_OvSub/28300_20_11264/batch_records.csv
+  Batches          : 14560
+  Spec enqueues    : 14560
+  Spec hits        : 15
+  Hit rate         : 0.0010
+  Wasted spec rate : 0.9990
+  Service latency T4-T0 (ns):
+    mean=62515.0  median=58134.0  p95=115681.3  p99=133758.0
+  Phase breakdown — mean (ns):
+    lock_acq  = 2522.0
+    metadata  = 59854.0
+    residency = 0.0
+
+[work]  Parsing: /home/ubuntu/SpecAsync-UVM/results/p1_d0/Stencil_OvSub/28300_20_11264/raw_worker.bin
+        131071 records  (48 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p1_d0/Stencil_OvSub/28300_20_11264/work_records.csv
+    Done → /home/ubuntu/SpecAsync-UVM/results/p1_d0/Stencil_OvSub/28300_20_11264
+
+  [p1_d0] Stencil_OvSub size=32000 20 11264
+    Warmup (1 run(s))...
+    Timing (20 runs)...
+      ... run 10/20
+      ... run 20/20
+Warning: /home/ubuntu/SpecAsync-UVM/results/p1_d0/Stencil_OvSub/32000_20_11264/raw_batch.bin: 116511/131071 stale records filtered (ring wrap-around)
+[batch] Parsing: /home/ubuntu/SpecAsync-UVM/results/p1_d0/Stencil_OvSub/32000_20_11264/raw_batch.bin
+        14560 records  (72 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p1_d0/Stencil_OvSub/32000_20_11264/batch_records.csv
+  Batches          : 14560
+  Spec enqueues    : 14560
+  Spec hits        : 47
+  Hit rate         : 0.0032
+  Wasted spec rate : 0.9968
+  Service latency T4-T0 (ns):
+    mean=58937.0  median=52347.5  p95=115804.1  p99=141443.2
+  Phase breakdown — mean (ns):
+    lock_acq  = 2562.0
+    metadata  = 56224.3
+    residency = 0.0
+
+[work]  Parsing: /home/ubuntu/SpecAsync-UVM/results/p1_d0/Stencil_OvSub/32000_20_11264/raw_worker.bin
+        131071 records  (48 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p1_d0/Stencil_OvSub/32000_20_11264/work_records.csv
+    Done → /home/ubuntu/SpecAsync-UVM/results/p1_d0/Stencil_OvSub/32000_20_11264
+
+  [p1_d0] GraphBFS size=22
+    Warmup (1 run(s))...
+    Timing (20 runs)...
+      ... run 10/20
+      ... run 20/20
+Warning: /home/ubuntu/SpecAsync-UVM/results/p1_d0/GraphBFS/22/raw_batch.bin: 3464/5284 stale records filtered (ring wrap-around)
+[batch] Parsing: /home/ubuntu/SpecAsync-UVM/results/p1_d0/GraphBFS/22/raw_batch.bin
+        1820 records  (72 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p1_d0/GraphBFS/22/batch_records.csv
+  Batches          : 1820
+  Spec enqueues    : 1820
+  Spec hits        : 3
+  Hit rate         : 0.0016
+  Wasted spec rate : 0.9984
+  Service latency T4-T0 (ns):
+    mean=276715.2  median=232890.0  p95=728283.2  p99=982124.9
+  Phase breakdown — mean (ns):
+    lock_acq  = 2752.9
+    metadata  = 273809.8
+    residency = 0.0
+
+[work]  Parsing: /home/ubuntu/SpecAsync-UVM/results/p1_d0/GraphBFS/22/raw_worker.bin
+        5284 records  (48 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p1_d0/GraphBFS/22/work_records.csv
+    Done → /home/ubuntu/SpecAsync-UVM/results/p1_d0/GraphBFS/22
+
+  [p1_d0] GraphBFS size=23
+    Warmup (1 run(s))...
+    Timing (20 runs)...
+      ... run 10/20
+      ... run 20/20
+Warning: /home/ubuntu/SpecAsync-UVM/results/p1_d0/GraphBFS/23/raw_batch.bin: 7691/9511 stale records filtered (ring wrap-around)
+[batch] Parsing: /home/ubuntu/SpecAsync-UVM/results/p1_d0/GraphBFS/23/raw_batch.bin
+        1820 records  (72 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p1_d0/GraphBFS/23/batch_records.csv
+  Batches          : 1820
+  Spec enqueues    : 1820
+  Spec hits        : 1
+  Hit rate         : 0.0005
+  Wasted spec rate : 0.9995
+  Service latency T4-T0 (ns):
+    mean=291642.6  median=248272.0  p95=759058.4  p99=1386275.1
+  Phase breakdown — mean (ns):
+    lock_acq  = 2651.8
+    metadata  = 288841.4
+    residency = 0.0
+
+[work]  Parsing: /home/ubuntu/SpecAsync-UVM/results/p1_d0/GraphBFS/23/raw_worker.bin
+        9511 records  (48 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p1_d0/GraphBFS/23/work_records.csv
+    Done → /home/ubuntu/SpecAsync-UVM/results/p1_d0/GraphBFS/23
+
+  [p1_d0] GraphBFS size=24
+    Warmup (1 run(s))...
+    Timing (20 runs)...
+      ... run 10/20
+      ... run 20/20
+Warning: /home/ubuntu/SpecAsync-UVM/results/p1_d0/GraphBFS/24/raw_batch.bin: 14564/18153 stale records filtered (ring wrap-around)
+[batch] Parsing: /home/ubuntu/SpecAsync-UVM/results/p1_d0/GraphBFS/24/raw_batch.bin
+        3589 records  (72 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p1_d0/GraphBFS/24/batch_records.csv
+  Batches          : 3589
+  Spec enqueues    : 3589
+  Spec hits        : 5
+  Hit rate         : 0.0014
+  Wasted spec rate : 0.9986
+  Service latency T4-T0 (ns):
+    mean=303424.8  median=218225.0  p95=859349.6  p99=2049723.8
+  Phase breakdown — mean (ns):
+    lock_acq  = 2468.6
+    metadata  = 300814.4
+    residency = 0.0
+
+[work]  Parsing: /home/ubuntu/SpecAsync-UVM/results/p1_d0/GraphBFS/24/raw_worker.bin
+        18153 records  (48 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p1_d0/GraphBFS/24/work_records.csv
+    Done → /home/ubuntu/SpecAsync-UVM/results/p1_d0/GraphBFS/24
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ Config: p2_d0  (policy=2 depth=0)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Module params set: policy=2 depth=0
+
+  [p2_d0] STREAM size=134217728
+    Warmup (1 run(s))...
+    Timing (20 runs)...
+      ... run 10/20
+      ... run 20/20
+Warning: /home/ubuntu/SpecAsync-UVM/results/p2_d0/STREAM/134217728/raw_batch.bin: 20354/23994 stale records filtered (ring wrap-around)
+[batch] Parsing: /home/ubuntu/SpecAsync-UVM/results/p2_d0/STREAM/134217728/raw_batch.bin
+        3640 records  (72 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p2_d0/STREAM/134217728/batch_records.csv
+  Batches          : 3640
+  Spec enqueues    : 3640
+  Spec hits        : 26
+  Hit rate         : 0.0071
+  Wasted spec rate : 0.9929
+  Service latency T4-T0 (ns):
+    mean=131192.4  median=109753.5  p95=272964.3  p99=475565.7
+  Phase breakdown — mean (ns):
+    lock_acq  = 2524.3
+    metadata  = 128523.8
+    residency = 0.0
+
+[work]  Parsing: /home/ubuntu/SpecAsync-UVM/results/p2_d0/STREAM/134217728/raw_worker.bin
+        23994 records  (48 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p2_d0/STREAM/134217728/work_records.csv
+    Done → /home/ubuntu/SpecAsync-UVM/results/p2_d0/STREAM/134217728
+
+  [p2_d0] STREAM size=268435456
+    Warmup (1 run(s))...
+    Timing (20 runs)...
+      ... run 10/20
+      ... run 20/20
+Warning: /home/ubuntu/SpecAsync-UVM/results/p2_d0/STREAM/268435456/raw_batch.bin: 37057/42517 stale records filtered (ring wrap-around)
+[batch] Parsing: /home/ubuntu/SpecAsync-UVM/results/p2_d0/STREAM/268435456/raw_batch.bin
+        5460 records  (72 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p2_d0/STREAM/268435456/batch_records.csv
+  Batches          : 5460
+  Spec enqueues    : 5460
+  Spec hits        : 95
+  Hit rate         : 0.0174
+  Wasted spec rate : 0.9826
+  Service latency T4-T0 (ns):
+    mean=141607.0  median=114558.5  p95=352020.8  p99=648161.3
+  Phase breakdown — mean (ns):
+    lock_acq  = 2435.1
+    metadata  = 139035.3
+    residency = 0.0
+
+[work]  Parsing: /home/ubuntu/SpecAsync-UVM/results/p2_d0/STREAM/268435456/raw_worker.bin
+        42517 records  (48 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p2_d0/STREAM/268435456/work_records.csv
+    Done → /home/ubuntu/SpecAsync-UVM/results/p2_d0/STREAM/268435456
+
+  [p2_d0] STREAM size=536870912
+    Warmup (1 run(s))...
+    Timing (20 runs)...
+      ... run 10/20
+      ... run 20/20
+Warning: /home/ubuntu/SpecAsync-UVM/results/p2_d0/STREAM/536870912/raw_batch.bin: 62923/72023 stale records filtered (ring wrap-around)
+[batch] Parsing: /home/ubuntu/SpecAsync-UVM/results/p2_d0/STREAM/536870912/raw_batch.bin
+        9100 records  (72 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p2_d0/STREAM/536870912/batch_records.csv
+  Batches          : 9100
+  Spec enqueues    : 9100
+  Spec hits        : 235
+  Hit rate         : 0.0258
+  Wasted spec rate : 0.9742
+  Service latency T4-T0 (ns):
+    mean=168281.0  median=127200.0  p95=475760.9  p99=714128.0
+  Phase breakdown — mean (ns):
+    lock_acq  = 2647.3
+    metadata  = 165469.4
+    residency = 0.0
+
+[work]  Parsing: /home/ubuntu/SpecAsync-UVM/results/p2_d0/STREAM/536870912/raw_worker.bin
+        72023 records  (48 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p2_d0/STREAM/536870912/work_records.csv
+    Done → /home/ubuntu/SpecAsync-UVM/results/p2_d0/STREAM/536870912
+
+  [p2_d0] SGEMM size=8192
+    Warmup (1 run(s))...
+    Timing (20 runs)...
+      ... run 10/20
+      ... run 20/20
+Warning: /home/ubuntu/SpecAsync-UVM/results/p2_d0/SGEMM/8192/raw_batch.bin: 14564/17552 stale records filtered (ring wrap-around)
+[batch] Parsing: /home/ubuntu/SpecAsync-UVM/results/p2_d0/SGEMM/8192/raw_batch.bin
+        2988 records  (72 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p2_d0/SGEMM/8192/batch_records.csv
+  Batches          : 2988
+  Spec enqueues    : 2988
+  Spec hits        : 3
+  Hit rate         : 0.0010
+  Wasted spec rate : 0.9990
+  Service latency T4-T0 (ns):
+    mean=116772.0  median=46525.5  p95=478349.4  p99=678990.3
+  Phase breakdown — mean (ns):
+    lock_acq  = 2483.5
+    metadata  = 114141.0
+    residency = 0.0
+
+[work]  Parsing: /home/ubuntu/SpecAsync-UVM/results/p2_d0/SGEMM/8192/raw_worker.bin
+        17552 records  (48 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p2_d0/SGEMM/8192/work_records.csv
+    Done → /home/ubuntu/SpecAsync-UVM/results/p2_d0/SGEMM/8192
+
+  [p2_d0] SGEMM size=16384
+    Warmup (1 run(s))...
+    Timing (20 runs)...
+      ... run 10/20
+      ... run 20/20
+Warning: /home/ubuntu/SpecAsync-UVM/results/p2_d0/SGEMM/16384/raw_batch.bin: 43942/51222 stale records filtered (ring wrap-around)
+[batch] Parsing: /home/ubuntu/SpecAsync-UVM/results/p2_d0/SGEMM/16384/raw_batch.bin
+        7280 records  (72 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p2_d0/SGEMM/16384/batch_records.csv
+  Batches          : 7280
+  Spec enqueues    : 7280
+  Spec hits        : 6
+  Hit rate         : 0.0008
+  Wasted spec rate : 0.9992
+  Service latency T4-T0 (ns):
+    mean=117535.4  median=61633.5  p95=497229.4  p99=771631.9
+  Phase breakdown — mean (ns):
+    lock_acq  = 2702.1
+    metadata  = 114672.8
+    residency = 0.0
+
+[work]  Parsing: /home/ubuntu/SpecAsync-UVM/results/p2_d0/SGEMM/16384/raw_worker.bin
+        51222 records  (48 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p2_d0/SGEMM/16384/work_records.csv
+    Done → /home/ubuntu/SpecAsync-UVM/results/p2_d0/SGEMM/16384
+
+  [p2_d0] SGEMM size=24000
+    Warmup (1 run(s))...
+    Timing (20 runs)...
+      ... run 10/20
+      ... run 20/20
+Warning: /home/ubuntu/SpecAsync-UVM/results/p2_d0/SGEMM/24000/raw_batch.bin: 95221/107961 stale records filtered (ring wrap-around)
+[batch] Parsing: /home/ubuntu/SpecAsync-UVM/results/p2_d0/SGEMM/24000/raw_batch.bin
+        12740 records  (72 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p2_d0/SGEMM/24000/batch_records.csv
+  Batches          : 12740
+  Spec enqueues    : 12740
+  Spec hits        : 30
+  Hit rate         : 0.0024
+  Wasted spec rate : 0.9976
+  Service latency T4-T0 (ns):
+    mean=55502.4  median=55285.0  p95=79164.2  p99=92053.5
+  Phase breakdown — mean (ns):
+    lock_acq  = 2496.7
+    metadata  = 52855.3
+    residency = 0.0
+
+[work]  Parsing: /home/ubuntu/SpecAsync-UVM/results/p2_d0/SGEMM/24000/raw_worker.bin
+        107961 records  (48 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p2_d0/SGEMM/24000/work_records.csv
+    Done → /home/ubuntu/SpecAsync-UVM/results/p2_d0/SGEMM/24000
+
+  [p2_d0] Stencil size=8192
+    Warmup (1 run(s))...
+    Timing (20 runs)...
+      ... run 10/20
+      ... run 20/20
+Warning: /home/ubuntu/SpecAsync-UVM/results/p2_d0/Stencil/8192/raw_batch.bin: 12901/14721 stale records filtered (ring wrap-around)
+[batch] Parsing: /home/ubuntu/SpecAsync-UVM/results/p2_d0/Stencil/8192/raw_batch.bin
+        1820 records  (72 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p2_d0/Stencil/8192/batch_records.csv
+  Batches          : 1820
+  Spec enqueues    : 1820
+  Spec hits        : 0
+  Hit rate         : 0.0000
+  Wasted spec rate : 1.0000
+  Service latency T4-T0 (ns):
+    mean=63707.1  median=52494.5  p95=113676.3  p99=132347.6
+  Phase breakdown — mean (ns):
+    lock_acq  = 2526.4
+    metadata  = 61029.2
+    residency = 0.0
+
+[work]  Parsing: /home/ubuntu/SpecAsync-UVM/results/p2_d0/Stencil/8192/raw_worker.bin
+        14721 records  (48 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p2_d0/Stencil/8192/work_records.csv
+    Done → /home/ubuntu/SpecAsync-UVM/results/p2_d0/Stencil/8192
+
+  [p2_d0] Stencil size=16384
+    Warmup (1 run(s))...
+    Timing (20 runs)...
+      ... run 10/20
+      ... run 20/20
+Warning: /home/ubuntu/SpecAsync-UVM/results/p2_d0/Stencil/16384/raw_batch.bin: 38106/43566 stale records filtered (ring wrap-around)
+[batch] Parsing: /home/ubuntu/SpecAsync-UVM/results/p2_d0/Stencil/16384/raw_batch.bin
+        5460 records  (72 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p2_d0/Stencil/16384/batch_records.csv
+  Batches          : 5460
+  Spec enqueues    : 5460
+  Spec hits        : 0
+  Hit rate         : 0.0000
+  Wasted spec rate : 1.0000
+  Service latency T4-T0 (ns):
+    mean=65058.9  median=66174.5  p95=112335.3  p99=124132.1
+  Phase breakdown — mean (ns):
+    lock_acq  = 2522.5
+    metadata  = 62392.1
+    residency = 0.0
+
+[work]  Parsing: /home/ubuntu/SpecAsync-UVM/results/p2_d0/Stencil/16384/raw_worker.bin
+        43566 records  (48 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p2_d0/Stencil/16384/work_records.csv
+    Done → /home/ubuntu/SpecAsync-UVM/results/p2_d0/Stencil/16384
+
+  [p2_d0] Stencil size=24000
+    Warmup (1 run(s))...
+    Timing (20 runs)...
+      ... run 10/20
+      ... run 20/20
+Warning: /home/ubuntu/SpecAsync-UVM/results/p2_d0/Stencil/24000/raw_batch.bin: 92073/104813 stale records filtered (ring wrap-around)
+[batch] Parsing: /home/ubuntu/SpecAsync-UVM/results/p2_d0/Stencil/24000/raw_batch.bin
+        12740 records  (72 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p2_d0/Stencil/24000/batch_records.csv
+  Batches          : 12740
+  Spec enqueues    : 12740
+  Spec hits        : 1
+  Hit rate         : 0.0001
+  Wasted spec rate : 0.9999
+  Service latency T4-T0 (ns):
+    mean=67363.0  median=66197.5  p95=113868.8  p99=134097.5
+  Phase breakdown — mean (ns):
+    lock_acq  = 2459.2
+    metadata  = 64759.3
+    residency = 0.0
+
+[work]  Parsing: /home/ubuntu/SpecAsync-UVM/results/p2_d0/Stencil/24000/raw_worker.bin
+        104813 records  (48 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p2_d0/Stencil/24000/work_records.csv
+    Done → /home/ubuntu/SpecAsync-UVM/results/p2_d0/Stencil/24000
+
+  [p2_d0] cuFFT size=67108864
+    Warmup (1 run(s))...
+    Timing (20 runs)...
+      ... run 10/20
+      ... run 20/20
+[batch] Parsing: /home/ubuntu/SpecAsync-UVM/results/p2_d0/cuFFT/67108864/raw_batch.bin
+        1700 records  (72 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p2_d0/cuFFT/67108864/batch_records.csv
+  Batches          : 1700
+  Spec enqueues    : 1700
+  Spec hits        : 433
+  Hit rate         : 0.2547
+  Wasted spec rate : 0.7453
+  Service latency T4-T0 (ns):
+    mean=602864.8  median=420976.5  p95=2193274.6  p99=2877751.5
+  Phase breakdown — mean (ns):
+    lock_acq  = 3015.9
+    metadata  = 599678.6
+    residency = 0.0
+
+[work]  Parsing: /home/ubuntu/SpecAsync-UVM/results/p2_d0/cuFFT/67108864/raw_worker.bin
+        1700 records  (48 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p2_d0/cuFFT/67108864/work_records.csv
+    Done → /home/ubuntu/SpecAsync-UVM/results/p2_d0/cuFFT/67108864
+
+  [p2_d0] cuFFT size=134217728
+    Warmup (1 run(s))...
+    Timing (20 runs)...
+      ... run 10/20
+      ... run 20/20
+Warning: /home/ubuntu/SpecAsync-UVM/results/p2_d0/cuFFT/134217728/raw_batch.bin: 1799/3619 stale records filtered (ring wrap-around)
+[batch] Parsing: /home/ubuntu/SpecAsync-UVM/results/p2_d0/cuFFT/134217728/raw_batch.bin
+        1820 records  (72 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p2_d0/cuFFT/134217728/batch_records.csv
+  Batches          : 1820
+  Spec enqueues    : 1820
+  Spec hits        : 1
+  Hit rate         : 0.0005
+  Wasted spec rate : 0.9995
+  Service latency T4-T0 (ns):
+    mean=533199.2  median=424013.5  p95=1397656.2  p99=2249860.2
+  Phase breakdown — mean (ns):
+    lock_acq  = 2762.5
+    metadata  = 530274.9
+    residency = 0.0
+
+[work]  Parsing: /home/ubuntu/SpecAsync-UVM/results/p2_d0/cuFFT/134217728/raw_worker.bin
+        3619 records  (48 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p2_d0/cuFFT/134217728/work_records.csv
+    Done → /home/ubuntu/SpecAsync-UVM/results/p2_d0/cuFFT/134217728
+
+  [p2_d0] cuFFT size=268435456
+    Warmup (1 run(s))...
+    Timing (20 runs)...
+      ... run 10/20
+      ... run 20/20
+Warning: /home/ubuntu/SpecAsync-UVM/results/p2_d0/cuFFT/268435456/raw_batch.bin: 5474/7294 stale records filtered (ring wrap-around)
+[batch] Parsing: /home/ubuntu/SpecAsync-UVM/results/p2_d0/cuFFT/268435456/raw_batch.bin
+        1820 records  (72 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p2_d0/cuFFT/268435456/batch_records.csv
+  Batches          : 1820
+  Spec enqueues    : 1820
+  Spec hits        : 0
+  Hit rate         : 0.0000
+  Wasted spec rate : 1.0000
+  Service latency T4-T0 (ns):
+    mean=552176.4  median=447606.5  p95=1368696.4  p99=2195600.8
+  Phase breakdown — mean (ns):
+    lock_acq  = 3273.5
+    metadata  = 548731.2
+    residency = 0.0
+
+[work]  Parsing: /home/ubuntu/SpecAsync-UVM/results/p2_d0/cuFFT/268435456/raw_worker.bin
+        7294 records  (48 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p2_d0/cuFFT/268435456/work_records.csv
+    Done → /home/ubuntu/SpecAsync-UVM/results/p2_d0/cuFFT/268435456
+
+  [p2_d0] Stencil_OvSub size=25000 20 11264
+    Warmup (1 run(s))...
+    Timing (20 runs)...
+      ... run 10/20
+      ... run 20/20
+Warning: /home/ubuntu/SpecAsync-UVM/results/p2_d0/Stencil_OvSub/25000_20_11264/raw_batch.bin: 116511/131071 stale records filtered (ring wrap-around)
+[batch] Parsing: /home/ubuntu/SpecAsync-UVM/results/p2_d0/Stencil_OvSub/25000_20_11264/raw_batch.bin
+        14560 records  (72 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p2_d0/Stencil_OvSub/25000_20_11264/batch_records.csv
+  Batches          : 14560
+  Spec enqueues    : 14560
+  Spec hits        : 9
+  Hit rate         : 0.0006
+  Wasted spec rate : 0.9994
+  Service latency T4-T0 (ns):
+    mean=62991.9  median=61069.5  p95=112181.4  p99=138912.4
+  Phase breakdown — mean (ns):
+    lock_acq  = 2706.8
+    metadata  = 60136.0
+    residency = 0.0
+
+[work]  Parsing: /home/ubuntu/SpecAsync-UVM/results/p2_d0/Stencil_OvSub/25000_20_11264/raw_worker.bin
+        131071 records  (48 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p2_d0/Stencil_OvSub/25000_20_11264/work_records.csv
+    Done → /home/ubuntu/SpecAsync-UVM/results/p2_d0/Stencil_OvSub/25000_20_11264
+
+  [p2_d0] Stencil_OvSub size=28300 20 11264
+    Warmup (1 run(s))...
+    Timing (20 runs)...
+      ... run 10/20
+      ... run 20/20
+Warning: /home/ubuntu/SpecAsync-UVM/results/p2_d0/Stencil_OvSub/28300_20_11264/raw_batch.bin: 116511/131071 stale records filtered (ring wrap-around)
+[batch] Parsing: /home/ubuntu/SpecAsync-UVM/results/p2_d0/Stencil_OvSub/28300_20_11264/raw_batch.bin
+        14560 records  (72 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p2_d0/Stencil_OvSub/28300_20_11264/batch_records.csv
+  Batches          : 14560
+  Spec enqueues    : 14560
+  Spec hits        : 9
+  Hit rate         : 0.0006
+  Wasted spec rate : 0.9994
+  Service latency T4-T0 (ns):
+    mean=62374.6  median=58101.0  p95=116178.6  p99=133355.0
+  Phase breakdown — mean (ns):
+    lock_acq  = 2547.2
+    metadata  = 59676.0
+    residency = 0.0
+
+[work]  Parsing: /home/ubuntu/SpecAsync-UVM/results/p2_d0/Stencil_OvSub/28300_20_11264/raw_worker.bin
+        131071 records  (48 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p2_d0/Stencil_OvSub/28300_20_11264/work_records.csv
+    Done → /home/ubuntu/SpecAsync-UVM/results/p2_d0/Stencil_OvSub/28300_20_11264
+
+  [p2_d0] Stencil_OvSub size=32000 20 11264
+    Warmup (1 run(s))...
+    Timing (20 runs)...
+      ... run 10/20
+      ... run 20/20
+Warning: /home/ubuntu/SpecAsync-UVM/results/p2_d0/Stencil_OvSub/32000_20_11264/raw_batch.bin: 116511/131071 stale records filtered (ring wrap-around)
+[batch] Parsing: /home/ubuntu/SpecAsync-UVM/results/p2_d0/Stencil_OvSub/32000_20_11264/raw_batch.bin
+        14560 records  (72 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p2_d0/Stencil_OvSub/32000_20_11264/batch_records.csv
+  Batches          : 14560
+  Spec enqueues    : 14560
+  Spec hits        : 41
+  Hit rate         : 0.0028
+  Wasted spec rate : 0.9972
+  Service latency T4-T0 (ns):
+    mean=59410.2  median=53389.0  p95=116855.1  p99=142824.3
+  Phase breakdown — mean (ns):
+    lock_acq  = 2481.6
+    metadata  = 56789.9
+    residency = 0.0
+
+[work]  Parsing: /home/ubuntu/SpecAsync-UVM/results/p2_d0/Stencil_OvSub/32000_20_11264/raw_worker.bin
+        131071 records  (48 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p2_d0/Stencil_OvSub/32000_20_11264/work_records.csv
+    Done → /home/ubuntu/SpecAsync-UVM/results/p2_d0/Stencil_OvSub/32000_20_11264
+
+  [p2_d0] GraphBFS size=22
+    Warmup (1 run(s))...
+    Timing (20 runs)...
+      ... run 10/20
+      ... run 20/20
+Warning: /home/ubuntu/SpecAsync-UVM/results/p2_d0/GraphBFS/22/raw_batch.bin: 3468/5288 stale records filtered (ring wrap-around)
+[batch] Parsing: /home/ubuntu/SpecAsync-UVM/results/p2_d0/GraphBFS/22/raw_batch.bin
+        1820 records  (72 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p2_d0/GraphBFS/22/batch_records.csv
+  Batches          : 1820
+  Spec enqueues    : 1820
+  Spec hits        : 4
+  Hit rate         : 0.0022
+  Wasted spec rate : 0.9978
+  Service latency T4-T0 (ns):
+    mean=275173.4  median=234117.5  p95=714022.7  p99=1039374.0
+  Phase breakdown — mean (ns):
+    lock_acq  = 2690.8
+    metadata  = 272329.4
+    residency = 0.0
+
+[work]  Parsing: /home/ubuntu/SpecAsync-UVM/results/p2_d0/GraphBFS/22/raw_worker.bin
+        5288 records  (48 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p2_d0/GraphBFS/22/work_records.csv
+    Done → /home/ubuntu/SpecAsync-UVM/results/p2_d0/GraphBFS/22
+
+  [p2_d0] GraphBFS size=23
+    Warmup (1 run(s))...
+    Timing (20 runs)...
+      ... run 10/20
+      ... run 20/20
+Warning: /home/ubuntu/SpecAsync-UVM/results/p2_d0/GraphBFS/23/raw_batch.bin: 7705/9525 stale records filtered (ring wrap-around)
+[batch] Parsing: /home/ubuntu/SpecAsync-UVM/results/p2_d0/GraphBFS/23/raw_batch.bin
+        1820 records  (72 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p2_d0/GraphBFS/23/batch_records.csv
+  Batches          : 1820
+  Spec enqueues    : 1820
+  Spec hits        : 8
+  Hit rate         : 0.0044
+  Wasted spec rate : 0.9956
+  Service latency T4-T0 (ns):
+    mean=288137.8  median=231655.5  p95=771386.1  p99=1432141.5
+  Phase breakdown — mean (ns):
+    lock_acq  = 2559.5
+    metadata  = 285436.8
+    residency = 0.0
+
+[work]  Parsing: /home/ubuntu/SpecAsync-UVM/results/p2_d0/GraphBFS/23/raw_worker.bin
+        9525 records  (48 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p2_d0/GraphBFS/23/work_records.csv
+    Done → /home/ubuntu/SpecAsync-UVM/results/p2_d0/GraphBFS/23
+
+  [p2_d0] GraphBFS size=24
+    Warmup (1 run(s))...
+    Timing (20 runs)...
+      ... run 10/20
+      ... run 20/20
+Warning: /home/ubuntu/SpecAsync-UVM/results/p2_d0/GraphBFS/24/raw_batch.bin: 14584/18224 stale records filtered (ring wrap-around)
+[batch] Parsing: /home/ubuntu/SpecAsync-UVM/results/p2_d0/GraphBFS/24/raw_batch.bin
+        3640 records  (72 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p2_d0/GraphBFS/24/batch_records.csv
+  Batches          : 3640
+  Spec enqueues    : 3640
+  Spec hits        : 8
+  Hit rate         : 0.0022
+  Wasted spec rate : 0.9978
+  Service latency T4-T0 (ns):
+    mean=303698.6  median=214643.5  p95=831465.1  p99=2096830.8
+  Phase breakdown — mean (ns):
+    lock_acq  = 2520.1
+    metadata  = 301031.1
+    residency = 0.0
+
+[work]  Parsing: /home/ubuntu/SpecAsync-UVM/results/p2_d0/GraphBFS/24/raw_worker.bin
+        18224 records  (48 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p2_d0/GraphBFS/24/work_records.csv
+    Done → /home/ubuntu/SpecAsync-UVM/results/p2_d0/GraphBFS/24
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ Config: p3_d0  (policy=3 depth=0)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Module params set: policy=3 depth=0
+
+  [p3_d0] STREAM size=134217728
+    Warmup (1 run(s))...
+    Timing (20 runs)...
+      ... run 10/20
+      ... run 20/20
+Warning: /home/ubuntu/SpecAsync-UVM/results/p3_d0/STREAM/134217728/raw_batch.bin: 20340/23980 stale records filtered (ring wrap-around)
+[batch] Parsing: /home/ubuntu/SpecAsync-UVM/results/p3_d0/STREAM/134217728/raw_batch.bin
+        3640 records  (72 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p3_d0/STREAM/134217728/batch_records.csv
+  Batches          : 3640
+  Spec enqueues    : 3640
+  Spec hits        : 16
+  Hit rate         : 0.0044
+  Wasted spec rate : 0.9956
+  Service latency T4-T0 (ns):
+    mean=130857.7  median=107154.5  p95=290219.2  p99=466450.6
+  Phase breakdown — mean (ns):
+    lock_acq  = 2600.2
+    metadata  = 128107.1
+    residency = 0.0
+
+[work]  Parsing: /home/ubuntu/SpecAsync-UVM/results/p3_d0/STREAM/134217728/raw_worker.bin
+        23980 records  (48 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p3_d0/STREAM/134217728/work_records.csv
+    Done → /home/ubuntu/SpecAsync-UVM/results/p3_d0/STREAM/134217728
+
+  [p3_d0] STREAM size=268435456
+    Warmup (1 run(s))...
+    Timing (20 runs)...
+      ... run 10/20
+      ... run 20/20
+Warning: /home/ubuntu/SpecAsync-UVM/results/p3_d0/STREAM/268435456/raw_batch.bin: 37097/42557 stale records filtered (ring wrap-around)
+[batch] Parsing: /home/ubuntu/SpecAsync-UVM/results/p3_d0/STREAM/268435456/raw_batch.bin
+        5460 records  (72 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p3_d0/STREAM/268435456/batch_records.csv
+  Batches          : 5460
+  Spec enqueues    : 5460
+  Spec hits        : 67
+  Hit rate         : 0.0123
+  Wasted spec rate : 0.9877
+  Service latency T4-T0 (ns):
+    mean=144184.7  median=117382.5  p95=358920.4  p99=659556.6
+  Phase breakdown — mean (ns):
+    lock_acq  = 2510.2
+    metadata  = 141535.1
+    residency = 0.0
+
+[work]  Parsing: /home/ubuntu/SpecAsync-UVM/results/p3_d0/STREAM/268435456/raw_worker.bin
+        42557 records  (48 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p3_d0/STREAM/268435456/work_records.csv
+    Done → /home/ubuntu/SpecAsync-UVM/results/p3_d0/STREAM/268435456
+
+  [p3_d0] STREAM size=536870912
+    Warmup (1 run(s))...
+    Timing (20 runs)...
+      ... run 10/20
+      ... run 20/20
+Warning: /home/ubuntu/SpecAsync-UVM/results/p3_d0/STREAM/536870912/raw_batch.bin: 62793/71893 stale records filtered (ring wrap-around)
+[batch] Parsing: /home/ubuntu/SpecAsync-UVM/results/p3_d0/STREAM/536870912/raw_batch.bin
+        9100 records  (72 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p3_d0/STREAM/536870912/batch_records.csv
+  Batches          : 9100
+  Spec enqueues    : 9100
+  Spec hits        : 166
+  Hit rate         : 0.0182
+  Wasted spec rate : 0.9818
+  Service latency T4-T0 (ns):
+    mean=169583.1  median=129862.5  p95=473269.7  p99=713590.4
+  Phase breakdown — mean (ns):
+    lock_acq  = 2391.2
+    metadata  = 167062.6
+    residency = 0.0
+
+[work]  Parsing: /home/ubuntu/SpecAsync-UVM/results/p3_d0/STREAM/536870912/raw_worker.bin
+        71893 records  (48 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p3_d0/STREAM/536870912/work_records.csv
+    Done → /home/ubuntu/SpecAsync-UVM/results/p3_d0/STREAM/536870912
+
+  [p3_d0] SGEMM size=8192
+    Warmup (1 run(s))...
+    Timing (20 runs)...
+      ... run 10/20
+      ... run 20/20
+Warning: /home/ubuntu/SpecAsync-UVM/results/p3_d0/SGEMM/8192/raw_batch.bin: 14564/17574 stale records filtered (ring wrap-around)
+[batch] Parsing: /home/ubuntu/SpecAsync-UVM/results/p3_d0/SGEMM/8192/raw_batch.bin
+        3010 records  (72 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p3_d0/SGEMM/8192/batch_records.csv
+  Batches          : 3010
+  Spec enqueues    : 3010
+  Spec hits        : 1
+  Hit rate         : 0.0003
+  Wasted spec rate : 0.9997
+  Service latency T4-T0 (ns):
+    mean=114132.8  median=47650.0  p95=469072.4  p99=690344.6
+  Phase breakdown — mean (ns):
+    lock_acq  = 2478.7
+    metadata  = 111496.8
+    residency = 0.0
+
+[work]  Parsing: /home/ubuntu/SpecAsync-UVM/results/p3_d0/SGEMM/8192/raw_worker.bin
+        17574 records  (48 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p3_d0/SGEMM/8192/work_records.csv
+    Done → /home/ubuntu/SpecAsync-UVM/results/p3_d0/SGEMM/8192
+
+  [p3_d0] SGEMM size=16384
+    Warmup (1 run(s))...
+    Timing (20 runs)...
+      ... run 10/20
+      ... run 20/20
+Warning: /home/ubuntu/SpecAsync-UVM/results/p3_d0/SGEMM/16384/raw_batch.bin: 44387/51667 stale records filtered (ring wrap-around)
+[batch] Parsing: /home/ubuntu/SpecAsync-UVM/results/p3_d0/SGEMM/16384/raw_batch.bin
+        7280 records  (72 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p3_d0/SGEMM/16384/batch_records.csv
+  Batches          : 7280
+  Spec enqueues    : 7280
+  Spec hits        : 6
+  Hit rate         : 0.0008
+  Wasted spec rate : 0.9992
+  Service latency T4-T0 (ns):
+    mean=96831.0  median=48926.5  p95=424823.9  p99=699337.4
+  Phase breakdown — mean (ns):
+    lock_acq  = 2607.6
+    metadata  = 94064.4
+    residency = 0.0
+
+[work]  Parsing: /home/ubuntu/SpecAsync-UVM/results/p3_d0/SGEMM/16384/raw_worker.bin
+        51667 records  (48 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p3_d0/SGEMM/16384/work_records.csv
+    Done → /home/ubuntu/SpecAsync-UVM/results/p3_d0/SGEMM/16384
+
+  [p3_d0] SGEMM size=24000
+    Warmup (1 run(s))...
+    Timing (20 runs)...
+      ... run 10/20
+      ... run 20/20
+Warning: /home/ubuntu/SpecAsync-UVM/results/p3_d0/SGEMM/24000/raw_batch.bin: 95541/108281 stale records filtered (ring wrap-around)
+[batch] Parsing: /home/ubuntu/SpecAsync-UVM/results/p3_d0/SGEMM/24000/raw_batch.bin
+        12740 records  (72 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p3_d0/SGEMM/24000/batch_records.csv
+  Batches          : 12740
+  Spec enqueues    : 12740
+  Spec hits        : 52
+  Hit rate         : 0.0041
+  Wasted spec rate : 0.9959
+  Service latency T4-T0 (ns):
+    mean=56100.3  median=55490.5  p95=78735.1  p99=88258.7
+  Phase breakdown — mean (ns):
+    lock_acq  = 2412.3
+    metadata  = 53548.7
+    residency = 0.0
+
+[work]  Parsing: /home/ubuntu/SpecAsync-UVM/results/p3_d0/SGEMM/24000/raw_worker.bin
+        108281 records  (48 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p3_d0/SGEMM/24000/work_records.csv
+    Done → /home/ubuntu/SpecAsync-UVM/results/p3_d0/SGEMM/24000
+
+  [p3_d0] Stencil size=8192
+    Warmup (1 run(s))...
+    Timing (20 runs)...
+      ... run 10/20
+      ... run 20/20
+Warning: /home/ubuntu/SpecAsync-UVM/results/p3_d0/Stencil/8192/raw_batch.bin: 12826/14646 stale records filtered (ring wrap-around)
+[batch] Parsing: /home/ubuntu/SpecAsync-UVM/results/p3_d0/Stencil/8192/raw_batch.bin
+        1820 records  (72 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p3_d0/Stencil/8192/batch_records.csv
+  Batches          : 1820
+  Spec enqueues    : 1820
+  Spec hits        : 3
+  Hit rate         : 0.0016
+  Wasted spec rate : 0.9984
+  Service latency T4-T0 (ns):
+    mean=61896.4  median=51168.0  p95=110535.0  p99=128794.7
+  Phase breakdown — mean (ns):
+    lock_acq  = 2612.0
+    metadata  = 59129.4
+    residency = 0.0
+
+[work]  Parsing: /home/ubuntu/SpecAsync-UVM/results/p3_d0/Stencil/8192/raw_worker.bin
+        14646 records  (48 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p3_d0/Stencil/8192/work_records.csv
+    Done → /home/ubuntu/SpecAsync-UVM/results/p3_d0/Stencil/8192
+
+  [p3_d0] Stencil size=16384
+    Warmup (1 run(s))...
+    Timing (20 runs)...
+      ... run 10/20
+      ... run 20/20
+Warning: /home/ubuntu/SpecAsync-UVM/results/p3_d0/Stencil/16384/raw_batch.bin: 39728/45188 stale records filtered (ring wrap-around)
+[batch] Parsing: /home/ubuntu/SpecAsync-UVM/results/p3_d0/Stencil/16384/raw_batch.bin
+        5460 records  (72 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p3_d0/Stencil/16384/batch_records.csv
+  Batches          : 5460
+  Spec enqueues    : 5460
+  Spec hits        : 3
+  Hit rate         : 0.0005
+  Wasted spec rate : 0.9995
+  Service latency T4-T0 (ns):
+    mean=63489.3  median=64721.5  p95=111793.2  p99=123655.6
+  Phase breakdown — mean (ns):
+    lock_acq  = 2618.2
+    metadata  = 60717.3
+    residency = 0.0
+
+[work]  Parsing: /home/ubuntu/SpecAsync-UVM/results/p3_d0/Stencil/16384/raw_worker.bin
+        45188 records  (48 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p3_d0/Stencil/16384/work_records.csv
+    Done → /home/ubuntu/SpecAsync-UVM/results/p3_d0/Stencil/16384
+
+  [p3_d0] Stencil size=24000
+    Warmup (1 run(s))...
+    Timing (20 runs)...
+      ... run 10/20
+      ... run 20/20
+Warning: /home/ubuntu/SpecAsync-UVM/results/p3_d0/Stencil/24000/raw_batch.bin: 92437/105177 stale records filtered (ring wrap-around)
+[batch] Parsing: /home/ubuntu/SpecAsync-UVM/results/p3_d0/Stencil/24000/raw_batch.bin
+        12740 records  (72 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p3_d0/Stencil/24000/batch_records.csv
+  Batches          : 12740
+  Spec enqueues    : 12740
+  Spec hits        : 4
+  Hit rate         : 0.0003
+  Wasted spec rate : 0.9997
+  Service latency T4-T0 (ns):
+    mean=66183.4  median=65727.0  p95=111244.3  p99=128537.4
+  Phase breakdown — mean (ns):
+    lock_acq  = 2397.9
+    metadata  = 63648.9
+    residency = 0.0
+
+[work]  Parsing: /home/ubuntu/SpecAsync-UVM/results/p3_d0/Stencil/24000/raw_worker.bin
+        105177 records  (48 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p3_d0/Stencil/24000/work_records.csv
+    Done → /home/ubuntu/SpecAsync-UVM/results/p3_d0/Stencil/24000
+
+  [p3_d0] cuFFT size=67108864
+    Warmup (1 run(s))...
+    Timing (20 runs)...
+      ... run 10/20
+      ... run 20/20
+[batch] Parsing: /home/ubuntu/SpecAsync-UVM/results/p3_d0/cuFFT/67108864/raw_batch.bin
+        1717 records  (72 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p3_d0/cuFFT/67108864/batch_records.csv
+  Batches          : 1717
+  Spec enqueues    : 1717
+  Spec hits        : 0
+  Hit rate         : 0.0000
+  Wasted spec rate : 1.0000
+  Service latency T4-T0 (ns):
+    mean=543562.3  median=374217.0  p95=1938771.6  p99=2879757.6
+  Phase breakdown — mean (ns):
+    lock_acq  = 2840.9
+    metadata  = 540563.2
+    residency = 0.0
+
+[work]  Parsing: /home/ubuntu/SpecAsync-UVM/results/p3_d0/cuFFT/67108864/raw_worker.bin
+        1717 records  (48 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p3_d0/cuFFT/67108864/work_records.csv
+    Done → /home/ubuntu/SpecAsync-UVM/results/p3_d0/cuFFT/67108864
+
+  [p3_d0] cuFFT size=134217728
+    Warmup (1 run(s))...
+    Timing (20 runs)...
+      ... run 10/20
+      ... run 20/20
+Warning: /home/ubuntu/SpecAsync-UVM/results/p3_d0/cuFFT/134217728/raw_batch.bin: 1801/3621 stale records filtered (ring wrap-around)
+[batch] Parsing: /home/ubuntu/SpecAsync-UVM/results/p3_d0/cuFFT/134217728/raw_batch.bin
+        1820 records  (72 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p3_d0/cuFFT/134217728/batch_records.csv
+  Batches          : 1820
+  Spec enqueues    : 1820
+  Spec hits        : 0
+  Hit rate         : 0.0000
+  Wasted spec rate : 1.0000
+  Service latency T4-T0 (ns):
+    mean=526180.5  median=418623.5  p95=1534308.8  p99=2205344.7
+  Phase breakdown — mean (ns):
+    lock_acq  = 2729.8
+    metadata  = 523295.9
+    residency = 0.0
+
+[work]  Parsing: /home/ubuntu/SpecAsync-UVM/results/p3_d0/cuFFT/134217728/raw_worker.bin
+        3621 records  (48 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p3_d0/cuFFT/134217728/work_records.csv
+    Done → /home/ubuntu/SpecAsync-UVM/results/p3_d0/cuFFT/134217728
+
+  [p3_d0] cuFFT size=268435456
+    Warmup (1 run(s))...
+    Timing (20 runs)...
+      ... run 10/20
+      ... run 20/20
+Warning: /home/ubuntu/SpecAsync-UVM/results/p3_d0/cuFFT/268435456/raw_batch.bin: 5496/7316 stale records filtered (ring wrap-around)
+[batch] Parsing: /home/ubuntu/SpecAsync-UVM/results/p3_d0/cuFFT/268435456/raw_batch.bin
+        1820 records  (72 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p3_d0/cuFFT/268435456/batch_records.csv
+  Batches          : 1820
+  Spec enqueues    : 1820
+  Spec hits        : 0
+  Hit rate         : 0.0000
+  Wasted spec rate : 1.0000
+  Service latency T4-T0 (ns):
+    mean=526660.3  median=417524.0  p95=1378635.7  p99=2164412.1
+  Phase breakdown — mean (ns):
+    lock_acq  = 2645.8
+    metadata  = 523864.2
+    residency = 0.0
+
+[work]  Parsing: /home/ubuntu/SpecAsync-UVM/results/p3_d0/cuFFT/268435456/raw_worker.bin
+        7316 records  (48 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p3_d0/cuFFT/268435456/work_records.csv
+    Done → /home/ubuntu/SpecAsync-UVM/results/p3_d0/cuFFT/268435456
+
+  [p3_d0] Stencil_OvSub size=25000 20 11264
+    Warmup (1 run(s))...
+    Timing (20 runs)...
+      ... run 10/20
+      ... run 20/20
+Warning: /home/ubuntu/SpecAsync-UVM/results/p3_d0/Stencil_OvSub/25000_20_11264/raw_batch.bin: 116511/131071 stale records filtered (ring wrap-around)
+[batch] Parsing: /home/ubuntu/SpecAsync-UVM/results/p3_d0/Stencil_OvSub/25000_20_11264/raw_batch.bin
+        14560 records  (72 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p3_d0/Stencil_OvSub/25000_20_11264/batch_records.csv
+  Batches          : 14560
+  Spec enqueues    : 14560
+  Spec hits        : 85
+  Hit rate         : 0.0058
+  Wasted spec rate : 0.9942
+  Service latency T4-T0 (ns):
+    mean=61314.1  median=60064.0  p95=108618.3  p99=125763.1
+  Phase breakdown — mean (ns):
+    lock_acq  = 2669.3
+    metadata  = 58495.5
+    residency = 0.0
+
+[work]  Parsing: /home/ubuntu/SpecAsync-UVM/results/p3_d0/Stencil_OvSub/25000_20_11264/raw_worker.bin
+        131071 records  (48 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p3_d0/Stencil_OvSub/25000_20_11264/work_records.csv
+    Done → /home/ubuntu/SpecAsync-UVM/results/p3_d0/Stencil_OvSub/25000_20_11264
+
+  [p3_d0] Stencil_OvSub size=28300 20 11264
+    Warmup (1 run(s))...
+    Timing (20 runs)...
+      ... run 10/20
+      ... run 20/20
+Warning: /home/ubuntu/SpecAsync-UVM/results/p3_d0/Stencil_OvSub/28300_20_11264/raw_batch.bin: 116511/131071 stale records filtered (ring wrap-around)
+[batch] Parsing: /home/ubuntu/SpecAsync-UVM/results/p3_d0/Stencil_OvSub/28300_20_11264/raw_batch.bin
+        14560 records  (72 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p3_d0/Stencil_OvSub/28300_20_11264/batch_records.csv
+  Batches          : 14560
+  Spec enqueues    : 14560
+  Spec hits        : 50
+  Hit rate         : 0.0034
+  Wasted spec rate : 0.9966
+  Service latency T4-T0 (ns):
+    mean=61307.9  median=56942.5  p95=114686.2  p99=131137.4
+  Phase breakdown — mean (ns):
+    lock_acq  = 2616.6
+    metadata  = 58537.2
+    residency = 0.0
+
+[work]  Parsing: /home/ubuntu/SpecAsync-UVM/results/p3_d0/Stencil_OvSub/28300_20_11264/raw_worker.bin
+        131071 records  (48 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p3_d0/Stencil_OvSub/28300_20_11264/work_records.csv
+    Done → /home/ubuntu/SpecAsync-UVM/results/p3_d0/Stencil_OvSub/28300_20_11264
+
+  [p3_d0] Stencil_OvSub size=32000 20 11264
+    Warmup (1 run(s))...
+    Timing (20 runs)...
+      ... run 10/20
+      ... run 20/20
+Warning: /home/ubuntu/SpecAsync-UVM/results/p3_d0/Stencil_OvSub/32000_20_11264/raw_batch.bin: 116511/131071 stale records filtered (ring wrap-around)
+[batch] Parsing: /home/ubuntu/SpecAsync-UVM/results/p3_d0/Stencil_OvSub/32000_20_11264/raw_batch.bin
+        14560 records  (72 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p3_d0/Stencil_OvSub/32000_20_11264/batch_records.csv
+  Batches          : 14560
+  Spec enqueues    : 14560
+  Spec hits        : 300
+  Hit rate         : 0.0206
+  Wasted spec rate : 0.9794
+  Service latency T4-T0 (ns):
+    mean=58601.7  median=51889.0  p95=116157.4  p99=141446.0
+  Phase breakdown — mean (ns):
+    lock_acq  = 2705.0
+    metadata  = 55734.2
+    residency = 0.0
+
+[work]  Parsing: /home/ubuntu/SpecAsync-UVM/results/p3_d0/Stencil_OvSub/32000_20_11264/raw_worker.bin
+        131071 records  (48 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p3_d0/Stencil_OvSub/32000_20_11264/work_records.csv
+    Done → /home/ubuntu/SpecAsync-UVM/results/p3_d0/Stencil_OvSub/32000_20_11264
+
+  [p3_d0] GraphBFS size=22
+    Warmup (1 run(s))...
+    Timing (20 runs)...
+      ... run 10/20
+      ... run 20/20
+Warning: /home/ubuntu/SpecAsync-UVM/results/p3_d0/GraphBFS/22/raw_batch.bin: 3466/5286 stale records filtered (ring wrap-around)
+[batch] Parsing: /home/ubuntu/SpecAsync-UVM/results/p3_d0/GraphBFS/22/raw_batch.bin
+        1820 records  (72 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p3_d0/GraphBFS/22/batch_records.csv
+  Batches          : 1820
+  Spec enqueues    : 1820
+  Spec hits        : 16
+  Hit rate         : 0.0088
+  Wasted spec rate : 0.9912
+  Service latency T4-T0 (ns):
+    mean=271864.0  median=235865.5  p95=703798.2  p99=957686.0
+  Phase breakdown — mean (ns):
+    lock_acq  = 2828.3
+    metadata  = 268869.0
+    residency = 0.0
+
+[work]  Parsing: /home/ubuntu/SpecAsync-UVM/results/p3_d0/GraphBFS/22/raw_worker.bin
+        5286 records  (48 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p3_d0/GraphBFS/22/work_records.csv
+    Done → /home/ubuntu/SpecAsync-UVM/results/p3_d0/GraphBFS/22
+
+  [p3_d0] GraphBFS size=23
+    Warmup (1 run(s))...
+    Timing (20 runs)...
+      ... run 10/20
+      ... run 20/20
+Warning: /home/ubuntu/SpecAsync-UVM/results/p3_d0/GraphBFS/23/raw_batch.bin: 7754/9574 stale records filtered (ring wrap-around)
+[batch] Parsing: /home/ubuntu/SpecAsync-UVM/results/p3_d0/GraphBFS/23/raw_batch.bin
+        1820 records  (72 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p3_d0/GraphBFS/23/batch_records.csv
+  Batches          : 1820
+  Spec enqueues    : 1820
+  Spec hits        : 12
+  Hit rate         : 0.0066
+  Wasted spec rate : 0.9934
+  Service latency T4-T0 (ns):
+    mean=284349.9  median=229249.5  p95=735476.2  p99=1455306.0
+  Phase breakdown — mean (ns):
+    lock_acq  = 2654.1
+    metadata  = 281548.1
+    residency = 0.0
+
+[work]  Parsing: /home/ubuntu/SpecAsync-UVM/results/p3_d0/GraphBFS/23/raw_worker.bin
+        9574 records  (48 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p3_d0/GraphBFS/23/work_records.csv
+    Done → /home/ubuntu/SpecAsync-UVM/results/p3_d0/GraphBFS/23
+
+  [p3_d0] GraphBFS size=24
+    Warmup (1 run(s))...
+    Timing (20 runs)...
+      ... run 10/20
+      ... run 20/20
+Warning: /home/ubuntu/SpecAsync-UVM/results/p3_d0/GraphBFS/24/raw_batch.bin: 14680/18320 stale records filtered (ring wrap-around)
+[batch] Parsing: /home/ubuntu/SpecAsync-UVM/results/p3_d0/GraphBFS/24/raw_batch.bin
+        3640 records  (72 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p3_d0/GraphBFS/24/batch_records.csv
+  Batches          : 3640
+  Spec enqueues    : 3640
+  Spec hits        : 9
+  Hit rate         : 0.0025
+  Wasted spec rate : 0.9975
+  Service latency T4-T0 (ns):
+    mean=305546.6  median=218632.0  p95=865636.8  p99=2108720.6
+  Phase breakdown — mean (ns):
+    lock_acq  = 2494.8
+    metadata  = 302914.4
+    residency = 0.0
+
+[work]  Parsing: /home/ubuntu/SpecAsync-UVM/results/p3_d0/GraphBFS/24/raw_worker.bin
+        18320 records  (48 B/record)
+        Written: /home/ubuntu/SpecAsync-UVM/results/p3_d0/GraphBFS/24/work_records.csv
+    Done → /home/ubuntu/SpecAsync-UVM/results/p3_d0/GraphBFS/24
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ Post-processing: cost-benefit analysis
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[cost_benefit] /home/ubuntu/SpecAsync-UVM/results/p0_d0/STREAM/134217728/batch_records.csv: skipped 20189 stale records
+[cost_benefit] /home/ubuntu/SpecAsync-UVM/results/p0_d0/STREAM/268435456/batch_records.csv: skipped 36716 stale records
+[cost_benefit] /home/ubuntu/SpecAsync-UVM/results/p0_d0/STREAM/536870912/batch_records.csv: skipped 62978 stale records
+[cost_benefit] /home/ubuntu/SpecAsync-UVM/results/p0_d0/SGEMM/8192/batch_records.csv: skipped 14564 stale records
+[cost_benefit] /home/ubuntu/SpecAsync-UVM/results/p0_d0/SGEMM/24000/batch_records.csv: skipped 23653 stale records
+[cost_benefit] /home/ubuntu/SpecAsync-UVM/results/p0_d0/SGEMM/16384/batch_records.csv: skipped 44416 stale records
+[cost_benefit] /home/ubuntu/SpecAsync-UVM/results/p0_d0/Stencil/8192/batch_records.csv: skipped 3639 stale records
+[cost_benefit] /home/ubuntu/SpecAsync-UVM/results/p0_d0/Stencil/24000/batch_records.csv: skipped 23653 stale records
+[cost_benefit] /home/ubuntu/SpecAsync-UVM/results/p0_d0/Stencil/16384/batch_records.csv: skipped 9097 stale records
+[cost_benefit] /home/ubuntu/SpecAsync-UVM/results/p0_d0/cuFFT/134217728/batch_records.csv: skipped 1819 stale records
+[cost_benefit] /home/ubuntu/SpecAsync-UVM/results/p0_d0/cuFFT/268435456/batch_records.csv: skipped 1819 stale records
+[cost_benefit] /home/ubuntu/SpecAsync-UVM/results/p0_d0/SGEMM/16384/batch_records.csv: skipped 44416 stale records
+[cost_benefit] /home/ubuntu/SpecAsync-UVM/results/p0_d0/SGEMM/24000/batch_records.csv: skipped 23653 stale records
+[cost_benefit] /home/ubuntu/SpecAsync-UVM/results/p0_d0/SGEMM/8192/batch_records.csv: skipped 14564 stale records
+[cost_benefit] /home/ubuntu/SpecAsync-UVM/results/p0_d0/STREAM/134217728/batch_records.csv: skipped 20189 stale records
+[cost_benefit] /home/ubuntu/SpecAsync-UVM/results/p0_d0/STREAM/268435456/batch_records.csv: skipped 36716 stale records
+[cost_benefit] /home/ubuntu/SpecAsync-UVM/results/p0_d0/STREAM/536870912/batch_records.csv: skipped 62978 stale records
+[cost_benefit] /home/ubuntu/SpecAsync-UVM/results/p0_d0/Stencil/16384/batch_records.csv: skipped 9097 stale records
+[cost_benefit] /home/ubuntu/SpecAsync-UVM/results/p0_d0/Stencil/24000/batch_records.csv: skipped 23653 stale records
+[cost_benefit] /home/ubuntu/SpecAsync-UVM/results/p0_d0/Stencil/8192/batch_records.csv: skipped 3639 stale records
+[cost_benefit] /home/ubuntu/SpecAsync-UVM/results/p0_d0/cuFFT/134217728/batch_records.csv: skipped 1819 stale records
+[cost_benefit] /home/ubuntu/SpecAsync-UVM/results/p0_d0/cuFFT/268435456/batch_records.csv: skipped 1819 stale records
+[cost_benefit] matplotlib not available — skipping phase_breakdown.pdf
+[cost_benefit] Written: /home/ubuntu/SpecAsync-UVM/results/summary/cost_benefit.md
+
+============================================================
+ Run complete: Fri Jun 12 00:08:44 UTC 2026
+ Results: /home/ubuntu/SpecAsync-UVM/results
+ Log:     /home/ubuntu/SpecAsync-UVM/results/run_20260611_145854.log
+============================================================
