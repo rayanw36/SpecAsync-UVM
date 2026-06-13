@@ -49,3 +49,4 @@ results/phaseB1/oracle_coalesce/*.bin
 results/phaseB1/gate_c/*.csv
 results/phaseB1/gate_d/**/*.bin
 results/phaseB1/gate_d/**/oracle_trace.bin
+results/phaseB1/gate_d/**/times.csv
