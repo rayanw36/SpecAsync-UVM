@@ -285,6 +285,34 @@ u64 specasync_oracle_next_addr(void)
 }
 EXPORT_SYMBOL_GPL(specasync_oracle_next_addr);
 
+/*
+ * specasync_oracle_next_addr_n() — Gate B cursor-sync variant.
+ *
+ * Advance the trace cursor by `consumed` (the number of demand faults the
+ * current service batch will handle) and return the trace entry the cursor now
+ * points at — i.e. the page expected to fault *next*, after this batch.  This
+ * keeps the oracle cursor in lockstep with the per-fault demand stream; the old
+ * per-batch (advance-by-1) cursor desynced as soon as any batch coalesced more
+ * than one fault, so every "prediction" was an already-faulted page.  Still O(1):
+ * one atomic add + one array index, no scan.
+ */
+u64 specasync_oracle_next_addr_n(u32 consumed)
+{
+	int old, len;
+
+	if (!g_oracle_trace || g_oracle_trace_len == 0)
+		return 0;
+	if (consumed == 0)
+		consumed = 1;
+
+	len = (int)g_oracle_trace_len;
+	/* old = cursor before this batch; cursor becomes old + consumed */
+	old = atomic_fetch_add((int)consumed, &g_oracle_idx);
+	/* Return the first page that will fault after this batch. */
+	return g_oracle_trace[((unsigned)(old + (int)consumed)) % (unsigned)len];
+}
+EXPORT_SYMBOL_GPL(specasync_oracle_next_addr_n);
+
 /* ── Ring buffer allocation / deallocation ───────────────────────────────── */
 
 static int alloc_batch_ring(void)

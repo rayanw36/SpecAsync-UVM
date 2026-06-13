@@ -131,7 +131,8 @@ void specasync_predict_state_free(struct specasync_predict_state *ps)
  * specasync_predict_next() — compute the next address to speculatively
  * pre-locate, given the current fault address.  Returns 0 if disabled.
  */
-static u64 specasync_predict_next(uvm_va_space_t *va_space, u64 fault_addr)
+static u64 specasync_predict_next(uvm_va_space_t *va_space, u64 fault_addr,
+				  u32 batch_faults)
 {
 	struct specasync_predict_state *ps;
 	struct specasync_stride_state  *st;
@@ -194,7 +195,16 @@ static u64 specasync_predict_next(uvm_va_space_t *va_space, u64 fault_addr)
 		return fault_addr + PAGE_SIZE;
 
 	case 4: /* oracle */
-		return specasync_oracle_next_addr();
+		/*
+		 * Gate B fix: the demand stream consumes `batch_faults` trace
+		 * entries this batch, but the oracle is consulted once per
+		 * batch.  Advance the trace cursor by the number of faults this
+		 * batch will service so the predicted address is the *next*
+		 * unfaulted page (first fault of the next batch), not a page the
+		 * demand stream has already passed.  Old code advanced by 1/batch
+		 * and desynced permanently after the first coalesced batch.
+		 */
+		return specasync_oracle_next_addr_n(batch_faults);
 
 	default:
 		return fault_addr + PAGE_SIZE;
@@ -2485,7 +2495,8 @@ static NV_STATUS service_fault_batch(uvm_parent_gpu_t *parent_gpu,
         uvm_fault_buffer_entry_t *_fe = batch_context->ordered_fault_cache[0];
         if (_fe && _fe->va_space) {
             u64 _spec_addr = specasync_predict_next(_fe->va_space,
-                                                    _fe->fault_address);
+                                                    _fe->fault_address,
+                                                    batch_context->num_coalesced_faults);
             struct specasync_hit_table *_ht =
                 (_fe->va_space->specasync_pred) ?
                 _fe->va_space->specasync_pred->hit_table : NULL;

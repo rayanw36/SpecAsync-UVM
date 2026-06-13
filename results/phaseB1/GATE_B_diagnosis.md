@@ -1,7 +1,17 @@
-# Gate B — Oracle diagnosis (root cause by inspection)
+# Gate B — Oracle: diagnosed, FIXED, and proven
 
-Status: **diagnosed, not yet fixed.** The fix is a code change + rebuild + re-run;
-holding for the Gate checkpoint before that cycle.
+Status: **FIXED and verified.** Two independent bugs found (cursor desync + ASLR
+address instability); both addressed; before/after proven on probes. Full writeup of
+the fixes in `driver/PIPELINE_FIXES.md`. Empirical result:
+
+| probe | OLD ko `B83C15DA` | NEW ko `090C90A` |
+|---|--:|--:|
+| serialized (1 fault/batch) | 0.99 (degenerate self-hit) | 0.99 |
+| **coalesced (7.9 faults/batch)** | **0.0175** | **0.4107** |
+
+Remaining for Gate D (if it proceeds): confirm oracle runtime is not catastrophically
+worse than baseline on one short real benchmark, and reproduce/explain the Phase B
+"100× slower" claim (the O(n²) story is rejected — see below).
 
 ## H1 (task's leading hypothesis): O(n²) trace scan — **REJECTED**
 

@@ -43,3 +43,6 @@ work_records.csv
 # Gate A probe binary + raw ring dumps (EBS-only)
 tests/hit_probe
 results/phaseB1/hit_probe/*.bin
+tests/coalesce_probe
+results/phaseB1/oracle_probe/*.bin
+results/phaseB1/oracle_coalesce/*.bin
