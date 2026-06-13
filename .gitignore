@@ -39,3 +39,7 @@ modules.order
 # Phase B large intermediates (raw ring dumps + regenerable worker CSVs) — kept on EBS only
 raw_*.bin
 work_records.csv
+
+# Gate A probe binary + raw ring dumps (EBS-only)
+tests/hit_probe
+results/phaseB1/hit_probe/*.bin
