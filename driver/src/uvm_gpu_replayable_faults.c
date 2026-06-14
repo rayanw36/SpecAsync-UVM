@@ -60,7 +60,7 @@
 struct workqueue_struct *g_specasync_wq;
 atomic_t                 g_specasync_queue_depth = ATOMIC_INIT(0);
 
-#define SPECASYNC_MAX_QUEUE_DEPTH  256
+#define SPECASYNC_MAX_QUEUE_DEPTH  1024  /* increased for per-fault enqueue (Gate 1) */
 
 /* ---- Per-VA-space prediction state ---------------------------------- */
 
@@ -224,6 +224,7 @@ struct spec_work_item {
 	u64                         speculative_addr;
 	struct specasync_hit_table *hit_table;
 	u64                         enqueue_ts_ns;
+	uvm_gpu_t                  *gpu;  /* retained; NULL at depth=0, set at depth>=1 */
 };
 
 static void specasync_worker_fn(struct work_struct *work)
@@ -238,20 +239,70 @@ static void specasync_worker_fn(struct work_struct *work)
 	wrec.va_addr       = item->speculative_addr;
 	wrec.policy_used   = specasync_policy;
 
-	/*
-	 * Null policy (5): the worker wakes and dequeues but performs ZERO
-	 * lookup/work.  This is the Gate C control that isolates "the worker
-	 * thread exists and runs" from "the worker does a VA-block lookup",
-	 * needed to interpret the STREAM worker-presence effect.
-	 */
 	if (specasync_policy == SPECASYNC_POLICY_NULL) {
 		wrec.result = SPECASYNC_RESULT_NULL;
 		goto out;
 	}
 
-	/* Metadata-only speculative lookup: acquire read lock, find block, release */
+	/* Hold VA-space read lock across find + optional depth-1 migration. */
 	uvm_va_space_down_read(item->va_space);
 	status = uvm_va_block_find(item->va_space, item->speculative_addr, &va_block);
+
+	if (status == NV_OK && va_block && specasync_offload_depth >= 1 && item->gpu) {
+		/*
+		 * depth=1: speculatively migrate the predicted page to GPU VRAM.
+		 * Best-effort only: drop (THROTTLED) if block is contended, alloc
+		 * fails, or the address is outside this block's range.
+		 * Locking order mirrors the demand path: va_space read → block mutex.
+		 */
+		uvm_va_block_context_t *ctx = uvm_va_block_context_alloc(NULL);
+
+		if (ctx && item->speculative_addr >= va_block->start &&
+		    item->speculative_addr <  va_block->end) {
+
+			uvm_va_block_retry_t retry;
+			uvm_page_mask_t      pmask;
+			uvm_page_index_t     pidx;
+			NV_STATUS            mstatus = NV_ERR_BUSY_RETRY;
+
+			uvm_va_block_context_init(ctx, NULL);
+			pidx = uvm_va_block_cpu_page_index(va_block, item->speculative_addr);
+			uvm_page_mask_zero(&pmask);
+			uvm_page_mask_set(&pmask, pidx);
+			uvm_va_block_retry_init(&retry);
+
+			if (uvm_mutex_trylock(&va_block->lock)) {
+				mstatus = uvm_va_block_make_resident(
+					va_block, &retry, ctx,
+					item->gpu->id,
+					uvm_va_block_region_for_page(pidx),
+					&pmask, NULL,
+					UVM_MAKE_RESIDENT_CAUSE_PREFETCH);
+				uvm_va_block_retry_deinit(&retry, va_block);
+				uvm_mutex_unlock(&va_block->lock);
+			} else {
+				uvm_va_block_retry_deinit(&retry, va_block);
+			}
+
+			if (mstatus == NV_OK && item->hit_table)
+				specasync_hit_table_insert(item->hit_table,
+							   item->speculative_addr,
+							   ktime_get_ns());
+
+			wrec.result = (mstatus == NV_OK) ? SPECASYNC_RESULT_MIGRATION_DONE
+							 : SPECASYNC_RESULT_THROTTLED;
+		} else {
+			wrec.result = SPECASYNC_RESULT_THROTTLED;
+		}
+
+		if (ctx)
+			uvm_va_block_context_free(ctx);
+
+		uvm_va_space_up_read(item->va_space);
+		goto out;
+	}
+
+	/* depth=0: metadata-only lookup (find block, discard, insert hit entry). */
 	uvm_va_space_up_read(item->va_space);
 
 	if (status == NV_OK && va_block && item->hit_table) {
@@ -264,6 +315,9 @@ static void specasync_worker_fn(struct work_struct *work)
 	}
 
 out:
+	if (item->gpu)
+		uvm_gpu_release(item->gpu);
+
 	wrec.completion_ts_ns = ktime_get_ns();
 	specasync_work_ring_push(&wrec);
 
@@ -275,7 +329,8 @@ out:
 
 static void specasync_enqueue(uvm_va_space_t *va_space, u64 spec_addr,
 			      struct specasync_hit_table *hit_table,
-			      struct specasync_batch_record *sa_rec)
+			      struct specasync_batch_record *sa_rec,
+			      uvm_gpu_t *gpu)
 {
 	struct spec_work_item *item;
 	u64 t0;
@@ -299,6 +354,10 @@ static void specasync_enqueue(uvm_va_space_t *va_space, u64 spec_addr,
 	item->speculative_addr = spec_addr;
 	item->hit_table        = hit_table;
 	item->enqueue_ts_ns    = t0;
+	/* depth>=1: retain the GPU so it can't be torn down before the worker runs */
+	item->gpu = (specasync_offload_depth >= 1 && gpu) ? gpu : NULL;
+	if (item->gpu)
+		uvm_gpu_retain(item->gpu);
 
 	atomic_inc(&g_specasync_queue_depth);
 	queue_work(g_specasync_wq, &item->work);
@@ -2507,17 +2566,25 @@ static NV_STATUS service_fault_batch(uvm_parent_gpu_t *parent_gpu,
     _sa_rec.batch_id = atomic64_fetch_inc(&_sa_bid);
     _sa_rec.t0_ns    = ktime_get_ns();
 
-    /* Enqueue speculative pre-fetch for the next predicted fault address */
+    /*
+     * Gate 1: per-fault prediction. Predict the next page for EVERY fault in
+     * the ordered cache (not just ordered_fault_cache[0]).  Each call to
+     * specasync_predict_next with batch_faults=1 advances the oracle cursor by
+     * 1, giving true per-fault trace alignment.  For non-oracle policies,
+     * per-fault calls also update stride/markov state correctly per-fault.
+     */
     if (specasync_log_enabled && batch_context->num_coalesced_faults > 0) {
-        uvm_fault_buffer_entry_t *_fe = batch_context->ordered_fault_cache[0];
-        if (_fe && _fe->va_space) {
-            u64 _spec_addr = specasync_predict_next(_fe->va_space,
-                                                    _fe->fault_address,
-                                                    batch_context->num_coalesced_faults);
-            struct specasync_hit_table *_ht =
-                (_fe->va_space->specasync_pred) ?
-                _fe->va_space->specasync_pred->hit_table : NULL;
-            specasync_enqueue(_fe->va_space, _spec_addr, _ht, &_sa_rec);
+        NvU32 _fi;
+        for (_fi = 0; _fi < batch_context->num_coalesced_faults; _fi++) {
+            uvm_fault_buffer_entry_t *_fe = batch_context->ordered_fault_cache[_fi];
+            if (_fe && _fe->va_space) {
+                u64 _spec_addr = specasync_predict_next(_fe->va_space,
+                                                        _fe->fault_address, 1);
+                struct specasync_hit_table *_ht =
+                    (_fe->va_space->specasync_pred) ?
+                    _fe->va_space->specasync_pred->hit_table : NULL;
+                specasync_enqueue(_fe->va_space, _spec_addr, _ht, &_sa_rec, _fe->gpu);
+            }
         }
     }
 
@@ -2598,6 +2665,9 @@ static NV_STATUS service_fault_batch(uvm_parent_gpu_t *parent_gpu,
             continue;
         }
 
+        /* ---- SpecAsync T2: last metadata before residency dispatch ---- */
+        if (!_sa_rec.t2_ns) _sa_rec.t2_ns = ktime_get_ns();
+
         status = service_fault_batch_dispatch(va_space,
                                               gpu_va_space,
                                               batch_context,
@@ -2621,18 +2691,28 @@ static NV_STATUS service_fault_batch(uvm_parent_gpu_t *parent_gpu,
         if (status != NV_OK)
             goto fail;
 
-        /* ---- SpecAsync T2/T3: post-dispatch; check hit table ---- */
+        /*
+         * ---- SpecAsync T3: after dispatch (DMA issued; completion is async
+         * off-window — no tracker_wait before T4, so migration DMA finishes
+         * outside the T0-T4 window).  T2-T3 now brackets the CPU cost of the
+         * residency decision + migration push, distinct from metadata (T1-T2).
+         * Hit-table is consumed for ALL faults in this VA-block group.
+         */
         {
-            u64 _now = ktime_get_ns();
-            _sa_rec.t2_ns = _now;
-            _sa_rec.t3_ns = _now;  /* residency decision folded into dispatch */
-            _sa_rec.num_faults++;
+            u64 _t3 = ktime_get_ns();
+            _sa_rec.t3_ns = _t3;   /* overwritten each dispatch; keeps last */
+            _sa_rec.num_faults += block_faults;
             if (va_space && va_space->specasync_pred &&
                 va_space->specasync_pred->hit_table) {
-                uvm_fault_buffer_entry_t *_fe = batch_context->ordered_fault_cache[i];
-                _sa_rec.spec_hits +=
-                    specasync_hit_table_consume(va_space->specasync_pred->hit_table,
-                                                _fe->fault_address, _now);
+                NvU32 _j;
+                for (_j = i; _j < i + block_faults; _j++) {
+                    uvm_fault_buffer_entry_t *_fe2 =
+                        batch_context->ordered_fault_cache[_j];
+                    _sa_rec.spec_hits +=
+                        specasync_hit_table_consume(
+                            va_space->specasync_pred->hit_table,
+                            _fe2->fault_address, _t3);
+                }
             }
         }
 
