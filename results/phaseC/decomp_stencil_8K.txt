@@ -1,0 +1,29 @@
+Loaded 839 decomp records from /home/ubuntu/SpecAsync-UVM/results/phaseC/decomp_stencil_8K.bin
+
+=== Gate G2 (monotonicity): 839/839 pass ===
+
+=== Gate G1 (accounting closure ±2%): 839/839 pass ===
+
+======================================================================
+Phase C dispatch-window decomposition  stencil_8K
+  n = 839 batches
+======================================================================
+Sub-phase                       Median µs     p95 µs   % of total
+----------------------------------------------------------------------
+D1 fault-buffer drain               13.90      42.45        17.0%
+D2 preprocess/sort/dedup            10.65      35.70        13.0%
+svc_total (D3+D4+overhead)          52.24      92.53        63.9%
+D3 va_space lock WAIT                0.11       0.21         0.1%
+D4 va_space lock HOLD (incl D5)      51.74      91.56        63.3%
+  D5 dispatch (inside D4)           50.38      89.14        61.7%
+D6 replay push                       2.07      23.50         2.5%
+D7 residual (gaps)                   0.10       0.29         0.1%
+----------------------------------------------------------------------
+TOTAL window                        81.70
+
+  Fault count distribution (faults/batch):
+    median=57  p95=153  min=1  max=215
+  VA-space acquisitions/batch: median=1  p95=1
+  dispatch calls/batch: median=1  p95=1
+
+CSV written to results/phaseC/decomp_stencil_8K.csv

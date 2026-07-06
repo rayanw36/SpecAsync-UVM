@@ -1,0 +1,31 @@
+Loaded 473 decomp records from /home/ubuntu/SpecAsync-UVM/results/phaseC/decomp_graphbfs_23.bin
+
+=== Gate G2 (monotonicity): 473/473 pass ===
+
+=== Gate G1 (accounting closure ±2%): 471/473 pass ===
+  FAIL: batch 6528: unaccounted 2.4% (d1+d2+svc+d6=3191 total=3268)
+  FAIL: batch 6550: unaccounted 2.6% (d1+d2+svc+d6=2972 total=3052)
+
+======================================================================
+Phase C dispatch-window decomposition  graphbfs_23
+  n = 473 batches
+======================================================================
+Sub-phase                       Median µs     p95 µs   % of total
+----------------------------------------------------------------------
+D1 fault-buffer drain               16.46      41.55         5.3%
+D2 preprocess/sort/dedup            13.60      55.04         4.3%
+svc_total (D3+D4+overhead)         231.85     802.38        74.0%
+D3 va_space lock WAIT                0.12       0.24         0.0%
+D4 va_space lock HOLD (incl D5)     231.39     801.10        73.8%
+  D5 dispatch (inside D4)          230.07     794.25        73.4%
+D6 replay push                       1.67      10.26         0.5%
+D7 residual (gaps)                   0.10       0.17         0.0%
+----------------------------------------------------------------------
+TOTAL window                       313.39
+
+  Fault count distribution (faults/batch):
+    median=73  p95=247  min=1  max=256
+  VA-space acquisitions/batch: median=1  p95=1
+  dispatch calls/batch: median=7  p95=26
+
+CSV written to results/phaseC/decomp_graphbfs_23.csv

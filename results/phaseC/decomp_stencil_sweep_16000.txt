@@ -1,0 +1,29 @@
+Loaded 2367 decomp records from /home/ubuntu/SpecAsync-UVM/results/phaseC/decomp_stencil_sweep_16000.bin
+
+=== Gate G2 (monotonicity): 2367/2367 pass ===
+
+=== Gate G1 (accounting closure ±2%): 2367/2367 pass ===
+
+======================================================================
+Phase C dispatch-window decomposition  stencil_sweep_16000
+  n = 2367 batches
+======================================================================
+Sub-phase                       Median µs     p95 µs   % of total
+----------------------------------------------------------------------
+D1 fault-buffer drain               13.66      42.33        14.8%
+D2 preprocess/sort/dedup            11.03      33.57        11.9%
+svc_total (D3+D4+overhead)          60.86     112.32        65.9%
+D3 va_space lock WAIT                0.11       0.20         0.1%
+D4 va_space lock HOLD (incl D5)      60.31     111.50        65.3%
+  D5 dispatch (inside D4)           59.17     109.40        64.1%
+D6 replay push                       1.98      22.25         2.1%
+D7 residual (gaps)                   0.10       0.31         0.1%
+----------------------------------------------------------------------
+TOTAL window                        92.34
+
+  Fault count distribution (faults/batch):
+    median=58  p95=144  min=1  max=217
+  VA-space acquisitions/batch: median=1  p95=1
+  dispatch calls/batch: median=1  p95=1
+
+CSV written to results/phaseC/decomp_stencil_sweep_16000.csv
