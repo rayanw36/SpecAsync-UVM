@@ -370,9 +370,13 @@ static_assert(sizeof(struct specasync_batch_record) == 72,
 	      "specasync_batch_record size mismatch — update Python BATCH_FMT");
 static_assert(sizeof(struct specasync_work_record) == 48,
 	      "specasync_work_record size mismatch — update Python WORK_FMT");
+static_assert(sizeof(struct specasync_decomp_record) == 112,
+	      "specasync_decomp_record size mismatch — update Python DECOMP_FMT");
 static_assert(offsetof(struct specasync_batch_record, t0_ns) == 8,  "t0 offset");
 static_assert(offsetof(struct specasync_batch_record, num_faults) == 48, "u32 start");
 static_assert(offsetof(struct specasync_work_record, result) == 32, "result offset");
+static_assert(offsetof(struct specasync_decomp_record, d3_wait_ns) == 72, "d3 offset");
+static_assert(offsetof(struct specasync_decomp_record, num_faults) == 96, "decomp u32 start");
 
 // The documentation at the beginning of uvm_gpu_non_replayable_faults.c
 // provides some background for understanding replayable faults, non-replayable
@@ -2545,12 +2549,16 @@ done:
 // Fatal faults are marked for later processing by the caller.
 static NV_STATUS service_fault_batch(uvm_parent_gpu_t *parent_gpu,
                                      fault_service_mode_t service_mode,
-                                     uvm_fault_service_batch_context_t *batch_context)
+                                     uvm_fault_service_batch_context_t *batch_context,
+                                     struct specasync_decomp_record *_dec)
 {
     NV_STATUS status = NV_OK;
     NvU32 i;
     uvm_va_space_t *va_space = NULL;
     uvm_gpu_va_space_t *prev_gpu_va_space = NULL;
+#if SPECASYNC_DECOMP
+    u64 _hold_start = 0;   /* ktime when current va_space lock was acquired */
+#endif
     uvm_ats_fault_invalidate_t *ats_invalidate = &parent_gpu->fault_buffer.replayable.ats_invalidate;
     struct mm_struct *mm = NULL;
     const bool replay_per_va_block = service_mode != FAULT_SERVICE_MODE_CANCEL &&
@@ -2611,6 +2619,13 @@ static NV_STATUS service_fault_batch(uvm_parent_gpu_t *parent_gpu,
 
             // Fault on a different va_space, drop the lock of the old one...
             if (va_space) {
+#if SPECASYNC_DECOMP
+                /* D4 end: accumulate hold time for the va_space we're releasing */
+                if (_dec && _hold_start) {
+                    _dec->d4_hold_ns += ktime_get_ns() - _hold_start;
+                    _hold_start = 0;
+                }
+#endif
                 uvm_va_space_up_read(va_space);
                 uvm_va_space_mm_release_unlock(va_space, mm);
                 mm = NULL;
@@ -2624,10 +2639,24 @@ static NV_STATUS service_fault_batch(uvm_parent_gpu_t *parent_gpu,
             // in order to lock it before locking the VA space. It is guaranteed
             // to remain valid until we release. If no mm is registered, we
             // can only service managed faults, not ATS/HMM faults.
+#if SPECASYNC_DECOMP
+            {
+                /* D3: measure lock-acquisition latency (retain_lock + down_read) */
+                u64 _lock_req = ktime_get_ns();
+                mm = uvm_va_space_mm_retain_lock(va_space);
+                uvm_va_block_context_init(va_block_context, mm);
+                uvm_va_space_down_read(va_space);
+                _hold_start = ktime_get_ns();
+                if (_dec) {
+                    _dec->d3_wait_ns += _hold_start - _lock_req;
+                    _dec->num_va_spaces++;
+                }
+            }
+#else
             mm = uvm_va_space_mm_retain_lock(va_space);
             uvm_va_block_context_init(va_block_context, mm);
-
             uvm_va_space_down_read(va_space);
+#endif
             /* ---- SpecAsync T1: VA-space lock acquired ---- */
             if (!_sa_rec.t1_ns) _sa_rec.t1_ns = ktime_get_ns();
         }
@@ -2668,6 +2697,22 @@ static NV_STATUS service_fault_batch(uvm_parent_gpu_t *parent_gpu,
         /* ---- SpecAsync T2: last metadata before residency dispatch ---- */
         if (!_sa_rec.t2_ns) _sa_rec.t2_ns = ktime_get_ns();
 
+#if SPECASYNC_DECOMP
+        {
+            u64 _d5_start = ktime_get_ns();
+            status = service_fault_batch_dispatch(va_space,
+                                                  gpu_va_space,
+                                                  batch_context,
+                                                  i,
+                                                  &block_faults,
+                                                  replay_per_va_block,
+                                                  hmm_migratable);
+            if (_dec) {
+                _dec->d5_serv_ns += ktime_get_ns() - _d5_start;
+                _dec->num_blocks++;
+            }
+        }
+#else
         status = service_fault_batch_dispatch(va_space,
                                               gpu_va_space,
                                               batch_context,
@@ -2675,10 +2720,17 @@ static NV_STATUS service_fault_batch(uvm_parent_gpu_t *parent_gpu,
                                               &block_faults,
                                               replay_per_va_block,
                                               hmm_migratable);
+#endif
         // TODO: Bug 3900733: clean up locking in service_fault_batch().
         if (status == NV_WARN_MORE_PROCESSING_REQUIRED || status == NV_WARN_MISMATCHED_TARGET) {
             if (status == NV_WARN_MISMATCHED_TARGET)
                 hmm_migratable = false;
+#if SPECASYNC_DECOMP
+            if (_dec && _hold_start) {
+                _dec->d4_hold_ns += ktime_get_ns() - _hold_start;
+                _hold_start = 0;
+            }
+#endif
             uvm_va_space_up_read(va_space);
             uvm_va_space_mm_release_unlock(va_space, mm);
             mm = NULL;
@@ -2740,6 +2792,11 @@ static NV_STATUS service_fault_batch(uvm_parent_gpu_t *parent_gpu,
 
 fail:
     if (va_space) {
+#if SPECASYNC_DECOMP
+        /* D4 end: final va_space lock release */
+        if (_dec && _hold_start)
+            _dec->d4_hold_ns += ktime_get_ns() - _hold_start;
+#endif
         uvm_va_space_up_read(va_space);
         uvm_va_space_mm_release_unlock(va_space, mm);
     }
@@ -3202,7 +3259,7 @@ static NV_STATUS cancel_faults_precise_tlb(uvm_gpu_t *gpu, uvm_fault_service_bat
 
         // 8) Service all non-fatal faults and mark all non-serviceable faults
         // as fatal
-        status = service_fault_batch(gpu->parent, FAULT_SERVICE_MODE_CANCEL, batch_context);
+        status = service_fault_batch(gpu->parent, FAULT_SERVICE_MODE_CANCEL, batch_context, NULL);
         UVM_ASSERT(batch_context->num_replays == 0);
         if (status == NV_ERR_NO_MEMORY)
             continue;
@@ -3275,6 +3332,10 @@ void uvm_parent_gpu_service_replayable_faults(uvm_parent_gpu_t *parent_gpu)
     NV_STATUS status = NV_OK;
     uvm_replayable_fault_buffer_t *replayable_faults = &parent_gpu->fault_buffer.replayable;
     uvm_fault_service_batch_context_t *batch_context = &replayable_faults->batch_service_context;
+#if SPECASYNC_DECOMP
+    volatile struct specasync_decomp_record _dec;
+    static atomic64_t _dec_bid = ATOMIC64_INIT(0);
+#endif
 
     uvm_tracker_init(&batch_context->tracker);
 
@@ -3292,7 +3353,15 @@ void uvm_parent_gpu_service_replayable_faults(uvm_parent_gpu_t *parent_gpu)
         batch_context->fatal_gpu                   = NULL;
         batch_context->has_throttled_faults        = false;
 
+#if SPECASYNC_DECOMP
+        memset((void *)&_dec, 0, sizeof(_dec));
+        /* D1: fault-buffer drain */
+        _dec.d1_start = ktime_get_ns();
+#endif
         status = fetch_fault_buffer_entries(parent_gpu, batch_context, FAULT_FETCH_MODE_BATCH_READY);
+#if SPECASYNC_DECOMP
+        _dec.d1_end = ktime_get_ns();
+#endif
         if (status != NV_OK)
             break;
 
@@ -3301,7 +3370,14 @@ void uvm_parent_gpu_service_replayable_faults(uvm_parent_gpu_t *parent_gpu)
 
         ++batch_context->batch_id;
 
+#if SPECASYNC_DECOMP
+        /* D2: sort/dedup/preprocess */
+        _dec.d2_start = ktime_get_ns();
+#endif
         status = preprocess_fault_batch(parent_gpu, batch_context);
+#if SPECASYNC_DECOMP
+        _dec.d2_end = ktime_get_ns();
+#endif
 
         num_replays += batch_context->num_replays;
 
@@ -3310,7 +3386,23 @@ void uvm_parent_gpu_service_replayable_faults(uvm_parent_gpu_t *parent_gpu)
         else if (status != NV_OK)
             break;
 
-        status = service_fault_batch(parent_gpu, FAULT_SERVICE_MODE_REGULAR, batch_context);
+#if SPECASYNC_DECOMP
+        _dec.svc_start = ktime_get_ns();
+        status = service_fault_batch(parent_gpu, FAULT_SERVICE_MODE_REGULAR, batch_context, (struct specasync_decomp_record *)&_dec);
+        _dec.svc_end = ktime_get_ns();
+        _dec.num_faults = batch_context->num_coalesced_faults;
+        /* Diagnostic: flag corrupt d3/d4/d5 immediately after service_fault_batch */
+        if (_dec.d3_wait_ns > 1000000000ULL || _dec.d4_hold_ns > 1000000000ULL) {
+            pr_warn_ratelimited("specasync DIAG post-svc: nbatch=%u d3=%llu d4=%llu d5=%llu "
+                                "svc=%llu nvas=%u nblk=%u nf=%u\n",
+                                num_batches,
+                                _dec.d3_wait_ns, _dec.d4_hold_ns, _dec.d5_serv_ns,
+                                _dec.svc_end - _dec.svc_start,
+                                _dec.num_va_spaces, _dec.num_blocks, _dec.num_faults);
+        }
+#else
+        status = service_fault_batch(parent_gpu, FAULT_SERVICE_MODE_REGULAR, batch_context, NULL);
+#endif
 
         // We may have issued replays even if status != NV_OK if
         // UVM_PERF_FAULT_REPLAY_POLICY_BLOCK is being used or the fault buffer
@@ -3338,6 +3430,11 @@ void uvm_parent_gpu_service_replayable_faults(uvm_parent_gpu_t *parent_gpu)
                     // Cancel handling should've issued at least one replay
                     UVM_ASSERT(batch_context->num_replays > 0);
                     ++num_batches;
+#if SPECASYNC_DECOMP
+                    /* Push partial record — no D6 for cancel-handled batches */
+                    _dec.batch_id = atomic64_fetch_inc(&_dec_bid);
+                    specasync_decomp_ring_push((const struct specasync_decomp_record *)&_dec);
+#endif
                     continue;
                 }
             }
@@ -3346,7 +3443,13 @@ void uvm_parent_gpu_service_replayable_faults(uvm_parent_gpu_t *parent_gpu)
         }
 
         if (replayable_faults->replay_policy == UVM_PERF_FAULT_REPLAY_POLICY_BATCH) {
+#if SPECASYNC_DECOMP
+            _dec.d6_start = ktime_get_ns();
+#endif
             status = push_replay_on_parent_gpu(parent_gpu, UVM_FAULT_REPLAY_TYPE_START, batch_context);
+#if SPECASYNC_DECOMP
+            _dec.d6_end = ktime_get_ns();
+#endif
             if (status != NV_OK)
                 break;
             ++num_replays;
@@ -3359,7 +3462,13 @@ void uvm_parent_gpu_service_replayable_faults(uvm_parent_gpu_t *parent_gpu)
                 flush_mode = UVM_GPU_BUFFER_FLUSH_MODE_UPDATE_PUT;
             }
 
+#if SPECASYNC_DECOMP
+            _dec.d6_start = ktime_get_ns();
+#endif
             status = fault_buffer_flush_locked(parent_gpu, NULL, flush_mode, UVM_FAULT_REPLAY_TYPE_START, batch_context);
+#if SPECASYNC_DECOMP
+            _dec.d6_end = ktime_get_ns();
+#endif
             if (status != NV_OK)
                 break;
             ++num_replays;
@@ -3371,6 +3480,10 @@ void uvm_parent_gpu_service_replayable_faults(uvm_parent_gpu_t *parent_gpu)
         if (batch_context->has_throttled_faults)
             ++num_throttled;
 
+#if SPECASYNC_DECOMP
+        _dec.batch_id = atomic64_fetch_inc(&_dec_bid);
+        specasync_decomp_ring_push((const struct specasync_decomp_record *)&_dec);
+#endif
         ++num_batches;
     }
 

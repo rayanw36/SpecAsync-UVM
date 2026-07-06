@@ -11,6 +11,15 @@
  *   in the nvidia-open kernel module build tree (Kbuild flags, include paths).
  */
 
+/*
+ * SPECASYNC_DECOMP — Phase C dispatch-window decomposition instrumentation.
+ * Set to 0 to compile out all decomp timestamps for overhead measurement (Gate G3).
+ * Default 1 (enabled).  Override via ccflags-y += -DSPECASYNC_DECOMP=0 in Kbuild.
+ */
+#ifndef SPECASYNC_DECOMP
+#define SPECASYNC_DECOMP 1
+#endif
+
 #ifndef SPECASYNC_TELEMETRY_H
 #define SPECASYNC_TELEMETRY_H
 
@@ -85,6 +94,71 @@ struct specasync_work_record {
 #define SPECASYNC_POLICY_ORACLE   4
 #define SPECASYNC_POLICY_NULL     5   /* Gate C: worker wakes/dequeues, no lookup */
 
+/* ── Phase C dispatch-window decomposition record (112 bytes, '<12Q4I') ─────
+ *
+ * One record per top-level batch iteration in
+ * uvm_parent_gpu_service_replayable_faults().  Sub-phases:
+ *
+ *   D1 = d1_end   - d1_start    fault-buffer drain (fetch_fault_buffer_entries)
+ *   D2 = d2_end   - d2_start    preprocessing / sort / dedup (preprocess_fault_batch)
+ *   D3 = d3_wait_ns (cumul)     VA-space lock WAIT (retain_lock + down_read)
+ *   D4 = d4_hold_ns (cumul)     VA-space lock HOLD (down_read → up_read), includes D5
+ *   D5 = d5_serv_ns (cumul)     service_fault_batch_dispatch() CPU time inside hold
+ *   D6 = d6_end   - d6_start    replay push (0 if no explicit top-level replay)
+ *   svc = svc_end - svc_start   full service_fault_batch() call (D3+D4+overhead)
+ *
+ * Accounting closure (Gate G1): D1+D2+svc+D6+D7 = total window,
+ *   where D7 = (svc_start - d2_end) + (d6_start - svc_end) + other residual.
+ *   D3+D4 must be ≤ svc, and D5 ≤ D4, per batch.
+ *
+ * Byte layout (verified by static_assert in uvm_gpu_replayable_faults.c):
+ *    0   u64  batch_id
+ *    8   u64  d1_start
+ *   16   u64  d1_end
+ *   24   u64  d2_start
+ *   32   u64  d2_end
+ *   40   u64  svc_start
+ *   48   u64  svc_end
+ *   56   u64  d6_start    (0 if no top-level replay this iteration)
+ *   64   u64  d6_end      (0 if no top-level replay this iteration)
+ *   72   u64  d3_wait_ns  accumulated lock-wait time across all va_space acquisitions
+ *   80   u64  d4_hold_ns  accumulated lock-hold time (includes D5)
+ *   88   u64  d5_serv_ns  accumulated dispatch time inside hold
+ *   96   u32  num_faults
+ *  100   u32  num_va_spaces   distinct va_space lock acquisitions
+ *  104   u32  num_blocks      calls to service_fault_batch_dispatch
+ *  108   u32  _pad
+ */
+struct specasync_decomp_record {
+	u64 batch_id;
+	u64 d1_start;
+	u64 d1_end;
+	u64 d2_start;
+	u64 d2_end;
+	u64 svc_start;
+	u64 svc_end;
+	u64 d6_start;
+	u64 d6_end;
+	u64 d3_wait_ns;
+	u64 d4_hold_ns;
+	u64 d5_serv_ns;
+	u32 num_faults;
+	u32 num_va_spaces;
+	u32 num_blocks;
+	u32 _pad;
+};
+
+#define SPECASYNC_DECOMP_RING_SLOTS  (1U << 17)   /* 131072 × 112 B ≈ 14.7 MB */
+
+struct specasync_decomp_ring {
+	struct specasync_decomp_record *buf;
+	u32                             head;
+	u32                             tail;
+	u32                             mask;
+	u32                             drops;
+	spinlock_t                      lock;
+};
+
 /* ── Ring buffer (single-producer / single-consumer via spinlock fallback) ─
  *
  * Sized for 100k records each.  Lock-free SPSC would be cleaner but the
@@ -124,8 +198,9 @@ extern int specasync_offload_depth;
 extern char *specasync_oracle_trace_path;
 
 /* ── Global ring buffer instances (defined in specasync_debugfs.c) ─────────── */
-extern struct specasync_batch_ring g_batch_ring;
-extern struct specasync_work_ring  g_work_ring;
+extern struct specasync_batch_ring  g_batch_ring;
+extern struct specasync_work_ring   g_work_ring;
+extern struct specasync_decomp_ring g_decomp_ring;
 
 /* ── Ring buffer API ────────────────────────────────────────────────────────── */
 
@@ -166,6 +241,28 @@ static inline void specasync_work_ring_push(const struct specasync_work_record *
 		r->drops++;
 	} else {
 		r->buf[r->head & r->mask] = *rec;
+		smp_wmb();
+		r->head++;
+	}
+	spin_unlock_irqrestore(&r->lock, flags);
+}
+
+/* Phase C decomp ring push — noinline forces a real call, keeping _dec stack slots stable */
+static noinline void specasync_decomp_ring_push(const struct specasync_decomp_record *rec)
+{
+	struct specasync_decomp_ring *r = &g_decomp_ring;
+	unsigned long flags;
+
+	if (!specasync_log_enabled || !r->buf)
+		return;
+
+	spin_lock_irqsave(&r->lock, flags);
+	if (((r->head - r->tail) & r->mask) == r->mask) {
+		r->drops++;
+	} else {
+		u32 slot_idx = r->head & r->mask;
+		struct specasync_decomp_record *dst = &r->buf[slot_idx];
+		*dst = *rec;
 		smp_wmb();
 		r->head++;
 	}

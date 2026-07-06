@@ -25,12 +25,14 @@
 #include <linux/uaccess.h>
 #include <linux/vmalloc.h>
 #include "specasync_telemetry.h"
+#include "specasync_internal.h"
 
 /* ── Global ring buffer instances ────────────────────────────────────────── */
 
 struct specasync_batch_ring  g_batch_ring;
 struct specasync_work_ring   g_work_ring;
 struct specasync_trace_ring  g_trace_ring;
+struct specasync_decomp_ring g_decomp_ring;
 
 /* Module parameters — defined here, declared extern in specasync_telemetry.h */
 int   specasync_log_enabled       = 1;
@@ -61,6 +63,7 @@ static struct dentry *dentry_batch_log;
 static struct dentry *dentry_worker_log;
 static struct dentry *dentry_clear;
 static struct dentry *dentry_fault_trace;
+static struct dentry *dentry_decomp_log;
 
 /* ── Ring-buffer read helper ─────────────────────────────────────────────── */
 
@@ -87,7 +90,11 @@ static ssize_t ring_read_binary(char __user *ubuf, size_t count, loff_t *ppos,
 	if (*ppos >= (loff_t)bytes_avail)
 		return 0;
 
+	/* Snap to a whole number of records — avoids ppos drift on non-aligned reads. */
 	to_copy = min(count, bytes_avail - (size_t)*ppos);
+	to_copy = (to_copy / record_size) * record_size;
+	if (to_copy == 0)
+		return 0;
 	pos     = (size_t)*ppos;
 
 	/*
@@ -170,6 +177,31 @@ static const struct file_operations worker_log_fops = {
 	.llseek = default_llseek,
 };
 
+/* ── debugfs file ops: decomp log (Phase C) ──────────────────────────────── */
+
+static ssize_t decomp_log_read(struct file *filp, char __user *ubuf,
+			       size_t count, loff_t *ppos)
+{
+	struct specasync_decomp_ring *r = &g_decomp_ring;
+	u32 head, tail;
+	unsigned long flags;
+
+	spin_lock_irqsave(&r->lock, flags);
+	head = r->head;
+	tail = r->tail;
+	spin_unlock_irqrestore(&r->lock, flags);
+
+	return ring_read_binary(ubuf, count, ppos,
+				r->buf, head, tail, r->mask,
+				sizeof(struct specasync_decomp_record));
+}
+
+static const struct file_operations decomp_log_fops = {
+	.owner  = THIS_MODULE,
+	.read   = decomp_log_read,
+	.llseek = default_llseek,
+};
+
 /* ── debugfs file ops: clear ─────────────────────────────────────────────── */
 
 static ssize_t clear_write(struct file *filp, const char __user *ubuf,
@@ -193,6 +225,18 @@ static ssize_t clear_write(struct file *filp, const char __user *ubuf,
 	g_work_ring.head = g_work_ring.tail = g_work_ring.drops = 0;
 	wbuf = g_work_ring.buf;
 	spin_unlock_irqrestore(&g_work_ring.lock, flags);
+
+	{
+		void *dbuf;
+		spin_lock_irqsave(&g_decomp_ring.lock, flags);
+		g_decomp_ring.head = g_decomp_ring.tail = g_decomp_ring.drops = 0;
+		dbuf = g_decomp_ring.buf;
+		spin_unlock_irqrestore(&g_decomp_ring.lock, flags);
+		if (dbuf)
+			memset(dbuf, 0,
+			       SPECASYNC_DECOMP_RING_SLOTS *
+			       sizeof(struct specasync_decomp_record));
+	}
 
 	if (bbuf)
 		memset(bbuf, 0,
@@ -341,6 +385,19 @@ static int alloc_work_ring(void)
 	return 0;
 }
 
+static int alloc_decomp_ring(void)
+{
+	g_decomp_ring.buf = kvmalloc_array(SPECASYNC_DECOMP_RING_SLOTS,
+					   sizeof(struct specasync_decomp_record),
+					   GFP_KERNEL | __GFP_ZERO);
+	if (!g_decomp_ring.buf)
+		return -ENOMEM;
+	g_decomp_ring.mask = SPECASYNC_DECOMP_RING_SLOTS - 1;
+	g_decomp_ring.head = g_decomp_ring.tail = g_decomp_ring.drops = 0;
+	spin_lock_init(&g_decomp_ring.lock);
+	return 0;
+}
+
 static int alloc_trace_ring(void)
 {
 	g_trace_ring.buf = kvmalloc_array(SPECASYNC_TRACE_RING_SLOTS,
@@ -413,6 +470,10 @@ int specasync_debugfs_init(struct dentry *parent_dentry)
 	if (ret)
 		goto err_trace;
 
+	ret = alloc_decomp_ring();
+	if (ret)
+		goto err_decomp;
+
 	specasync_dir = debugfs_create_dir("specasync", parent_dentry);
 	if (IS_ERR_OR_NULL(specasync_dir)) {
 		ret = specasync_dir ? PTR_ERR(specasync_dir) : -ENOMEM;
@@ -431,11 +492,15 @@ int specasync_debugfs_init(struct dentry *parent_dentry)
 	dentry_fault_trace = debugfs_create_file("specasync_fault_trace", 0444,
 						 specasync_dir, NULL,
 						 &trace_ring_fops);
+	dentry_decomp_log  = debugfs_create_file("specasync_decomp_log", 0444,
+						 specasync_dir, NULL,
+						 &decomp_log_fops);
 
 	if (IS_ERR_OR_NULL(dentry_batch_log) ||
 	    IS_ERR_OR_NULL(dentry_worker_log) ||
 	    IS_ERR_OR_NULL(dentry_clear) ||
-	    IS_ERR_OR_NULL(dentry_fault_trace)) {
+	    IS_ERR_OR_NULL(dentry_fault_trace) ||
+	    IS_ERR_OR_NULL(dentry_decomp_log)) {
 		ret = -EIO;
 		goto err_files;
 	}
@@ -443,13 +508,17 @@ int specasync_debugfs_init(struct dentry *parent_dentry)
 	if (specasync_policy == 4)
 		specasync_load_oracle_trace();
 
-	pr_info("specasync: init OK  log_enabled=%d policy=%d offload_depth=%d\n",
-		specasync_log_enabled, specasync_policy, specasync_offload_depth);
+	pr_info("specasync: init OK  log_enabled=%d policy=%d offload_depth=%d decomp=%d\n",
+		specasync_log_enabled, specasync_policy, specasync_offload_depth,
+		SPECASYNC_DECOMP);
 	return 0;
 
 err_files:
 	debugfs_remove_recursive(specasync_dir);
 err_dir:
+	kvfree(g_decomp_ring.buf);
+	g_decomp_ring.buf = NULL;
+err_decomp:
 	kvfree(g_trace_ring.buf);
 	g_trace_ring.buf = NULL;
 err_trace:
@@ -476,6 +545,9 @@ void specasync_debugfs_exit(void)
 
 	kvfree(g_trace_ring.buf);
 	g_trace_ring.buf = NULL;
+
+	kvfree(g_decomp_ring.buf);
+	g_decomp_ring.buf = NULL;
 
 	if (g_oracle_trace) {
 		vfree(g_oracle_trace);
