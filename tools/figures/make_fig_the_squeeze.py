@@ -20,7 +20,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
 from _fig_common import (COL_WIDTH_IN, PALETTE, GRID, INK_PRIMARY, INK_SECONDARY,
-                          INK_MUTED, savefig)
+                          INK_MUTED, savefig, load_exclusion_manifest, find_exclusion)
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -34,13 +34,23 @@ PROBE_OFF_HITS, PROBE_OFF_N = 254, 256
 
 COLOR_ON = "#898781"
 COLOR_OFF = PALETTE[1]
+MANIFEST = load_exclusion_manifest()
 
 
 def load_real_hit_rates():
-    rates = []
+    telem_rel = str(TELEM_CSV.relative_to(REPO))
+    rates, excluded = [], []
     with open(TELEM_CSV) as f:
         for r in csv.DictReader(f):
+            pname = f"p{r['policy']}"
+            excl = find_exclusion(MANIFEST, telem_rel, r["benchmark"], r["size"], pname, "hit_rate")
+            if excl:
+                excluded.append((r["benchmark"], r["size"], pname, excl["exclusion_type"]))
+                continue
             rates.append(100.0 * float(r["hit_rate"]))
+    for bench, size, pname, kind in excluded:
+        print(f"  excluded from real-benchmark hit-rate panel: {bench} {size} {pname} "
+              f"(manifest: {kind})")
     return rates
 
 

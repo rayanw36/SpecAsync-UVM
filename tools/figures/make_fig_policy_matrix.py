@@ -23,7 +23,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
 from _fig_common import (PAGE_WIDTH_IN, POLICY_STYLE, GRID, INK_PRIMARY,
-                          INK_SECONDARY, INK_MUTED, savefig, pct_formatter)
+                          INK_SECONDARY, INK_MUTED, savefig, pct_formatter,
+                          load_exclusion_manifest, find_exclusion)
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mticker
 import numpy as np
@@ -39,22 +40,16 @@ GATE_D = {
 BENCH_ORDER = ["GraphBFS", "SGEMM", "STREAM", "Stencil", "Stencil_OvSub", "cuFFT"]
 POLICIES = ["p1", "p2", "p3", "p4"]
 
-# results/phaseB1/GATE_C_report.md C2: the Phase B STREAM p1/p2/p3 numbers at these
-# two sizes were measured all-baseline-then-all-treatment; re-run INTERLEAVED
-# (40 cycles/policy/size) the -8.8% "speedup" disappears and reverses to a +1.5-2%
-# slowdown, tracking p5 (null-worker, no prediction at all) almost exactly -- i.e.
-# it is host-ordering noise on the shared EC2 instance, not a speculation effect,
-# and it does not correlate with hit rate. Gate C only interleaved-reran p1 (and the
-# p5 null control) at these two sizes, not p2/p3, so only p1 has a corrected number;
-# all three are excluded from the bar chart and annotated, per the same
-# exclude-and-annotate rule used for the pre-fix p4 rows.
-STREAM_HOST_NOISE = {("STREAM", "134217728"), ("STREAM", "268435456")}
-GATE_C_INTERLEAVED_P1 = {  # (delta_pct, ci_note) from GATE_C_report.md C2 table
+# results/phaseB1/GATE_C_report.md C2 table: interleaved-corrected p1 wall-time delta
+# at the two STREAM sizes Gate C reran (see exclusion_manifest.csv for why p1/p2/p3
+# are excluded there). Not used to plot a bar -- informational only in stdout.
+GATE_C_INTERLEAVED_P1 = {
     ("STREAM", "134217728"): 2.05,
     ("STREAM", "268435456"): 1.77,
 }
 
 Z95 = 1.959963985
+MANIFEST = load_exclusion_manifest()
 
 
 def load_timing():
@@ -130,25 +125,32 @@ def main():
                 continue
 
             cell = {}
+            timing_rel = str(TIMING_CSV.relative_to(REPO))
+            telem_rel = str(TELEM_CSV.relative_to(REPO))
             for pname in POLICIES:
                 p = int(pname[1])
-                if p == 4 and not has_gate_d:
-                    cell[pname] = dict(delta_pct=None, ci_pct=None, hit_pct=None,
-                                        source="EXCLUDED (pre-fix only)",
-                                        hit_source="EXCLUDED (pre-fix only)")
-                    print(f"{bench:<14} {size:<20} {pname:<4} {'--':>8} {'--':>7} "
-                          f"{'--':>9} {'no Gate D rerun':<10} {'no Gate D rerun':<10}")
-                    continue
 
-                if p in (1, 2, 3) and (bench, size) in STREAM_HOST_NOISE:
-                    cell[pname] = dict(delta_pct=None, ci_pct=None, hit_pct=None,
-                                        source="EXCLUDED (host-ordering artifact)",
-                                        hit_source="EXCLUDED (host-ordering artifact)")
-                    corrected = GATE_C_INTERLEAVED_P1.get((bench, size)) if p == 1 else None
-                    note = f"Gate-C interleaved p1={corrected:+.2f}%" if corrected is not None else "no interleaved rerun for p2/p3"
-                    print(f"{bench:<14} {size:<20} {pname:<4} {'--':>8} {'--':>7} "
-                          f"{'--':>9} {'ARTIFACT, GATE_C':<10} {note}")
-                    continue
+                if not has_gate_d:
+                    excl_wall = find_exclusion(MANIFEST, timing_rel, bench, size, pname, "wall_time")
+                    excl_hit = find_exclusion(MANIFEST, telem_rel, bench, size, pname, "hit_rate")
+                    excl = excl_wall or excl_hit
+                    if excl:
+                        cell[pname] = dict(delta_pct=None, ci_pct=None, hit_pct=None,
+                                            source=f"EXCLUDED ({excl['exclusion_type']})",
+                                            hit_source=f"EXCLUDED ({excl['exclusion_type']})")
+                        note = ""
+                        if p == 1 and (bench, size) in GATE_C_INTERLEAVED_P1:
+                            note = f" [Gate-C interleaved p1={GATE_C_INTERLEAVED_P1[(bench, size)]:+.2f}%, not plotted]"
+                        print(f"{bench:<14} {size:<20} {pname:<4} {'--':>8} {'--':>7} "
+                              f"{'--':>9} manifest:{excl['exclusion_type']}{note}")
+                        continue
+                    if (bench, size, p) not in timing:
+                        cell[pname] = dict(delta_pct=None, ci_pct=None, hit_pct=None,
+                                            source="NOT FOUND (no p4 row for this cell)",
+                                            hit_source="NOT FOUND")
+                        print(f"{bench:<14} {size:<20} {pname:<4} {'--':>8} {'--':>7} "
+                              f"{'--':>9} no data in phaseB sweep for this cell")
+                        continue
 
                 if has_gate_d:
                     med, sem, n = gd_times[p]

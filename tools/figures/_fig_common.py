@@ -4,10 +4,40 @@ Not a general-purpose plotting library -- just the handful of constants and
 helpers every make_fig_*.py in this directory needs, kept in one place so the
 five scripts stay literally identical on fonts/sizes/palette.
 """
+import csv as _csv
+from pathlib import Path as _Path
+
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mticker
+
+_MANIFEST_PATH = _Path(__file__).resolve().parents[2] / "results/figures/exclusion_manifest.csv"
+
+
+def load_exclusion_manifest(path=_MANIFEST_PATH):
+    """Task 0: the single source of truth for excluded values. Figure scripts filter
+    against this -- no hardcoded exclusion lists in individual scripts."""
+    with open(path) as f:
+        return list(_csv.DictReader(f))
+
+
+def find_exclusion(manifest, source_file, benchmark=None, size=None, policy=None, metric=None):
+    """First manifest row matching source_file (+ optional benchmark/size/policy/metric),
+    where a field value of 'ALL' in the manifest is a wildcard. None if nothing matches."""
+    for r in manifest:
+        if r["source_file"] != source_file:
+            continue
+        if r["benchmark"] != "ALL" and benchmark is not None and r["benchmark"] != benchmark:
+            continue
+        if r["size"] != "ALL" and size is not None and r["size"] != size:
+            continue
+        if r["policy"] != "ALL" and policy is not None and r["policy"] != policy:
+            continue
+        if metric is not None and r["metric"] != metric:
+            continue
+        return r
+    return None
 
 # IEEE column widths
 COL_WIDTH_IN = 3.4
