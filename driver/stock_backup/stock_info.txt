@@ -1,2 +1,7 @@
 Stock srcversion: 85A79790636BBD99BA3E43B
-Stock path: /lib/modules/6.17.0-1017-aws/updates/dkms/nvidia-uvm.ko
+Stock path: /lib/modules/6.17.0-1019-aws/updates/dkms/nvidia-uvm.ko
+Backed up: 2026-08-10T12:32:20Z (T4 instance, Phase 2, before any custom module load)
+Note: supersedes a prior backup taken for kernel 6.17.0-1017-aws (same
+srcversion 85A79790636BBD99BA3E43B, i.e. source-identical, but different
+vermagic/build -- the prior .ko.stock would NOT have loaded on this
+kernel; do not use a backup whose vermagic doesn't match "uname -r").
