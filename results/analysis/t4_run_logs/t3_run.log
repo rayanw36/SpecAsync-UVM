@@ -1,0 +1,50 @@
+[lib_specasync_harness.sh 18:46:43] reload: 2 new dmesg line(s) -- logged, not necessarily an error
+[t3_phasec_paired_wallclock.sh 18:46:43] === Stencil-8K: /home/ubuntu/Downloads/SpecAsync-UVM/benchmarks/bench_stencil 8000, 5 trials ===
+[lib_specasync_harness.sh 18:46:44] run_order=1 cfg=Stencil-8K bench=bench_stencil size=8000 rep=1 wall=0.78s dmesg_delta=0
+[lib_specasync_harness.sh 18:46:44] run_order=2 cfg=Stencil-8K bench=bench_stencil size=8000 rep=2 wall=0.69s dmesg_delta=0
+[lib_specasync_harness.sh 18:46:45] run_order=3 cfg=Stencil-8K bench=bench_stencil size=8000 rep=3 wall=0.68s dmesg_delta=0
+[lib_specasync_harness.sh 18:46:46] run_order=4 cfg=Stencil-8K bench=bench_stencil size=8000 rep=4 wall=0.69s dmesg_delta=0
+[lib_specasync_harness.sh 18:46:47] run_order=5 cfg=Stencil-8K bench=bench_stencil size=8000 rep=5 wall=0.69s dmesg_delta=0
+[t3_phasec_paired_wallclock.sh 18:46:47] === GraphBFS-23: /home/ubuntu/Downloads/SpecAsync-UVM/benchmarks/graph_bfs/bench_graph_bfs 23, 5 trials ===
+[lib_specasync_harness.sh 18:47:41] run_order=6 cfg=GraphBFS-23 bench=bench_graph_bfs size=23 rep=1 wall=54.47s dmesg_delta=0
+[lib_specasync_harness.sh 18:48:35] run_order=7 cfg=GraphBFS-23 bench=bench_graph_bfs size=23 rep=2 wall=54.22s dmesg_delta=0
+[lib_specasync_harness.sh 18:49:30] run_order=8 cfg=GraphBFS-23 bench=bench_graph_bfs size=23 rep=3 wall=54.17s dmesg_delta=0
+[lib_specasync_harness.sh 18:50:24] run_order=9 cfg=GraphBFS-23 bench=bench_graph_bfs size=23 rep=4 wall=54.24s dmesg_delta=0
+[lib_specasync_harness.sh 18:51:18] run_order=10 cfg=GraphBFS-23 bench=bench_graph_bfs size=23 rep=5 wall=54.23s dmesg_delta=0
+[t3_phasec_paired_wallclock.sh 18:51:18] === Sweep-4K: /home/ubuntu/Downloads/SpecAsync-UVM/benchmarks/bench_stencil 4000, 5 trials ===
+[lib_specasync_harness.sh 18:51:19] run_order=11 cfg=Sweep-4K bench=bench_stencil size=4000 rep=1 wall=0.33s dmesg_delta=0
+[lib_specasync_harness.sh 18:51:19] run_order=12 cfg=Sweep-4K bench=bench_stencil size=4000 rep=2 wall=0.33s dmesg_delta=0
+[lib_specasync_harness.sh 18:51:19] run_order=13 cfg=Sweep-4K bench=bench_stencil size=4000 rep=3 wall=0.33s dmesg_delta=0
+[lib_specasync_harness.sh 18:51:20] run_order=14 cfg=Sweep-4K bench=bench_stencil size=4000 rep=4 wall=0.33s dmesg_delta=0
+[lib_specasync_harness.sh 18:51:20] run_order=15 cfg=Sweep-4K bench=bench_stencil size=4000 rep=5 wall=0.33s dmesg_delta=0
+[t3_phasec_paired_wallclock.sh 18:51:20] === Sweep-8K: /home/ubuntu/Downloads/SpecAsync-UVM/benchmarks/bench_stencil 8000, 5 trials ===
+[lib_specasync_harness.sh 18:51:21] run_order=16 cfg=Sweep-8K bench=bench_stencil size=8000 rep=1 wall=0.67s dmesg_delta=0
+[lib_specasync_harness.sh 18:51:22] run_order=17 cfg=Sweep-8K bench=bench_stencil size=8000 rep=2 wall=0.67s dmesg_delta=0
+[lib_specasync_harness.sh 18:51:22] run_order=18 cfg=Sweep-8K bench=bench_stencil size=8000 rep=3 wall=0.67s dmesg_delta=0
+[lib_specasync_harness.sh 18:51:23] run_order=19 cfg=Sweep-8K bench=bench_stencil size=8000 rep=4 wall=0.68s dmesg_delta=0
+[lib_specasync_harness.sh 18:51:24] run_order=20 cfg=Sweep-8K bench=bench_stencil size=8000 rep=5 wall=0.67s dmesg_delta=0
+[t3_phasec_paired_wallclock.sh 18:51:24] === Sweep-16K: /home/ubuntu/Downloads/SpecAsync-UVM/benchmarks/bench_stencil 16000, 5 trials ===
+[lib_specasync_harness.sh 18:51:26] run_order=21 cfg=Sweep-16K bench=bench_stencil size=16000 rep=1 wall=1.96s dmesg_delta=0
+[lib_specasync_harness.sh 18:51:28] run_order=22 cfg=Sweep-16K bench=bench_stencil size=16000 rep=2 wall=1.95s dmesg_delta=0
+[lib_specasync_harness.sh 18:51:30] run_order=23 cfg=Sweep-16K bench=bench_stencil size=16000 rep=3 wall=1.95s dmesg_delta=0
+[lib_specasync_harness.sh 18:51:32] run_order=24 cfg=Sweep-16K bench=bench_stencil size=16000 rep=4 wall=1.97s dmesg_delta=0
+[lib_specasync_harness.sh 18:51:34] run_order=25 cfg=Sweep-16K bench=bench_stencil size=16000 rep=5 wall=1.96s dmesg_delta=0
+[t3_phasec_paired_wallclock.sh 18:51:34] === Sweep-24K: /home/ubuntu/Downloads/SpecAsync-UVM/benchmarks/bench_stencil 24000, 5 trials ===
+[lib_specasync_harness.sh 18:51:38] run_order=26 cfg=Sweep-24K bench=bench_stencil size=24000 rep=1 wall=4.15s dmesg_delta=0
+[lib_specasync_harness.sh 18:51:42] run_order=27 cfg=Sweep-24K bench=bench_stencil size=24000 rep=2 wall=4.09s dmesg_delta=0
+[lib_specasync_harness.sh 18:51:47] run_order=28 cfg=Sweep-24K bench=bench_stencil size=24000 rep=3 wall=4.09s dmesg_delta=0
+[lib_specasync_harness.sh 18:51:51] run_order=29 cfg=Sweep-24K bench=bench_stencil size=24000 rep=4 wall=4.11s dmesg_delta=0
+[lib_specasync_harness.sh 18:51:55] run_order=30 cfg=Sweep-24K bench=bench_stencil size=24000 rep=5 wall=4.08s dmesg_delta=0
+[t3_phasec_paired_wallclock.sh 18:51:55] done. Timing CSV: /home/ubuntu/Downloads/SpecAsync-UVM/results/phaseC/paired_wallclock/t3_paired_times.csv, decomp snapshots: /home/ubuntu/Downloads/SpecAsync-UVM/results/phaseC/paired_wallclock/decomp
+[t3_phasec_paired_wallclock.sh 18:51:55] next: compute, per workload, sum(D1+D2)/sum(total_ns) from the decomp
+[t3_phasec_paired_wallclock.sh 18:51:55] snapshots (see tests/gatec1_decomp_analysis.py's DECOMP_FMT), pair with
+[t3_phasec_paired_wallclock.sh 18:51:55] the median wall-clock from $CSV, and report the arithmetic exactly as
+[t3_phasec_paired_wallclock.sh 18:51:55] PIPELINING_CEILING.md section 4 did for Stencil-24K: D1+D2 share of
+[t3_phasec_paired_wallclock.sh 18:51:55] window x window share of wall-clock = end-to-end ceiling. Label every
+[t3_phasec_paired_wallclock.sh 18:51:55] denominator. Cross-check: does the Stencil-24K method (n=5,
+[t3_phasec_paired_wallclock.sh 18:51:55] same module config) reproduce ~7.9% when run through this same harness?
+[t3_phasec_paired_wallclock.sh 18:51:55] confirming 0.64% instrumentation overhead applies: this run's module IS the
+[t3_phasec_paired_wallclock.sh 18:51:55] instrumented (DECOMP=1) build, per PIPELINING_CEILING.md section 3's
+[t3_phasec_paired_wallclock.sh 18:51:55] convention -- both the wall-clock numerator and the decomp-derived
+[t3_phasec_paired_wallclock.sh 18:51:55] denominator come from the same instrumented run, so no separate overhead
+[t3_phasec_paired_wallclock.sh 18:51:55] correction is applied on top (would double-count).

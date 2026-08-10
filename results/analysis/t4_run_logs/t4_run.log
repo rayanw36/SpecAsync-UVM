@@ -1,0 +1,76 @@
+[t4_prefetch_off_telemetry.sh 18:54:15] === C1: policy=0 depth=0 prefetch=0, bench_stencil ===
+[lib_specasync_harness.sh 18:54:15] reload: 2 new dmesg line(s) -- logged, not necessarily an error
+[lib_specasync_harness.sh 18:54:31] run_order=1 cfg=C1 bench=bench_stencil size=24000 rep=1 wall=15.55s dmesg_delta=0
+[lib_specasync_harness.sh 18:54:46] run_order=2 cfg=C1 bench=bench_stencil size=24000 rep=2 wall=14.78s dmesg_delta=0
+[lib_specasync_harness.sh 18:55:01] run_order=3 cfg=C1 bench=bench_stencil size=24000 rep=3 wall=15.04s dmesg_delta=0
+[lib_specasync_harness.sh 18:55:16] run_order=4 cfg=C1 bench=bench_stencil size=24000 rep=4 wall=14.73s dmesg_delta=0
+[lib_specasync_harness.sh 18:55:30] run_order=5 cfg=C1 bench=bench_stencil size=24000 rep=5 wall=14.65s dmesg_delta=0
+[lib_specasync_harness.sh 18:55:45] run_order=6 cfg=C1 bench=bench_stencil size=24000 rep=6 wall=14.72s dmesg_delta=0
+[lib_specasync_harness.sh 18:56:00] run_order=7 cfg=C1 bench=bench_stencil size=24000 rep=7 wall=14.68s dmesg_delta=0
+[lib_specasync_harness.sh 18:56:15] run_order=8 cfg=C1 bench=bench_stencil size=24000 rep=8 wall=14.69s dmesg_delta=0
+[lib_specasync_harness.sh 18:56:29] run_order=9 cfg=C1 bench=bench_stencil size=24000 rep=9 wall=14.70s dmesg_delta=0
+[lib_specasync_harness.sh 18:56:44] run_order=10 cfg=C1 bench=bench_stencil size=24000 rep=10 wall=14.67s dmesg_delta=0
+[lib_specasync_harness.sh 18:56:59] run_order=11 cfg=C1 bench=bench_stencil size=24000 rep=11 wall=14.64s dmesg_delta=0
+[lib_specasync_harness.sh 18:57:13] run_order=12 cfg=C1 bench=bench_stencil size=24000 rep=12 wall=14.71s dmesg_delta=0
+[lib_specasync_harness.sh 18:57:28] run_order=13 cfg=C1 bench=bench_stencil size=24000 rep=13 wall=14.69s dmesg_delta=0
+[lib_specasync_harness.sh 18:57:43] run_order=14 cfg=C1 bench=bench_stencil size=24000 rep=14 wall=14.77s dmesg_delta=0
+[lib_specasync_harness.sh 18:57:58] run_order=15 cfg=C1 bench=bench_stencil size=24000 rep=15 wall=14.71s dmesg_delta=0
+[t4_prefetch_off_telemetry.sh 18:57:58] === C3: oracle trace collect -> reload -> run, bench_stencil ===
+[lib_specasync_harness.sh 18:57:58] reload: 2 new dmesg line(s) -- logged, not necessarily an error
+[lib_specasync_harness.sh 18:58:14] reload: 3 new dmesg line(s) -- logged, not necessarily an error
+[lib_specasync_harness.sh 18:58:31] run_order=16 cfg=C3 bench=bench_stencil size=24000 rep=1 wall=17.22s dmesg_delta=0
+[lib_specasync_harness.sh 18:58:47] run_order=17 cfg=C3 bench=bench_stencil size=24000 rep=2 wall=15.03s dmesg_delta=0
+[lib_specasync_harness.sh 18:59:02] run_order=18 cfg=C3 bench=bench_stencil size=24000 rep=3 wall=15.06s dmesg_delta=0
+[lib_specasync_harness.sh 18:59:19] run_order=19 cfg=C3 bench=bench_stencil size=24000 rep=4 wall=17.16s dmesg_delta=0
+[lib_specasync_harness.sh 18:59:36] run_order=20 cfg=C3 bench=bench_stencil size=24000 rep=5 wall=16.87s dmesg_delta=0
+[lib_specasync_harness.sh 18:59:51] run_order=21 cfg=C3 bench=bench_stencil size=24000 rep=6 wall=15.14s dmesg_delta=0
+[lib_specasync_harness.sh 19:00:08] run_order=22 cfg=C3 bench=bench_stencil size=24000 rep=7 wall=17.19s dmesg_delta=0
+[lib_specasync_harness.sh 19:00:25] run_order=23 cfg=C3 bench=bench_stencil size=24000 rep=8 wall=16.77s dmesg_delta=0
+[lib_specasync_harness.sh 19:00:40] run_order=24 cfg=C3 bench=bench_stencil size=24000 rep=9 wall=15.26s dmesg_delta=0
+[lib_specasync_harness.sh 19:00:56] run_order=25 cfg=C3 bench=bench_stencil size=24000 rep=10 wall=15.53s dmesg_delta=0
+[lib_specasync_harness.sh 19:01:11] run_order=26 cfg=C3 bench=bench_stencil size=24000 rep=11 wall=15.03s dmesg_delta=0
+[lib_specasync_harness.sh 19:01:26] run_order=27 cfg=C3 bench=bench_stencil size=24000 rep=12 wall=14.91s dmesg_delta=0
+[lib_specasync_harness.sh 19:01:43] run_order=28 cfg=C3 bench=bench_stencil size=24000 rep=13 wall=17.13s dmesg_delta=0
+[lib_specasync_harness.sh 19:01:58] run_order=29 cfg=C3 bench=bench_stencil size=24000 rep=14 wall=15.02s dmesg_delta=0
+[lib_specasync_harness.sh 19:02:13] run_order=30 cfg=C3 bench=bench_stencil size=24000 rep=15 wall=15.04s dmesg_delta=0
+[t4_prefetch_off_telemetry.sh 19:02:13] === C1: policy=0 depth=0 prefetch=0, bench_graph_bfs ===
+[lib_specasync_harness.sh 19:02:14] reload: 2 new dmesg line(s) -- logged, not necessarily an error
+[lib_specasync_harness.sh 19:03:12] run_order=31 cfg=C1 bench=bench_graph_bfs size=23 rep=1 wall=58.27s dmesg_delta=0
+[lib_specasync_harness.sh 19:04:10] run_order=32 cfg=C1 bench=bench_graph_bfs size=23 rep=2 wall=58.16s dmesg_delta=0
+[lib_specasync_harness.sh 19:05:09] run_order=33 cfg=C1 bench=bench_graph_bfs size=23 rep=3 wall=58.17s dmesg_delta=0
+[lib_specasync_harness.sh 19:06:07] run_order=34 cfg=C1 bench=bench_graph_bfs size=23 rep=4 wall=58.17s dmesg_delta=0
+[lib_specasync_harness.sh 19:07:05] run_order=35 cfg=C1 bench=bench_graph_bfs size=23 rep=5 wall=58.23s dmesg_delta=0
+[lib_specasync_harness.sh 19:08:03] run_order=36 cfg=C1 bench=bench_graph_bfs size=23 rep=6 wall=58.21s dmesg_delta=0
+[lib_specasync_harness.sh 19:09:02] run_order=37 cfg=C1 bench=bench_graph_bfs size=23 rep=7 wall=58.19s dmesg_delta=0
+[lib_specasync_harness.sh 19:10:00] run_order=38 cfg=C1 bench=bench_graph_bfs size=23 rep=8 wall=58.21s dmesg_delta=0
+[lib_specasync_harness.sh 19:10:58] run_order=39 cfg=C1 bench=bench_graph_bfs size=23 rep=9 wall=58.19s dmesg_delta=0
+[lib_specasync_harness.sh 19:11:56] run_order=40 cfg=C1 bench=bench_graph_bfs size=23 rep=10 wall=58.22s dmesg_delta=0
+[lib_specasync_harness.sh 19:12:55] run_order=41 cfg=C1 bench=bench_graph_bfs size=23 rep=11 wall=58.15s dmesg_delta=0
+[lib_specasync_harness.sh 19:13:53] run_order=42 cfg=C1 bench=bench_graph_bfs size=23 rep=12 wall=58.20s dmesg_delta=0
+[lib_specasync_harness.sh 19:14:51] run_order=43 cfg=C1 bench=bench_graph_bfs size=23 rep=13 wall=58.13s dmesg_delta=0
+[lib_specasync_harness.sh 19:15:49] run_order=44 cfg=C1 bench=bench_graph_bfs size=23 rep=14 wall=58.18s dmesg_delta=0
+[lib_specasync_harness.sh 19:16:47] run_order=45 cfg=C1 bench=bench_graph_bfs size=23 rep=15 wall=58.17s dmesg_delta=0
+[t4_prefetch_off_telemetry.sh 19:16:47] === C3: oracle trace collect -> reload -> run, bench_graph_bfs ===
+[lib_specasync_harness.sh 19:16:48] reload: 2 new dmesg line(s) -- logged, not necessarily an error
+[INFO] Vertices=8388608 Edges=131168515 CSR=1.12 GB BFS_arrays=0.17 GB
+[INFO] Vertices=8388608 Edges=131168515 Visited=3845324
+[lib_specasync_harness.sh 19:17:47] reload: 3 new dmesg line(s) -- logged, not necessarily an error
+[lib_specasync_harness.sh 19:18:45] run_order=46 cfg=C3 bench=bench_graph_bfs size=23 rep=1 wall=58.14s dmesg_delta=0
+[lib_specasync_harness.sh 19:19:44] run_order=47 cfg=C3 bench=bench_graph_bfs size=23 rep=2 wall=58.20s dmesg_delta=0
+[lib_specasync_harness.sh 19:20:42] run_order=48 cfg=C3 bench=bench_graph_bfs size=23 rep=3 wall=58.53s dmesg_delta=0
+[lib_specasync_harness.sh 19:21:40] run_order=49 cfg=C3 bench=bench_graph_bfs size=23 rep=4 wall=58.12s dmesg_delta=0
+[lib_specasync_harness.sh 19:22:39] run_order=50 cfg=C3 bench=bench_graph_bfs size=23 rep=5 wall=58.18s dmesg_delta=0
+[lib_specasync_harness.sh 19:23:37] run_order=51 cfg=C3 bench=bench_graph_bfs size=23 rep=6 wall=58.10s dmesg_delta=0
+[lib_specasync_harness.sh 19:24:35] run_order=52 cfg=C3 bench=bench_graph_bfs size=23 rep=7 wall=58.03s dmesg_delta=0
+[lib_specasync_harness.sh 19:25:33] run_order=53 cfg=C3 bench=bench_graph_bfs size=23 rep=8 wall=57.99s dmesg_delta=0
+[lib_specasync_harness.sh 19:26:31] run_order=54 cfg=C3 bench=bench_graph_bfs size=23 rep=9 wall=58.23s dmesg_delta=0
+[lib_specasync_harness.sh 19:27:30] run_order=55 cfg=C3 bench=bench_graph_bfs size=23 rep=10 wall=58.49s dmesg_delta=0
+[lib_specasync_harness.sh 19:28:28] run_order=56 cfg=C3 bench=bench_graph_bfs size=23 rep=11 wall=58.54s dmesg_delta=0
+[lib_specasync_harness.sh 19:29:27] run_order=57 cfg=C3 bench=bench_graph_bfs size=23 rep=12 wall=58.11s dmesg_delta=0
+[lib_specasync_harness.sh 19:30:25] run_order=58 cfg=C3 bench=bench_graph_bfs size=23 rep=13 wall=58.00s dmesg_delta=0
+[lib_specasync_harness.sh 19:31:23] run_order=59 cfg=C3 bench=bench_graph_bfs size=23 rep=14 wall=58.01s dmesg_delta=0
+[lib_specasync_harness.sh 19:32:21] run_order=60 cfg=C3 bench=bench_graph_bfs size=23 rep=15 wall=58.19s dmesg_delta=0
+[t4_prefetch_off_telemetry.sh 19:32:21] done. Timing CSV: /home/ubuntu/Downloads/SpecAsync-UVM/results/gate3/telemetry/t4_prefetch_off_times.csv; ring dumps: /home/ubuntu/Downloads/SpecAsync-UVM/results/gate3/telemetry/*_run*.bin
+[t4_prefetch_off_telemetry.sh 19:32:21] verdict to report at Gate T4: measured hit rate per config, and whether
+[t4_prefetch_off_telemetry.sh 19:32:21] real-workload irregular access defeats the predictor independent of the
+[t4_prefetch_off_telemetry.sh 19:32:21] prefetcher (the alternative-explanation question this run exists to answer).
