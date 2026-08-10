@@ -113,6 +113,37 @@ arXiv-only, an upgrade this audit found unprompted.
 }
 ```
 
+## Reconciliation with the pre-existing `paper/references_review.md`
+
+That document (written earlier, explicitly without web-search access -- it says so
+directly for the Parravicini entry: "cannot confirm without web search in this
+environment") already flagged the same three problem entries independently, but without
+being able to verify real-world status it guessed at **topically-similar replacement
+papers** instead of finding what these specific papers actually are:
+
+- Its "[10] Anonymous arXiv" entry (= `anonymous2022learningoversub`) suggested three
+  unrelated substitute papers (Zheng/Buddy-Compression ISCA'20, Kim/Batch-Aware ASPLOS'20,
+  Ganguly ISCA'19). This audit instead found that the *cited paper itself* has a real,
+  peer-reviewed published version (Long/Gong/Zhou, JGC 2023) -- a direct upgrade of the
+  existing citation rather than a topic-adjacent swap, and almost certainly what the
+  manuscript author actually wants unless the citing sentence specifically needs one of
+  those three other papers' distinct claims.
+- Its "[19] Parravicini — arXiv" entry could not resolve publication status and suggested
+  Gunrock/Euro-Par fallbacks if no venue version existed. This audit found the venue
+  version does exist (IEEE IPDPS 2021) -- no replacement paper needed, just an entry-type
+  fix.
+- Its "[8] Long et al." entry (a *different* Long et al. paper, `long2022dlprefetch`) also
+  suggested topic-adjacent fallbacks (Hermes MICRO'22, Feedback-Directed-Prefetching
+  HPCA'07, BaM ASPLOS'23); this audit found this paper too has since been published
+  directly (JPDC 2023) -- again likely a better fix than a topical substitute.
+
+**Recommendation for whoever finalizes the bibliography:** prefer this audit's
+direct-upgrade citations over `references_review.md`'s topical-substitute suggestions for
+these three entries, since a live lookup is strictly more informative than a guess made
+without web access -- but keep `references_review.md`'s substitute suggestions on hand in
+case the citing sentence in the manuscript turns out to need a claim these papers'
+original selves don't actually support.
+
 ## What was not changed
 
 `ref.bib` itself is untouched, per instructions. `diehl2018hpxcl`'s peer-review status
