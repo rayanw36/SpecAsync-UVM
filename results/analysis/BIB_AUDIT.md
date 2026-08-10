@@ -1,7 +1,8 @@
 # Bibliography audit of ref.bib (Task E)
 
-Source audited: `/home/ubuntu/Downloads/ref.bib` (19 entries, located one directory above
-this repo — confirmed as the manuscript's real bibliography via cross-reference with
+Source audited: `/home/ubuntu/Downloads/ref.bib` (**20 entries**, confirmed by `grep -c '^@'`
+— an earlier draft of this document miscounted 19; corrected here, located one directory
+above this repo — confirmed as the manuscript's real bibliography via cross-reference with
 `paper/references_review.md`). **This file has not been modified** — all proposed fixes
 below are for the manuscript author to apply by hand. Network access was available; every
 entry was checked, not just the two the brief named.
@@ -10,9 +11,9 @@ entry was checked, not just the two the brief named.
 
 | Peer-reviewed as cited | Preprint/TR as cited, still unpublished | **Miscited** (wrong metadata/venue; a real peer-reviewed publication exists) | Preprint as cited, but **has since been published** (found during this audit, not explicitly asked for) |
 |---|---|---|---|
-| 10 | 2 | 3 | 3 |
+| 11 | 3 | 3 | 3 |
 
-Of 19 entries, **only 10 are both peer-reviewed and correctly cited as such**. Three
+Of 20 entries, **11 are both peer-reviewed and correctly cited as such**. Three
 entries (`anonymous2022learningoversub`, `bastemTilesTR`, `jain2019crac`) are not just
 "preprint vs. published" — their bib metadata is actively wrong (fabricated/placeholder
 author, wrong entry type, or wrong year) for papers that **do** have a real peer-reviewed
