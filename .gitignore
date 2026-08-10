@@ -50,3 +50,16 @@ results/phaseB1/gate_c/*.csv
 results/phaseB1/gate_d/**/*.bin
 results/phaseB1/gate_d/**/oracle_trace.bin
 results/phaseB1/gate_d/**/times.csv
+
+# LaTeX build artifacts (paper/main.pdf is reproducible: pdflatex main.tex,
+# bibtex main, pdflatex main.tex x2)
+paper/*.aux
+paper/*.bbl
+paper/*.blg
+paper/*.log
+paper/*.out
+paper/*.pdf
+paper/*.toc
+paper/*.fls
+paper/*.fdb_latexmk
+paper/*.synctex.gz

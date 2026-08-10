@@ -1,0 +1,173 @@
+@article{allen2024finegrain,
+  title   = {Fine-grain Quantitative Analysis of Demand Paging in {UVM}},
+  author  = {Allen and Cooper and Ge},
+  journal = {ACM Transactions on Architecture and Code Optimization (TACO)},
+  year    = {2024},
+  volume  = {21},
+  number  = {1},
+  note    = {Driver-level measurement and batch cost breakdown for UVM demand paging.}
+}
+
+@misc{gu2020uvmbench,
+  title        = {{UVMBench}: A Comprehensive Benchmark Suite for Researching Unified Virtual Memory in GPUs},
+  author       = {Gu and others},
+  year         = {2020},
+  howpublished = {arXiv preprint},
+  eprint       = {2007.09822},
+  archivePrefix= {arXiv},
+  note         = {Benchmark suite covering ML/graph/HPC workloads for UVM studies.}
+}
+
+@misc{long2022dlprefetch,
+  title        = {Deep Learning Based Data Prefetching in {CPU--GPU} Unified Virtual Memory},
+  author       = {Long and Gong and Zhou and Zhang},
+  year         = {2022},
+  howpublished = {arXiv preprint},
+  eprint       = {2203.12672},
+  archivePrefix= {arXiv},
+  note         = {Transformer-style predictor evaluated in simulation.}
+}
+
+@misc{nazaraliyev2024gpuvm,
+  title        = {{GPUVM}: {GPU}-driven Unified Virtual Memory},
+  author       = {Nazaraliyev and Sadredini and Abu-Ghazaleh},
+  year         = {2024},
+  howpublished = {arXiv preprint},
+  eprint       = {2411.05309},
+  archivePrefix= {arXiv},
+  note         = {GPU-driven paging control using RDMA/RNIC mechanisms.}
+}
+
+@article{jin2019prescheduling,
+  title   = {Towards Low-Latency Batched Stream Processing by Pre-Scheduling},
+  author  = {Jin and Chen and Wu and Yao and Liu and Gu and Zhou},
+  journal = {IEEE Transactions on Parallel and Distributed Systems (TPDS)},
+  year    = {2019},
+  note    = {Pre-scheduling to mitigate stragglers in batched systems; used as an analogy for pre-staging work.}
+}
+
+@inproceedings{go2023earlyadaptor,
+  title     = {Early-Adaptor: An Adaptive Framework for Proactive {UVM} Memory Management},
+  author    = {Go and others},
+  booktitle = {IEEE International Symposium on Performance Analysis of Systems and Software (ISPASS)},
+  year      = {2023},
+  note      = {Adaptive proactive UVM management using runtime fault-rate signals.}
+}
+
+@inproceedings{pratheek2024suv,
+  title     = {{SUV}: Static-Analysis-Guided Unified Virtual Memory},
+  author    = {Pratheek and others},
+  booktitle = {IEEE/ACM International Symposium on Microarchitecture (MICRO)},
+  year      = {2024},
+  note      = {Uses static analysis to guide pinning/prefetch/migration decisions for UVM.}
+}
+
+@article{kim2025most,
+  title   = {{MOST}: Memory Oversubscription-Aware Scheduling for Tensor Migration on {GPU} Unified Storage},
+  author  = {Kim and others},
+  journal = {IEEE Computer Architecture Letters (CAL)},
+  year    = {2025},
+  note    = {Scheduling policy for oversubscription-aware tensor migration in unified storage settings.}
+}
+
+@inproceedings{li2019oversubframework,
+  title     = {A Framework for Memory Oversubscription Management in {GPU}s},
+  author    = {Li and others},
+  booktitle = {Architectural Support for Programming Languages and Operating Systems (ASPLOS)},
+  year      = {2019},
+  note      = {Coordinated policies to reduce thrashing under GPU memory oversubscription.}
+}
+
+@inproceedings{nihaal2024compression,
+  title     = {Selective Memory Compression for {GPU} {UVM}},
+  author    = {Nihaal and Mutyam},
+  booktitle = {International Conference on Parallel Processing (ICPP)},
+  year      = {2024},
+  note      = {Selective compression and packing to increase effective capacity under oversubscription (simulation).}
+}
+
+@inproceedings{lin2025forest,
+  title     = {Forest: Access-Aware {GPU} {UVM} Management},
+  author    = {Lin and others},
+  booktitle = {International Symposium on Computer Architecture (ISCA)},
+  year      = {2025},
+  note      = {Access-aware UVM management using prediction/queuing (reported as simulation-based in the project table).}
+}
+
+@misc{anonymous2022learningoversub,
+  title        = {Learning-Based Oversubscription Management for {CPU--GPU} {UVM}},
+  author       = {Anonymous},
+  year         = {2022},
+  howpublished = {arXiv preprint},
+  eprint       = {2204.02974},
+  archivePrefix= {arXiv},
+  note         = {Early preprint on ML-guided prefetch/evict under oversubscription.}
+}
+
+@techreport{jain2019crac,
+  title       = {{CRAC}: Checkpoint-Restart Architecture for {CUDA} with Streams and {UVM}},
+  author      = {Jain and Cooperman},
+  institution = {Technical Report},
+  year        = {2019},
+  note        = {Checkpoint/restart for CUDA streams and UVM; emphasizes correctness and replay.}
+}
+
+@inproceedings{yu2020cppe,
+  title     = {Coordinated Page Prefetch and Eviction for Memory Oversubscription Management in {GPU}s},
+  author    = {Yu and others},
+  booktitle = {IEEE International Parallel and Distributed Processing Symposium (IPDPS)},
+  year      = {2020},
+  note      = {Couples prefetch with modified eviction to reduce thrashing (simulation).}
+}
+
+@inproceedings{chien2019umfeatures,
+  title     = {Performance Evaluation of Advanced Features in {CUDA} Unified Memory},
+  author    = {Chien and Peng and Markidis},
+  booktitle = {Workshop on Memory Centric High Performance Computing (MCHPC)},
+  year      = {2019},
+  note      = {Evaluates prefetch/advice and platform sensitivity of Unified Memory features.}
+}
+
+@misc{diehl2018hpxcl,
+  title        = {Integration of {CUDA} Processing within {HPX} ({HPXCL})},
+  author       = {Diehl and others},
+  year         = {2018},
+  howpublished = {arXiv preprint},
+  note         = {Asynchronous task/future-based GPU execution interface enabling overlap.}
+}
+
+@misc{choi2022gpuaware,
+  title        = {Improving Scalability with {GPU}-Aware Asynchronous Tasks},
+  author       = {Choi and Richards and Kale},
+  year         = {2022},
+  howpublished = {arXiv preprint},
+  eprint       = {2202.11819},
+  archivePrefix= {arXiv},
+  note         = {Overlap/stream/graph techniques for scalable GPU execution and coordination.}
+}
+
+@inproceedings{jung2020hum,
+  title     = {Overlapping Host-to-Device Copy and Computation using Hidden Unified Memory ({HUM})},
+  author    = {Jung and Park and Do and Park and Lee},
+  booktitle = {ACM SIGPLAN Symposium on Principles and Practice of Parallel Programming (PPoPP)},
+  year      = {2020},
+  note      = {Uses UM/page-fault-driven mechanisms to overlap H2D copies and computation.}
+}
+
+@misc{parravicini2021dagpolyglot,
+  title        = {DAG-based Scheduling with Resource Sharing for Multi-task Applications in a Polyglot {GPU} Runtime},
+  author       = {Parravicini and Delamare and Arnaboldi and Santambrogio},
+  year         = {2021},
+  howpublished = {arXiv preprint},
+  eprint       = {2012.09646},
+  archivePrefix= {arXiv},
+  note         = {Runtime-inferred DAG scheduling and stream overlap; not UVM-specific but informs overlap patterns.}
+}
+
+@techreport{bastemTilesTR,
+  title       = {Overlapping Data Transfers with Computation on {GPU} with Tiles},
+  author      = {Bastem and Unat and Zhang and Almgren and Shalf},
+  institution = {Technical Report (Ko{\c{c}} University \& Lawrence Berkeley National Laboratory)},
+  year        = {n.d.},
+  note        = {Tile-based overlap of transfer and compute; useful overlap design reference.}
+}
