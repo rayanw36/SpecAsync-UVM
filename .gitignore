@@ -51,6 +51,15 @@ results/phaseB1/gate_d/**/*.bin
 results/phaseB1/gate_d/**/oracle_trace.bin
 results/phaseB1/gate_d/**/times.csv
 
+# T1-T4 GPU harness raw per-run telemetry rings (T4 work block; large,
+# reconstructible by rerunning the harness -- aggregate CSVs and the Gate
+# T*-REPORT.md files carry the numbers that matter, per this project's
+# existing convention for raw ring dumps)
+results/phaseB2/gate3_interleaved/telemetry/
+results/phaseB2/cufft_interleaved/telemetry/
+results/phaseC/paired_wallclock/decomp/
+results/gate3/telemetry/*.bin
+
 # LaTeX build artifacts (paper/main.pdf is reproducible: pdflatex main.tex,
 # bibtex main, pdflatex main.tex x2)
 paper/*.aux

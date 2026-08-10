@@ -99,10 +99,13 @@ for size in "${SIZES[@]}"; do
     for rep in $(seq 1 $TOTAL_REPS); do
         phase="warmup"; [ "$rep" -gt "$WARMUP" ] && phase="kept"
         # p0: policy=0 (no speculation), prefetch ON
-        run_config "$size" p0_prefetchON 0 1 1 "$rep" "$phase"
-        # p2: policy=2 (stride), depth=1, prefetch ON -- the configuration
-        # the 25.47% hit rate was originally measured in.
-        run_config "$size" p2_prefetchON 2 1 1 "$rep" "$phase"
+        run_config "$size" p0_prefetchON 0 0 1 "$rep" "$phase"
+        # p2: policy=2 (stride), depth=0, prefetch ON -- the EXACT configuration
+        # the 25.47% hit rate was originally measured in (phaseB_telemetry.csv
+        # row "2,0,cuFFT,...": policy=2, depth=0 -- metadata-only lookup, no
+        # actual migration). Do not change to depth=1 without re-checking
+        # CUFFT_PROVENANCE.md's raw row first.
+        run_config "$size" p2_prefetchON 2 0 1 "$rep" "$phase"
     done
 
     harness_log "=== T2 size=$size: secondary C0/C1 for continuity (n=$N_REPS + $WARMUP warmup) ==="
