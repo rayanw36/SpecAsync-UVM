@@ -18,14 +18,13 @@
   note         = {Benchmark suite covering ML/graph/HPC workloads for UVM studies.}
 }
 
-@misc{long2022dlprefetch,
-  title        = {Deep Learning Based Data Prefetching in {CPU--GPU} Unified Virtual Memory},
-  author       = {Long and Gong and Zhou and Zhang},
-  year         = {2022},
-  howpublished = {arXiv preprint},
-  eprint       = {2203.12672},
-  archivePrefix= {arXiv},
-  note         = {Transformer-style predictor evaluated in simulation.}
+@article{long2022dlprefetch_published,
+  title   = {Deep Learning Based Data Prefetching in {CPU--GPU} Unified Virtual Memory},
+  author  = {Long, Xinjian and Gong, Xiangyang and Zhou, Huiyang and Zhang, ...},
+  journal = {Journal of Parallel and Distributed Computing},
+  year    = {2023},
+  doi     = {10.1016/j.jpdc.2022.12.004},
+  note    = {Upgrade of long2022dlprefetch (arXiv 2203.12672) -- has since been published.}
 }
 
 @misc{nazaraliyev2024gpuvm,
@@ -94,22 +93,27 @@
   note      = {Access-aware UVM management using prediction/queuing (reported as simulation-based in the project table).}
 }
 
-@misc{anonymous2022learningoversub,
-  title        = {Learning-Based Oversubscription Management for {CPU--GPU} {UVM}},
-  author       = {Anonymous},
-  year         = {2022},
-  howpublished = {arXiv preprint},
-  eprint       = {2204.02974},
-  archivePrefix= {arXiv},
-  note         = {Early preprint on ML-guided prefetch/evict under oversubscription.}
+@article{long2022oversub,
+  title   = {An Intelligent Framework for Oversubscription Management in {CPU--GPU} Unified Memory},
+  author  = {Long, Xinjian and Gong, Xiangyang and Zhou, Huiyang},
+  journal = {Journal of Grid Computing},
+  volume  = {21},
+  number  = {11},
+  year    = {2023},
+  doi     = {10.1007/s10723-023-09646-1},
+  note    = {Was cited as anonymous2022learningoversub (arXiv 2204.02974, author field
+             "Anonymous") -- real authors and peer-reviewed venue recovered by this audit.}
 }
 
-@techreport{jain2019crac,
-  title       = {{CRAC}: Checkpoint-Restart Architecture for {CUDA} with Streams and {UVM}},
-  author      = {Jain and Cooperman},
-  institution = {Technical Report},
-  year        = {2019},
-  note        = {Checkpoint/restart for CUDA streams and UVM; emphasizes correctness and replay.}
+@inproceedings{jain2020crac,
+  title     = {{CRAC}: Checkpoint-Restart Architecture for {CUDA} with Streams and {UVM}},
+  author    = {Jain, Twinkle and Cooperman, Gene},
+  booktitle = {Proceedings of the International Conference for High Performance Computing,
+               Networking, Storage and Analysis (SC)},
+  year      = {2020},
+  doi       = {10.5555/3433701.3433803},
+  note      = {Was cited as jain2019crac (@techreport, year=2019) -- real venue is SC'20,
+               not a technical report; year corrected 2019 to 2020.}
 }
 
 @inproceedings{yu2020cppe,
@@ -136,14 +140,14 @@
   note         = {Asynchronous task/future-based GPU execution interface enabling overlap.}
 }
 
-@misc{choi2022gpuaware,
-  title        = {Improving Scalability with {GPU}-Aware Asynchronous Tasks},
-  author       = {Choi and Richards and Kale},
-  year         = {2022},
-  howpublished = {arXiv preprint},
-  eprint       = {2202.11819},
-  archivePrefix= {arXiv},
-  note         = {Overlap/stream/graph techniques for scalable GPU execution and coordination.}
+@inproceedings{choi2022gpuaware_published,
+  title     = {Improving Scalability with {GPU}-Aware Asynchronous Tasks},
+  author    = {Choi, Jaemin and Richards, David F. and Kale, Laxmikant V.},
+  booktitle = {2022 IEEE International Parallel and Distributed Processing Symposium
+               Workshops (IPDPSW)},
+  year      = {2022},
+  doi       = {10.1109/IPDPSW55747.2022.00164},
+  note      = {Upgrade of choi2022gpuaware (arXiv 2202.11819) -- has since been published.}
 }
 
 @inproceedings{jung2020hum,
@@ -152,6 +156,76 @@
   booktitle = {ACM SIGPLAN Symposium on Principles and Practice of Parallel Programming (PPoPP)},
   year      = {2020},
   note      = {Uses UM/page-fault-driven mechanisms to overlap H2D copies and computation.}
+}
+
+@inproceedings{parravicini2021dagpolyglot_published,
+  title     = {{DAG}-based Scheduling with Resource Sharing for Multi-task Applications
+               in a Polyglot {GPU} Runtime},
+  author    = {Parravicini, Alberto and Delamare, Arnaud and Arnaboldi, Marco and
+               Santambrogio, Marco D.},
+  booktitle = {2021 IEEE International Parallel and Distributed Processing Symposium (IPDPS)},
+  year      = {2021},
+  doi       = {10.1109/IPDPS49936.2021.00105},
+  note      = {Upgrade of parravicini2021dagpolyglot (arXiv 2012.09646) -- has since been
+               published.}
+}
+
+@inproceedings{bastem2017tiles,
+  title     = {Overlapping Data Transfers with Computation on {GPU} with Tiles},
+  author    = {Bastem, Burak and Unat, Didem and Zhang, Weiqun and Almgren, Ann and Shalf, John},
+  booktitle = {Proceedings of the 46th International Conference on Parallel Processing (ICPP)},
+  year      = {2017},
+  doi       = {10.1109/ICPP.2017.24},
+  note      = {Was cited as bastemTilesTR (@techreport, year={n.d.}) -- real venue is
+               ICPP'17, a peer-reviewed conference, not an undated technical report.}
+}
+
+% =============================================================================
+% Original (miscited / stale-preprint) entries, superseded above by BIB_AUDIT.md's
+% corrected replacements. Kept for auditability inside a single Comment block
+% below -- a bare percent-sign prefix does NOT reliably hide a BibTeX entry
+% from bibtex's parser (it scans for the entry-start sign regardless of
+% preceding text), so the native BibTeX comment mechanism is used instead. Do
+% not restore these without also removing the corrected entries above, to
+% avoid duplicate keys.
+% =============================================================================
+@Comment{
+@misc{long2022dlprefetch,
+  title        = {Deep Learning Based Data Prefetching in {CPU--GPU} Unified Virtual Memory},
+  author       = {Long and Gong and Zhou and Zhang},
+  year         = {2022},
+  howpublished = {arXiv preprint},
+  eprint       = {2203.12672},
+  archivePrefix= {arXiv},
+  note         = {Transformer-style predictor evaluated in simulation.}
+}
+
+@misc{anonymous2022learningoversub,
+  title        = {Learning-Based Oversubscription Management for {CPU--GPU} {UVM}},
+  author       = {Anonymous},
+  year         = {2022},
+  howpublished = {arXiv preprint},
+  eprint       = {2204.02974},
+  archivePrefix= {arXiv},
+  note         = {Early preprint on ML-guided prefetch/evict under oversubscription.}
+}
+
+@techreport{jain2019crac,
+  title       = {{CRAC}: Checkpoint-Restart Architecture for {CUDA} with Streams and {UVM}},
+  author      = {Jain and Cooperman},
+  institution = {Technical Report},
+  year        = {2019},
+  note        = {Checkpoint/restart for CUDA streams and UVM; emphasizes correctness and replay.}
+}
+
+@misc{choi2022gpuaware,
+  title        = {Improving Scalability with {GPU}-Aware Asynchronous Tasks},
+  author       = {Choi and Richards and Kale},
+  year         = {2022},
+  howpublished = {arXiv preprint},
+  eprint       = {2202.11819},
+  archivePrefix= {arXiv},
+  note         = {Overlap/stream/graph techniques for scalable GPU execution and coordination.}
 }
 
 @misc{parravicini2021dagpolyglot,
@@ -170,4 +244,5 @@
   institution = {Technical Report (Ko{\c{c}} University \& Lawrence Berkeley National Laboratory)},
   year        = {n.d.},
   note        = {Tile-based overlap of transfer and compute; useful overlap design reference.}
+}
 }
