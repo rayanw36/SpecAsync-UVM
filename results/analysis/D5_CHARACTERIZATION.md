@@ -4,32 +4,35 @@ Read-only driver-source analysis. No GPU required, none used.
 
 ## 0. Provenance of the source cited
 
-Two source trees exist on this machine:
+**Provenance gap closed (T4 instance, re-verification pass).** The real 595.71.05 UVM
+source tree is present on this machine at `/usr/src/nvidia-595.71.05/nvidia-uvm/`
+(confirmed via the platform-verification gate: driver `595.71.05` matches
+`nvidia-smi`). `uvm_va_block.c` there is 13,583 lines. **Every citation into
+`uvm_va_block.c` below is now against this real 595.71.05 file**, not the v580.95.05
+inference the original pass had to fall back on.
 
-1. **`driver/src/uvm_gpu_replayable_faults.c`** -- confirmed the 595.71.05 tree.
-   Byte-identical (`diff` empty) to `manuscript_assets/source/phaseC-decomp__uvm_gpu_replayable_faults.c`,
-   which is the exact file Phase C's instrumented build (`nvidia-uvm-specasync-phaseC.ko`,
-   srcversion `8A2651D1CB32C7B239FB511`, per `PHASEC_REPORT.md`) was compiled from. All
-   D1-D6 instrumentation lives in this one file. **All citations to this file below are
-   against the real 595.71.05 tree**, not a reconstruction.
+Two source trees were used:
 
-2. **`uvm_va_block.c`** -- the D5 span calls into this file (`uvm_va_block_service_locked`
-   and its callees), but **it does not exist anywhere on this machine** for the 595.71.05
-   tree (confirmed: `find / -iname uvm_va_block.c` returns nothing outside the patch
-   below). The only available copy of this file's source is embedded in
-   `driver/patches/specasync_uvm_v580.95.05.patch`, which per `driver/PORTING_NOTES_595.md`
-   ("The v580 patch stored in LFS is the entire unmodified 580 source tree committed as
-   an initial git blob") contains the **v580.95.05** source, not v595.71.05. `PORTING_NOTES_595.md`
-   spot-checks several unrelated APIs as "present and unchanged" between 580 and 595, but
-   does **not** spot-check any of `uvm_va_block_service_locked`, `uvm_va_block_service_copy`,
-   `uvm_va_block_make_resident_copy`, or the push/copy helpers used below. **Section 2's
-   citations into `uvm_va_block.c` are therefore v580.95.05, not verified-595.71.05** --
-   flagged explicitly rather than silently presented as 595 source. This is a real
-   limitation on this task's citation requirement, reported rather than papered over.
-   Core VA-block residency/copy plumbing is not the kind of code that changes fault-path
-   sync/async structure between adjacent point releases within the same major driver
-   branch, so the v580 chain is a reasonable basis for the characterization below, but it
-   is an inference, not a demonstrated fact for 595.
+1. **`driver/src/uvm_gpu_replayable_faults.c`** -- the SpecAsync-instrumented file (all
+   D1-D6 instrumentation, `#if SPECASYNC_DECOMP` blocks, the speculative-worker code).
+   Diffed against `/usr/src/nvidia-595.71.05/nvidia-uvm/uvm_gpu_replayable_faults.c`
+   (the pristine upstream file): every difference is attributable to the documented
+   SpecAsync patch (added includes, the `_dec`/decomp-record parameter threaded through
+   `service_fault_batch`/`service_fault_batch_dispatch`, the T0-T4 telemetry pushes, the
+   speculative-worker enqueue). No unexplained divergence. Function boundaries
+   (`service_fault_batch_dispatch` at 1927, `service_fault_batch` at 2212 in the pristine
+   595 tree) are consistent with the instrumented file's structure once the instrumentation
+   is mentally subtracted -- reconfirms the original claim that `driver/src/...` is a real
+   595.71.05 build, now checked directly against upstream 595.71.05 rather than only
+   against a second copy of the same instrumented file.
+
+2. **`uvm_va_block.c`** -- **re-traced directly against `/usr/src/nvidia-595.71.05/nvidia-uvm/uvm_va_block.c`**
+   (previously only available via the v580.95.05 patch's embedded source tree, per
+   `driver/PORTING_NOTES_595.md`). Every function in the D5 call chain was located by
+   symbol in the real 595 file and diffed line-for-line against its v580.95.05
+   counterpart (extracted from `driver/patches/specasync_uvm_v580.95.05.patch`). Results
+   in Section 2b below. **Section 2's citations are now verified-595.71.05, not
+   inferred-from-580.**
 
 ## 1. The D4/D5-bracketed code span (595.71.05 tree, confirmed)
 
@@ -78,22 +81,24 @@ service_fault_batch_dispatch()                                    [replayable_fa
                       any GPU interaction
               |
               +-- uvm_va_block_service_locked()                     [uvm_va_block.c,
-                                                                       v580 patch:1760042]
-                    CPU  prefetch hint computation                  [patch:~1760055]
+                                                                       595.71.05:12021-12074]
+                    CPU  prefetch hint computation                  [12045]
                     |
-                    +-- uvm_va_block_service_copy()                 [v580 patch:1759548]
-                          CPU  cause/mask bookkeeping                [patch:1759548-1759596]
+                    +-- uvm_va_block_service_copy()                 [595.71.05:11541-11686]
+                          CPU  cause/mask bookkeeping                [11541-11589]
                           ASYNC-SUBMIT (see below)
                             uvm_va_block_make_resident_read_duplicate() /
-                            uvm_va_block_make_resident_copy()        [patch:1759596-1759618]
+                            uvm_va_block_make_resident_copy()        [11589-11611]
                           SYNC-WAIT (CONDITIONAL -- see note below)
-                            uvm_tracker_wait(&va_block->tracker)     [patch:1759640]
+                            uvm_tracker_wait(&va_block->tracker)     [11633]
                     |
-                    +-- uvm_va_block_service_finish()                [v580 patch, not
-                                                                       traced further --
+                    +-- uvm_va_block_service_finish()                [595.71.05:11926-12020,
+                                                                       not traced further --
                                                                        CPU-side PTE/mapping
                                                                        bookkeeping per its
-                                                                       header comment]
+                                                                       header comment; one
+                                                                       small diff from v580,
+                                                                       see 2b.4]
         LOCK  uvm_mutex_unlock(&va_block->lock)                     [1945]
         ASYNC uvm_tracker_add_tracker_safe(&batch_context->tracker,
                                            &va_block->tracker)       [1953]
@@ -101,33 +106,71 @@ service_fault_batch_dispatch()                                    [replayable_fa
                  batch tracker; does NOT wait on it
 ```
 
-**`uvm_va_block_make_resident_copy()` chain (v580 patch, traced to its GPU-facing base):**
+**`uvm_va_block_make_resident_copy()` chain (595.71.05, traced to its GPU-facing base):**
 
 ```
-uvm_va_block_make_resident_copy()          [patch:1752498]
-  CPU  unmap-mask bookkeeping, alloc unmap_processor_mask               [patch:1752498-~1752545]
+uvm_va_block_make_resident_copy()          [595.71.05:4740-4846]
+  CPU  unmap-mask bookkeeping, alloc unmap_processor_mask               [4740-4781]
   |
   +-- block_copy_resident_pages() -> ... -> block_copy_resident_pages_between()
-                                                                          [patch:1751656]
-        CPU   per-page copy-mask / contiguity computation                [patch:1751656-1751745]
+                                                                          [595.71.05:3907-4213]
+        CPU   per-page copy-mask / contiguity computation, incl. a v595-only
+              clean-page skip + dirty-state update (see 2b.3)            [3907-4213]
         ASYNC-SUBMIT
-          block_copy_begin_push()          [patch:1750972]  -- uvm_push_begin*, selects a
-                                            GPU channel, opens a push (CPU-side command
+          block_copy_begin_push()          [595.71.05:3267-3386]  -- uvm_push_begin*, selects
+                                            a GPU channel, opens a push (CPU-side command
                                             buffer construction, no wait)
-          block_copy_pages()               [patch:1751536]  -- issues CE copy methods into
-                                            the open push (CPU writes commands, no wait)
-          block_copy_end_push()            [patch:1751484]
-              uvm_push_end(push)           [patch:1751496]  -- **not** uvm_push_end_and_wait;
+          block_copy_pages()               [595.71.05:3787-3830]  -- issues CE copy methods
+                                            into the open push (CPU writes commands, no wait);
+                                            v595 adds CPU-page dirty-marking (see 2b.2)
+          block_copy_end_push()            [595.71.05:3737-3777]
+              uvm_push_end(push)           [595.71.05:3749]  -- **not** uvm_push_end_and_wait;
                                             submits the push to the channel and returns
-              uvm_tracker_add_push_safe(copy_tracker, push)  [patch:1751504]  -- records the
+              uvm_tracker_add_push_safe(copy_tracker, push)  [595.71.05:3754]  -- records the
                                             push in a tracker for later/async waiting,
                                             does not block here
 ```
 
+## 2b. Diffs found against the v580.95.05 trace (all four, in full)
+
+Every function in the chain above was diffed line-for-line against its v580.95.05
+counterpart (extracted from `driver/patches/specasync_uvm_v580.95.05.patch`, which embeds
+the full v580.95.05 source as its initial content). `uvm_va_block_service_locked` and
+`uvm_va_block_service_copy` -- the two functions carrying the SYNC-WAIT/ASYNC-SUBMIT
+classification itself -- are **byte-identical** between the two trees. Four small diffs
+were found elsewhere in the chain; all four are reported here per the task's "however
+small" instruction, and none changes the classification:
+
+1. **`block_copy_begin_push`** -- v580 has six extra comment lines explaining the
+   page-clean criteria (`// A page is clean iff...`). Comment-only; no code difference.
+2. **`block_copy_pages`** -- v580 additionally calls `block_cpu_page_is_dirty()` /
+   `block_mark_cpu_page_dirty()` after the `kunmap()` pair (which is also renamed,
+   `src_page`/`dst_page` in 595 vs `src_addr`/`dst_addr` in v580). CPU-side dirty-page
+   bookkeeping, inside the same CPU-writes-commands-no-wait step already classified as
+   ASYNC-SUBMIT preparation.
+3. **`block_copy_resident_pages_between`** -- v580 has an early-exit optimization
+   (`if (block_page_is_clean(...)) continue;`, skipping the copy entirely for clean pages)
+   and a paired `block_update_page_dirty_state()` call not present in the 595 tree at this
+   location. Same category: CPU-side per-page bookkeeping, not a change to the
+   sync/async structure of the copy itself.
+4. **`uvm_va_block_service_finish`** -- v580's root-chunk-discard branch has an extra
+   guard, `uvm_parent_gpu_supports_eviction(gpu->parent)`, absent in 595. This function
+   was never traced further in Section 1 (flagged there as "not traced further -- CPU-side
+   PTE/mapping bookkeeping"), so this diff doesn't touch anything Section 2's
+   classification depends on.
+
+All four diffs are dirty-page-tracking / eviction-guard refinements confined to CPU-side
+bookkeeping. None touches whether GPU work is submitted synchronously or asynchronously.
+Note the diffs run in the counter-intuitive direction -- the v580.95.05 patch contains
+code absent from this 595.71.05 tree at these exact spots, rather than the reverse -- which
+is worth recording honestly rather than smoothing over, but doesn't bear on the
+manuscript claim either way since neither direction touches the SYNC-WAIT/ASYNC-SUBMIT
+classification.
+
 ## 3. The one conditional synchronous wait, and why it doesn't apply here
 
 The **only** `uvm_tracker_wait` found anywhere in the D5 call chain is in
-`uvm_va_block_service_copy()` (v580 patch line 1759640), and it is explicitly gated:
+`uvm_va_block_service_copy()` (595.71.05, line 11633), and it is explicitly gated:
 
 ```c
 if (service_context->operation == UVM_SERVICE_OPERATION_REPLAYABLE_FAULTS &&
@@ -181,6 +224,12 @@ time that async submission could have hidden in the first place.
 > hidden by asynchronous prefetching, regardless of when the underlying fault is
 > discovered.
 
-*(Citations into `uvm_va_block.c` supporting sections 2-4 above are against the
-v580.95.05 tree, per the provenance caveat in section 0 -- not independently verified
-against 595.71.05, since no 595 copy of that file exists on this machine.)*
+**Confirmed unchanged, T4 re-verification pass:** citations into `uvm_va_block.c`
+supporting sections 2-4 above are now against the real 595.71.05 tree
+(`/usr/src/nvidia-595.71.05/nvidia-uvm/uvm_va_block.c`), not the v580.95.05 inference.
+`uvm_va_block_service_locked` and `uvm_va_block_service_copy` -- the functions carrying
+the SYNC-WAIT/ASYNC-SUBMIT classification -- are byte-identical between the two driver
+versions. Four small diffs elsewhere in the call chain (Section 2b) are all CPU-side
+dirty-page-tracking / eviction-guard refinements that do not touch the classification.
+The manuscript sentence above required no revision; the provenance gap flagged in the
+original pass is closed.
