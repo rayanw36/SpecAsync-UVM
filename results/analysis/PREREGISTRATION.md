@@ -22,10 +22,33 @@ Within each benchmark's session, all four configs rotate every single run; no co
 ever run twice in a row and no config gets its own separate reload the way C0 and C3 did in
 the original Gate 3 protocol.
 
-The kernel module itself is loaded once per session, before the rotation starts, and never
-reloaded mid-session; `C0`-`C3` are runtime parameter switches (per `GATE3_report.md`'s own
-description of how C1/C2 were already switched), applied at the start of each run in the
-rotation.
+**Correction to an assumption this document made on first draft, caught during harness
+authoring (Task 1.3) before any run happened:** the original plan assumed all four configs
+could be reached by a live sysfs parameter write with the module loaded once per session
+(as `GATE3_report.md` describes C1/C2 being switched). Source inspection of
+`driver/src/specasync_debugfs.c` and the pristine `uvm_perf_prefetch.c` shows this is only
+true for `specasync_policy`, `specasync_offload_depth`, and `specasync_log_enabled`
+(`module_param(..., 0644)`, runtime-writable). `uvm_perf_prefetch_enable`
+(`uvm_perf_prefetch.c:59`, `S_IRUGO`) and `specasync_oracle_trace_path`
+(`specasync_debugfs.c:48`, `0444`) are **read-only after module load** -- both are read
+once into a static at module init and cannot be changed without a reload. C0 (prefetch ON)
+and C3 (oracle trace) are therefore structurally unreachable by a live parameter write.
+
+**Revised mechanism, same rotation order, same "never blocked" guarantee:** the module is
+reloaded before **every single run** in the rotation, with that run's full parameter set
+(`specasync_policy`, `specasync_offload_depth`, `uvm_perf_prefetch_enable`, and
+`specasync_oracle_trace_path` for C3) passed at `insmod` time. The rotation sequence
+`C0, C1, C2, C3, C0, C1, C2, C3, ...` is unchanged -- no two consecutive runs share a
+config, and no config is ever given its own separate block -- only the *mechanism* per
+step changes, from "sysfs write" to "reload," uniformly across all four configs (not just
+C0/C3), so no config is advantaged or disadvantaged by a different switching cost than
+its neighbors in the rotation. This is slower in wall-clock session time than the original
+plan (a reload + settle delay before every run, not just before C0/C3 blocks) but does not
+compromise the interleaving guarantee the pre-registration exists to protect. Per-benchmark,
+the C3 oracle trace itself is still collected once, before the rotation starts (an oracle
+trace is a property of the benchmark's fault sequence, not of run order, so collecting it
+once and reusing the same trace file at every C3 reload within the session does not
+reintroduce blocking).
 
 ## 2. n per cell
 
