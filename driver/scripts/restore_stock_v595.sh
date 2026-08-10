@@ -2,7 +2,8 @@
 # Restore the stock nvidia-uvm module from backup
 set -euo pipefail
 
-BACKUP="$HOME/SpecAsync-UVM/driver/stock_backup/nvidia-uvm.ko.stock"
+REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+BACKUP="$REPO/driver/stock_backup/nvidia-uvm.ko.stock"
 STOCK_PATH="/lib/modules/$(uname -r)/updates/dkms/nvidia-uvm.ko"
 STOCK_SRCVER="85A79790636BBD99BA3E43B"
 
