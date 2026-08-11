@@ -211,6 +211,17 @@ static ssize_t clear_write(struct file *filp, const char __user *ubuf,
 	void *bbuf, *wbuf;
 
 	/*
+	 * Task A1 (AWS final work block): reset the global processed/enqueued/
+	 * drops atomics here too, so each harness rep's specasync_clear write
+	 * gives a clean per-run total straight from the counter -- no delta
+	 * arithmetic needed. g_specasync_queue_depth is deliberately NOT reset:
+	 * it tracks live outstanding work, not a per-run cumulative stat.
+	 */
+	atomic_set(&g_specasync_processed, 0);
+	atomic_set(&g_specasync_enqueued, 0);
+	atomic_set(&g_specasync_drops, 0);
+
+	/*
 	 * Reset head/tail under the lock so the ring appears empty immediately.
 	 * Then zero the backing buffers outside the lock — a 9 MB memset inside
 	 * a spinlock would block hardware IRQs for milliseconds.  New records
@@ -504,6 +515,18 @@ int specasync_debugfs_init(struct dentry *parent_dentry)
 		ret = -EIO;
 		goto err_files;
 	}
+
+	/*
+	 * Task A1: true kernel-side totals, immune to ring wraparound (unlike
+	 * counting specasync_log / specasync_worker_log records). Read as
+	 * plain decimal text, e.g. `cat specasync_processed`.
+	 */
+	debugfs_create_atomic_t("specasync_processed", 0444, specasync_dir,
+				&g_specasync_processed);
+	debugfs_create_atomic_t("specasync_enqueued", 0444, specasync_dir,
+				&g_specasync_enqueued);
+	debugfs_create_atomic_t("specasync_drops", 0444, specasync_dir,
+				&g_specasync_drops);
 
 	if (specasync_policy == 4)
 		specasync_load_oracle_trace();

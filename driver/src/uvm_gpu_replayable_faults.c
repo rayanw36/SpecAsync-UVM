@@ -59,6 +59,9 @@
 /* ---- Workqueue globals (extern-declared in specasync_internal.h) ---- */
 struct workqueue_struct *g_specasync_wq;
 atomic_t                 g_specasync_queue_depth = ATOMIC_INIT(0);
+atomic_t                 g_specasync_processed   = ATOMIC_INIT(0);
+atomic_t                 g_specasync_enqueued    = ATOMIC_INIT(0);
+atomic_t                 g_specasync_drops       = ATOMIC_INIT(0);
 
 #define SPECASYNC_MAX_QUEUE_DEPTH  1024  /* increased for per-fault enqueue (Gate 1) */
 
@@ -321,6 +324,7 @@ out:
 	wrec.completion_ts_ns = ktime_get_ns();
 	specasync_work_ring_push(&wrec);
 
+	atomic_inc(&g_specasync_processed);
 	atomic_dec(&g_specasync_queue_depth);
 	kfree(item);
 }
@@ -339,6 +343,7 @@ static void specasync_enqueue(uvm_va_space_t *va_space, u64 spec_addr,
 		return;
 	if (atomic_read(&g_specasync_queue_depth) >= SPECASYNC_MAX_QUEUE_DEPTH) {
 		sa_rec->spec_drops++;
+		atomic_inc(&g_specasync_drops);
 		return;
 	}
 
@@ -346,6 +351,7 @@ static void specasync_enqueue(uvm_va_space_t *va_space, u64 spec_addr,
 	item = kzalloc(sizeof(*item), GFP_ATOMIC);
 	if (!item) {
 		sa_rec->spec_drops++;
+		atomic_inc(&g_specasync_drops);
 		return;
 	}
 
@@ -362,6 +368,7 @@ static void specasync_enqueue(uvm_va_space_t *va_space, u64 spec_addr,
 	atomic_inc(&g_specasync_queue_depth);
 	queue_work(g_specasync_wq, &item->work);
 	sa_rec->spec_enqueues++;
+	atomic_inc(&g_specasync_enqueued);
 	sa_rec->enqueue_overhead_ns += (u32)(ktime_get_ns() - t0);
 }
 
