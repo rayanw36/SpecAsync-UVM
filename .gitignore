@@ -59,6 +59,7 @@ results/phaseB2/gate3_interleaved/telemetry/
 results/phaseB2/cufft_interleaved/telemetry/
 results/phaseC/paired_wallclock/decomp/
 results/gate3/telemetry/*.bin
+results/analysis/t_a2_bimodality/ASLR_*.bin
 
 # LaTeX build artifacts (paper/main.pdf is reproducible: pdflatex main.tex,
 # bibtex main, pdflatex main.tex x2)

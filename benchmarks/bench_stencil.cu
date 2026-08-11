@@ -87,6 +87,11 @@ int main(int argc, char **argv)
     float *grid0, *grid1;
     CUDA_CHECK(cudaMallocManaged(&grid0, elems * sizeof(float)));
     CUDA_CHECK(cudaMallocManaged(&grid1, elems * sizeof(float)));
+    /* Task A2 (AWS final work block): allocation base address, for H1
+     * (page-alignment vs bimodal cluster) correlation. Printed to stderr so
+     * it never interferes with [RESULT]-line stdout parsers. */
+    fprintf(stderr, "[SPECASYNC_ALLOC] grid0=%p grid1=%p size=%lld\n",
+            (void *)grid0, (void *)grid1, elems * (long long)sizeof(float));
 
     /* Initialise on host — drives UVM page faults on first GPU access */
     for (long long i = 0; i < elems; i++) {
