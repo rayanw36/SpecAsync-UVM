@@ -57,9 +57,11 @@ run_c1_block() {
     local bench="$1" bin="$2" args="$3"
     harness_log "=== C1: policy=0 depth=0 prefetch=0, $bench ==="
     reload_module "$KO" 0 0 0
+    clear_ring
     for run in $(seq 1 $RUNS); do
         time_run "$CSV" "$bin" "$args" C1 "$bench" "$args" "$run"
         dump_after_run C1 "$bench"
+        clear_ring
     done
 }
 
@@ -67,9 +69,11 @@ run_c2_block() {
     local bench="$1" bin="$2" args="$3"
     harness_log "=== C2 (optional): policy=2 depth=1 prefetch=0, $bench ==="
     reload_module "$KO" 2 1 0
+    clear_ring
     for run in $(seq 1 $RUNS); do
         time_run "$CSV" "$bin" "$args" C2 "$bench" "$args" "$run"
         dump_after_run C2 "$bench"
+        clear_ring
     done
 }
 
@@ -90,9 +94,11 @@ run_c3_block() {
         sudo cat "$DBGFS/specasync_fault_trace" > "$trace_file" 2>/dev/null || true
     fi
     reload_module "$KO" 4 1 0 "$trace_file"
+    clear_ring
     for run in $(seq 1 $RUNS); do
         time_run "$CSV" "$bin" "$args" C3 "$bench" "$args" "$run"
         dump_after_run C3 "$bench"
+        clear_ring
     done
 }
 

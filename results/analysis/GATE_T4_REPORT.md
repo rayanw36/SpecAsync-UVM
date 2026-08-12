@@ -88,3 +88,57 @@ consumed." This is a stronger, more specific claim than the manuscript could mak
 this run, and one worth a sentence in the discussion section alongside the D5 CPU-cost
 finding (`D5_CHARACTERIZATION.md`) as a second, independent reason speculative prefetching
 doesn't pay off in this architecture.
+
+## Correction note (2026-08-12) — absolute counts in Section 1 are not 15 independent per-rep totals
+
+`GATE_A1_REPORT.md`'s "Open item" flags that `t4_prefetch_off_telemetry.sh`'s `run_c3_block`
+never called `specasync_clear` between its 15 reps, so the per-rep `specasync_log` ring dumps
+are not independent, and estimated the resulting inflation at "roughly an order of magnitude
+per rep." This note verifies that claim directly against the dump files and script, and
+replaces the estimate with an exact figure.
+
+**Root cause, confirmed by inspecting `results/gate3/telemetry/*.bin` with
+`benchmarks/tools/specasync_parse.py`:** `specasync_log` is a fixed-capacity ring
+(131,071 batch records / 9,437,112 bytes at 72 B/record) that, once full, was never cleared
+between reps (`run_c1_block`, `run_c2_block`, and `run_c3_block` all lacked a `clear_ring`
+call in the per-rep loop). Once it saturates it stops reflecting new activity, not
+"wraps and overwrites" -- so every dump taken after saturation is a byte-for-byte-identical
+copy of whatever was in the ring at the moment it filled, not that rep's own data:
+
+- **Stencil-24K/C3**: ring reaches full capacity by run 17 of 15+2. `bench_stencil_C3_run17.bin`
+  through `run30.bin` (14 of the 15 kept-run dump files) are byte-identical
+  (131,071 batches / 3,447,110 enqueues / 684 hits each); only `run16.bin` (88,171 batches,
+  partial) differs. Summing the raw per-file parses as Section 1's table does:
+  `2,704,974 + 14 x 3,447,110 = 50,964,514` enqueued and `357 + 14 x 684 = 9,933` hits --
+  **exactly** the Section 1 figures. So Section 1's Stencil row is not 15 reps' worth of
+  telemetry; it is 1 partial rep plus **1 distinct ring-fill snapshot counted 14 times**.
+- **GraphBFS-23/C3**: same mechanism, ring reaches full capacity by run 50. `run50.bin` through
+  `run60.bin` (11 of 15 files) are byte-identical (131,071 batches / 1,532,207 enqueues /
+  3,510 hits each); `run46`-`run49` are distinct partial fills. Summing all 15 files
+  reproduces Section 1's figures exactly: enqueued sums to 20,505,109, hits to 51,569. So the
+  GraphBFS row is 4 distinct partial observations plus **1 snapshot counted 11 times**.
+- C1's 0/0/0 row is unaffected (`specasync_enqueue()` no-ops at `policy=0`, so the ring has
+  nothing to duplicate).
+
+**Does the hit-rate conclusion survive? Yes, confirmed, not just argued.** `hit_rate` is
+computed as `sum(spec_hits) / sum(spec_enqueues)` (`specasync_parse.py:166`) over the same
+per-record list for both terms -- every duplicated record contributes its `spec_hits` and
+`spec_enqueues` fields together, so the ratio is a hits/enqueues weighted average that is
+invariant to uniform re-counting of whole records. The 0.0002 (Stencil) and 0.0025 (GraphBFS)
+figures in Section 1 are valid weighted-average hit rates over the data actually captured.
+**What is not valid** is treating Section 1's absolute counts (70.6M demand faults, 50.96M
+enqueued, etc.) as sums over 15 independent reps -- they are dominated by one repeatedly
+re-read ring snapshot (14 of 15 files for Stencil, 11 of 15 for GraphBFS), so the effective
+independent sample size behind the hit-rate estimate is much smaller than "15 reps" implies:
+2 distinct observations for Stencil, 5 for GraphBFS, not 15. The **direction and order of
+magnitude** of the paper's conclusion (hit rate four orders of magnitude below the
+deterministic probe's ~99.6%) is not affected -- both distinct Stencil observations
+(357/2,704,974 = 0.00013 and 684/3,447,110 = 0.00020) and all five distinct GraphBFS
+observations independently show the same near-zero hit rate, so this is not a case of a
+single outlier ring snapshot driving the result.
+
+**Fix applied:** `clear_ring` (writes `specasync_clear` via debugfs) now runs after every rep
+in all three blocks (`t4_prefetch_off_telemetry.sh`, commit tagged with this note), so future
+runs of this script produce genuinely independent per-rep dumps. This session did not rerun
+T4 -- the figures in Section 1 above are unchanged and should be read with this note's caveat
+until a clean rerun replaces them.
