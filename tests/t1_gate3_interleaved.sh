@@ -23,11 +23,11 @@ source "$SCRIPT_DIR/lib_specasync_harness.sh"
 N_STENCIL="${1:-24000}"
 N_BFS="${2:-23}"
 
-KO="$REPO/driver/build/nvidia-uvm-specasync-t4.ko"
+: "${KO:=$REPO/driver/build/nvidia-uvm-specasync-t4.ko}"
 BENCH_STENCIL="$REPO/benchmarks/bench_stencil"
 BENCH_BFS="$REPO/benchmarks/graph_bfs/bench_graph_bfs"
 
-OUT="$REPO/results/phaseB2/gate3_interleaved"
+: "${OUT:=$REPO/results/phaseB2/gate3_interleaved}"
 CSV="$OUT/gate3_interleaved_times.csv"
 TELEM_DIR="$OUT/telemetry"
 
