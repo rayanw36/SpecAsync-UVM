@@ -182,3 +182,57 @@ future pass but outside this task's scope to chase further.
 clock-thermal-load state, and correlates strongly and continuously (rho=0.97) with
 speculative items processed. Verdict: H3, with cause-vs-symptom direction left open for
 discussion. Proceeding to Task A3.**
+
+## Addendum (2026-08-12) — provenance note update
+
+The Provenance note above states that no file named `BIMODALITY_TELEMETRY_MINING.md` exists in
+the repository. That was accurate at the time A2 ran. The document has since arrived via the
+merge from the desktop session (`git log` commit `81a0db9`, merged into `manuscript-prep` at
+`64dfc56`), and now lives at `results/analysis/BIMODALITY_TELEMETRY_MINING.md`. This addendum
+does not edit the note above — it stands as an accurate record of what was known when A2 ran —
+and instead cross-checks its now-available figures against this report's independently
+re-derived numbers.
+
+**Same underlying figures the provenance note flagged as uncited:** `BIMODALITY_TELEMETRY_MINING.md`
+Task 1.1 reports, from T1's original interleaved C3/Stencil-24K telemetry (8 high / 12 low
+split, no ASLR arm), `spec_enqueued` +29.69%, `spec_drops` -46.22%, and four timing-phase sums
+in the +17.42%–+38.42% range between high/low clusters — precisely the "~30%/~46%/18-38%"
+figures the task brief originally cited and this report's provenance note could not verify.
+Confirmed: those figures are real and are in the document, sourced from `results/phaseB2/gate3_interleaved/telemetry/`.
+
+**Agreement with A2's independent numbers:** A2's own `ASLR_OFF` cluster split (10 low / 10 high,
+this session's own `t_a2_bimodality.sh` run) gives a `processed` (== `enqueued`, per A1) delta of
+(2,682,000 − 1,919,000) / 1,919,000 ≈ **+39.7%** — same direction and comparable order of
+magnitude to the mining document's +29.69% `spec_enqueued` delta, not an exact match, which is
+expected: different sessions, different cluster boundaries (A2's 10/10 vs the mining document's
+8/12), and A2 additionally interleaves an ASLR arm the mining document's source data does not
+control for. No discrepancy in direction, mechanism, or order of magnitude.
+
+**Same H1/H2/H3 verdict, arrived at independently:** the mining document's "Preliminary
+hypothesis read" section calls H1 "disfavored, not dead" pending the allocation-base logging
+check it flags as not yet run, and calls H2 "plausible, not confirmed" pending GPU clock/thermal
+logging it also flags as not yet run. A2's Result 2 and Result 3 are exactly those two
+follow-up checks, run for the first time in this report: H1 is now **rejected outright**
+(`base % 2MB` has zero variance in both ASLR arms) and H2 is now **rejected** for the arm that
+shows the effect (no significant clock/thermal/power/load difference, GPU never leaves P0). Both
+outcomes are consistent with the mining document's framing — it correctly identified these as
+the decisive open checks and did not prejudge their outcome. A2's H3 verdict (accepted, with
+cause-vs-symptom direction left explicitly open) matches the mining document's own H3 read
+word-for-word: "the data is consistent with this, but cannot be distinguished from a queue-race
+symptom of H1/H2" and "[t]hese are observationally identical in this counter set. Nothing here
+adjudicates between them." No discrepancy.
+
+**One scope caveat, not a contradiction:** the mining document's residual H1/H2 concern is
+raised specifically in its **C1** discussion — "C1 has no speculative queue at all, yet its core
+batch-service loop... still varies enough to correlate with total wall time... points at
+something in the baseline UVM fault-servicing loop itself" — whereas A2's H2 rejection (Result 3)
+tested only **C3**. A2 did not re-test C1's clock/thermal state, so the mining document's C1
+observation is neither confirmed nor refuted by this report; it remains open. This is exactly the
+question Task 2 of this work block (`GATE_A2B_SETARCH_REGIME.md`) is designed to resolve — whether
+the ASLR-driven wall-time effect this report documents (Result 1) is present in C1 (general
+allocation/paging effect, matching the mining document's residual C1 concern) or specific to C3
+(speculation-pipeline effect, matching this report's H3 verdict).
+
+**Net: no numeric or interpretive discrepancy found.** The two documents were produced by
+independent sessions on different data slices and reach the same H1-rejected/H2-rejected(-for-C3)/
+H3-accepted-with-open-causality verdict, with comparable effect sizes on the metrics they share.
