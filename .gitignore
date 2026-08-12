@@ -109,3 +109,9 @@ manuscript_assets/source/*
 # Gate A1 raw worker/batch telemetry rings (EBS-only; GATE_A1_REPORT.md and
 # derived CSVs carry the numbers) -- archived to GitHub Release
 results/analysis/t_a1_worker/**/*.bin
+
+# Gate A2b setarch-regime raw telemetry rings + harness scratch state
+# (EBS-only; GATE_A2B_SETARCH_REGIME.md and setarch_regime.csv carry the
+# numbers that matter) -- large, reconstructible by rerunning the harness
+results/analysis/t_a2b_setarch_regime/*.bin
+results/analysis/t_a2b_setarch_regime/.last_*

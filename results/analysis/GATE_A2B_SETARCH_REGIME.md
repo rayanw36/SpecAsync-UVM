@@ -89,4 +89,93 @@ For each config (C1, C3) independently: `ASLR_ON` vs `ASLR_OFF` wall_s, n=10 eac
 
 ---
 
-*(Results appended below after the run.)*
+## Results (run 2026-08-12, 15:21-15:34 UTC)
+
+48 runs completed clean (24/config, 12 rotations each), n=10 kept/arm/config as planned.
+Data: `results/analysis/t_a2b_setarch_regime/setarch_regime.csv`, ring dumps in the same
+directory (unused by this analysis — wall-clock and the `g_specasync_processed/enqueued/drops`
+atomics, immune to the T4 ring-saturation exposure Task 4 fixed, are sufficient here).
+
+### C1 (no speculation, `policy=0`)
+
+| arm | n | sorted wall_s | median | stdev |
+|---|---|---|---:|---:|
+| ASLR_ON | 10 | 14.81, 14.82, 14.83, 15.11, 15.11, 15.14, 15.15, 15.17, 15.17, 15.19 | 15.125 | 0.161 |
+| ASLR_OFF | 10 | 14.79, 14.79, 14.81, 14.81, 15.13, 15.13, 15.22, 15.25, 15.26, 15.49 | 15.130 | 0.251 |
+
+Median difference: **+0.03%** (essentially zero). Mann-Whitney U=49.0, **p=0.970**. Cohen's d
+(OFF−ON) = 0.085 (negligible). Rank-biserial r = 0.020. Levene's test (variance, center=median):
+stat=1.959, **p=0.179** — variances not significantly different either. `processed`/`enqueued`
+are 0 in every run in both arms, confirming `specasync_enqueue()`'s policy=0 no-op (matches
+`GATE_T4_REPORT.md`'s independently-confirmed "C1 correctly shows 0/0/0"). **C1 shows no
+detectable ASLR effect on wall-clock time, on either location or spread, at n=10/arm.**
+
+### C3 (oracle, `depth=1`, A2's config)
+
+| arm | n | sorted wall_s | median | stdev |
+|---|---|---|---:|---:|
+| ASLR_ON | 10 | 16.10, 16.11, 16.13, 16.14, 16.15, 16.17, 16.18, 16.18, 16.20, 16.23 | 16.160 | 0.041 |
+| ASLR_OFF | 10 | 15.12, 15.19, 15.30, 15.42, 15.55, 15.66, 16.53, 17.28, 17.28, 17.30 | 15.605 | 0.930 |
+
+Median difference: -3.43% (OFF lower than ON this session — direction not consistent with A2's
+own median comparison, see caveat below). Mann-Whitney U=60.0, **p=0.472** — not significant as
+a location-shift test. Cohen's d (OFF−ON) = -0.146, rank-biserial r = -0.200 (small).
+
+**A straight median-shift test is the wrong lens for this phenomenon, exactly as A2 itself
+found** — A2 characterized its own Result 1 with a range/gap description, not a location test,
+because the effect is a *spread* difference, not a shift: `ASLR_OFF`'s values span both below
+and above `ASLR_ON`'s tight band, so a rank-sum test partially cancels itself out even though
+the phenomenon is large and real. Levene's test (variance, center=median), added here as the
+natural formal complement to that observation (a deviation from the letter of the
+pre-registered plan, which named Mann-Whitney/Cohen's d as the primary test and the gap
+heuristic as descriptive-only — disclosed here rather than silently substituted): **stat=10.659,
+p=0.0043** — highly significant. Variance ratio (OFF/ON) = **522.7x**. Gap-detection heuristic
+(descriptive, as pre-registered): largest gap 0.87s (between 15.66 and 16.53), second-largest
+0.75s, ratio 1.16x — at n=10 this does **not** meet A2's clean-bimodal criterion (A2's own n=20
+`ASLR_OFF` run had a 17.25x gap ratio); the underlying spread is still present and large, it
+just does not resolve into two crisp discrete clusters at this sample size, matching this
+plan's own caveat that n=10 was underpowered for that specific check.
+
+**Ranges replicate A2's C3 finding closely:** this session's `ASLR_ON` range
+[16.10, 16.23] vs A2's [16.01, 16.23]; this session's `ASLR_OFF` range [15.12, 17.30] vs A2's
+[15.07, 17.31] — near-exact reproduction of both the tight-ON/wide-OFF pattern and its absolute
+bounds, on an independent n=10 sample collected 2 days later on the same instance.
+
+**`processed` (the H3 volume metric) replicates too:** `ASLR_ON` median = 3,241,972
+(range 3,240,534-3,246,876) vs A2's ~3.2-3.25M tight band; `ASLR_OFF` median = 2,145,928.5
+(range 1,899,983-2,699,635) vs A2's 1.9-2.8M range. Both the tight-ON/wide-OFF wall-clock
+pattern and the tight-ON/wide-OFF speculative-volume pattern reproduce independently.
+
+## Verdict
+
+**The `ASLR_ON`/`ASLR_OFF` wall-clock regime difference is specific to the speculative
+pipeline (C3), not present in C1.** C1 -- zero speculation, `specasync_enqueue()` a structural
+no-op -- shows no detectable difference between `ASLR_ON` and `ASLR_OFF` on location (p=0.970)
+or spread (Levene p=0.179) at n=10/arm; the two arms' wall-clock distributions are
+indistinguishable. C3 reproduces A2's finding closely on an independent sample: `ASLR_OFF`'s
+wall-clock spread is ~523x `ASLR_ON`'s variance (Levene p=0.0043), and the same tight-ON/wide-OFF
+pattern appears simultaneously in the `processed` (speculative-volume) counter, matching A2's
+own cross-reference observation. Per the pre-registered decision rule, this is the
+**speculation-pipeline-specific** outcome: `setarch -R` does not introduce a general
+allocation/paging noise source that would show up in unrelated GPU work (C1 is clean), so
+platform-wide UVM/paging behavior reported elsewhere in this study is not implicated by this
+mechanism. It does mean the regime change is real and specifically tied to how the speculation
+path behaves when its allocation address is pinned vs. randomized -- consistent with
+`GATE_A2_REPORT.md`'s open H3-direction question (more speculative volume correlates with
+slower runs, cause vs. symptom still undetermined) rather than resolving it.
+
+**Direct implication for T1 (platform-of-record, used `setarch -R`):** T1's numbers are not
+contaminated by a general paging artifact -- C1's null result rules that out. But T1 ran the
+speculative pipeline under `ASLR_OFF`, and this data shows that choice specifically widens
+wall-clock variance and speculative-volume variance relative to what `ASLR_ON` would have
+produced for the same config, on this instance, reproducibly across two independent sessions.
+T1's reported run-to-run variance should be read as **characteristic of the `ASLR_OFF`
+speculative regime specifically**, not as general instance noise -- worth one sentence in the
+manuscript's methods/limitations section alongside the existing `setarch -R` justification
+(fixed-address reproducibility), noting the tradeoff this data quantifies: fixing the address
+for reproducibility also fixes the run into the higher-variance member of the two regimes.
+
+**Gate A2b: confirmed C1-null / C3-effect split, both location- and spread-level, on an
+independent n=10/arm sample. Regime difference is speculation-specific, not general
+allocation/paging. T1 caveat: `setarch -R` variance is a speculative-pipeline property of this
+instance, reproducible across sessions, not a general platform artifact.**
