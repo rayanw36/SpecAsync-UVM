@@ -57,7 +57,7 @@ dmesg_mark() {
         echo 0 > "$DMESG_MARK_FILE.count"
         return
     fi
-    dmesg | wc -l > "$DMESG_MARK_FILE.count"
+    sudo -n dmesg | wc -l > "$DMESG_MARK_FILE.count"
 }
 
 dmesg_delta_count() {
@@ -67,7 +67,7 @@ dmesg_delta_count() {
     fi
     local before after
     before=$(cat "$DMESG_MARK_FILE.count" 2>/dev/null || echo 0)
-    after=$(dmesg | wc -l)
+    after=$(sudo -n dmesg | wc -l)
     echo $(( after - before ))
 }
 
@@ -79,7 +79,7 @@ dmesg_delta_text() {
     local n
     n=$(dmesg_delta_count)
     if [ "$n" -gt 0 ]; then
-        dmesg | tail -n "$n"
+        sudo -n dmesg | tail -n "$n"
     fi
 }
 

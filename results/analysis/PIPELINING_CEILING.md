@@ -1,6 +1,8 @@
 # End-to-end pipelining ceiling (Task B4)
 
-**This is the highest-value task in Part 1**, per the brief. Result up front: the end-to-end ceiling is reliably computable for exactly **one** of the seven Phase C workloads (Stencil-24K), and even that one carries a provenance caveat. For the other six, no same-session wall-clock pairing exists on disk -- reported as not computable, per the task's own instruction, rather than paired with a mismatched proxy.
+**Superseded, kept for provenance -- see `STENCIL_LABEL_COLLISION.md` and `GATE_T3_REPORT.md` for the current recommendation.** The "provenance caveat" this report could only flag has since been diagnosed: the 1645.6ms G3 figure used below is the **kernel-loop-time** convention (`run_robust.py`'s internal timer), not the **process-wall-clock** convention (`lib_specasync_harness.sh`) used by every C0-C3 table in this project, including `gate3_times.csv`. The two are not comparable, which is exactly why they disagreed by ~2.5x below. The manuscript should use Task T3's Sweep-24K point (15.31%, process-wall-clock basis, same N=24000 workload) in place of the 7.86% figure computed in section 4 here.
+
+**This is the highest-value task in Part 1**, per the brief. Result up front: the end-to-end ceiling is reliably computable for exactly **one** of the seven Phase C workloads (Stencil-24K, kernel-loop time), and even that one carries a provenance caveat. For the other six, no same-session wall-clock pairing exists on disk -- reported as not computable, per the task's own instruction, rather than paired with a mismatched proxy.
 
 ## 1. Dispatch-window totals (sum of total_ns across all batches)
 

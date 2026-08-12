@@ -66,7 +66,7 @@ known when is legible.
 
 | Needed | Status |
 |---|---|
-| Figure 1 (`policy_matrix`) | **Exists** -- `results/figures/policy_matrix.pdf` |
+| Figure 1 (`policy_matrix`) | **Exists**, plus a regenerated version -- `results/figures/policy_matrix.pdf` (original) and `results/figures/policy_matrix_v2.pdf` (picks up `exclusion_manifest.csv`'s cuFFT/67108864/p2/hit_rate exclusion added after the original was generated; the only cell that changes) |
 | Figure 2 (`decisive_c0c3`) | **Exists**, plus a second, cleaner version -- `results/figures/decisive_c0c3.pdf` (original, blocked protocol) and `results/figures/decisive_c0c3_interleaved.pdf` (T1, strictly interleaved, the figure that should carry the headline claim going forward) |
 | Table I (Gate 3 summary numbers) | **Exists as data**, not yet transcribed into the LaTeX table body -- source `results/analysis/STATISTIC_OF_RECORD.md` for the original data, `results/analysis/GATE_T1_REPORT.md` for the interleaved rerun (the version that should be transcribed) |
 | Statistical validation of "C3 statistically indistinguishable from C1" | **Exists, and is NOT a blanket-supportable claim -- confirmed again, in more detail, by the interleaved rerun** -- `results/analysis/STATISTICS.md` (original), `results/analysis/GATE_T1_REPORT.md` (T1, authoritative) |
@@ -113,7 +113,7 @@ discussion-section sentence, not a warm-up artifact.
 | Needed | Status |
 |---|---|
 | Figure 3 (`the_squeeze`) | **Exists**, plus an updated version filling the gap below -- `results/figures/the_squeeze.pdf` (original) and `results/figures/the_squeeze_v2.pdf` (T4, adds the previously-missing prefetch-OFF real-benchmark inset) |
-| Prefetch-OFF real-benchmark hit-rate data | **Exists -- Task 2a resolved as Task T4** (`results/analysis/GATE_T4_REPORT.md`). Real workloads under prefetch-OFF, oracle policy: 0.02-0.25% hit rate, four orders of magnitude below the deterministic probe's 99.6%. Root cause identified: real fault rates (0.4-4.7M/s) outrun the async worker's scheduling latency -- a rate mismatch, not a prediction-accuracy failure (the oracle predicts perfectly by construction and still can't get credited). This is a sharper, more specific mechanism finding than "irregular access defeats prediction" |
+| Prefetch-OFF real-benchmark hit-rate data | **Exists -- Task 2a resolved as Task T4** (`results/analysis/GATE_T4_REPORT.md`). Real workloads under prefetch-OFF, oracle policy: 0.02-0.25% hit rate, four orders of magnitude below the deterministic probe's 99.6%. **Mechanism claim corrected, see `results/analysis/RATE_MISMATCH_VERIFICATION.md`**: the original "0.4-4.7M/s outrun the async worker" figure had a ~15x aggregation error; corrected rate ~0.3M/s (Stencil)/~0.03M/s (GraphBFS). The rate-mismatch mechanism survives narrowed to Stencil-24K only (order-of-magnitude, pending a contended-worker-latency measurement); it does not explain GraphBFS-23 under the corrected arithmetic. Use the corrected report, not this one, for the mechanism sentence |
 
 ### VI-D. Oversubscription
 
@@ -125,9 +125,9 @@ discussion-section sentence, not a warm-up artifact.
 
 | Needed | Status |
 |---|---|
-| Figure 5 (`fault_density_sweep`) | **Exists** -- `results/figures/fault_density_sweep.pdf` |
+| Figure 5 (`fault_density_sweep`) | **Exists**, plus a regenerated version against T3's fresh, larger capture -- `results/figures/fault_density_sweep.pdf` (original, PHASEC_REPORT.md single-run capture) and `results/figures/fault_density_sweep_v2.pdf` (T3's 5-trial capture, D1+D2 share corroborates the original within 0.5-1.9pp; absolute per-batch medians run 2-18% lower, normal run-to-run variance, same qualitative story) |
 | D4/D5 async-not-sync-wait mechanism | **Exists** -- `results/analysis/D5_CHARACTERIZATION.md` |
-| **End-to-end pipelining ceiling (new requirement, Task B4)** | **Now computable for 6 of 7 workloads -- Task 2c resolved as Task T3** (`results/analysis/GATE_T3_REPORT.md`). Stencil-8K, GraphBFS-23, Sweep-4K/8K/16K/24K now have same-session paired wall-clock: ceiling range 0.20% (GraphBFS-23, compute-bound) to 19.06% (Stencil-8K). **Caveat, not a new problem:** the pre-existing Stencil-24K figure (~7.9%, `PIPELINING_CEILING.md`) uses a wall-clock provenance that does not match this session's measurement of the same nominal workload under the same module config (1.6s vs 4.1s) -- confirmed as the same discrepancy Gate 2 (`GATE2_REPORT.md`) independently found and flagged, not resolved further. Report the six new numbers and the one pre-existing Stencil-24K number as two separately-sourced sets, per `GATE_T3_REPORT.md` \S4 and \S6, rather than blending into one seven-workload table without the footnote |
+| **End-to-end pipelining ceiling (new requirement, Task B4)** | **Now computable for 6 of 7 workloads -- Task 2c resolved as Task T3** (`results/analysis/GATE_T3_REPORT.md`). Stencil-8K, GraphBFS-23, Sweep-4K/8K/16K/24K now have same-session paired wall-clock: ceiling range 0.20% (GraphBFS-23, compute-bound) to 19.06% (Stencil-8K). **Root cause of the Stencil-24K provenance mismatch now identified, see item 5 below and `results/analysis/STENCIL_LABEL_COLLISION.md`**: Phase C's original G3 wall-clock used a benchmark-internal kernel-loop-only timer, not the process-wall-clock convention every other figure uses -- a labelling problem, not a workload problem. **Recommendation, updated:** use Task T3's Sweep-24K point (15.31%, process-wall-clock basis, same N=24000 workload) as the Stencil-24K figure in Section VI; retire or footnote the original ~7.9% figure as kernel-loop-time-based. New Figure 6 (`results/figures/pipelining_ceiling.pdf`) plots all six T3 points plus the legacy Stencil-24K point visually distinguished, per this recommendation |
 
 ### VI-C (commented, not drafted) -- Cross-Platform Confirmation
 
@@ -229,14 +229,73 @@ work block:
 3. **Paired wall-clock timing for 6 of 7 Phase C workloads** (VI-E, pipelining ceiling) -- ~~not currently an authorized task~~ **RESOLVED, Task T3** (authorized and run this work block). `results/analysis/GATE_T3_REPORT.md`.
 4. **`uvm_va_block.c` for the 595.71.05 tree** (III, Background) -- ~~not a T4 problem~~ **RESOLVED, Task 1.1.** The original assumption that T4 "would only have a running binary, not source" was wrong -- `/usr/src/nvidia-595.71.05/` on the T4 instance does carry driver source. `results/analysis/D5_CHARACTERIZATION.md`.
 
-**New items surfaced by this work block's own results, not yet resolved (candidates for a
-future pass, not blocking anything already drafted):**
+**Items 5-6, carried from the prior pass, now resolved or advanced by this session's
+(manuscript-consolidation) work block:**
 
-5. **Absolute wall-clock scale mismatch, Phase C vs. Gate 3 vs. this session** (VI-E) -- Gate 2 (`GATE2_REPORT.md`) and Gate T3 (`GATE_T3_REPORT.md` \S4) both independently found that Phase C's original Stencil-24K wall-clock pairing (~1.6s) does not reproduce under any module configuration tried on this instance (~4.1-4.3s under the closest analog, C0-equivalent). Not resolved; most likely explanation offered (Gate G3's overhead probe may not run the full `bench_stencil` binary) but not confirmed. Load-bearing only for whether the pre-existing Stencil-24K ceiling figure (~7.9%) can be presented on the same basis as the six new Task T3 numbers -- it currently cannot and should be flagged as such (Task T3 \S4/\S6).
-6. **C3/Stencil-24K bimodal mechanism, unexplained** (VII, Discussion) -- Task T1 confirmed the bimodal wall-time split is real and reproducible under strict interleaving, and ruled out position/warm-up/drift as the cause (Spearman rho=-0.011, p=0.965), but did not identify the underlying mechanism (candidate: two GPU/CPU scheduling or cache/TLB regimes). Worth a sentence acknowledging the open question in the discussion section; not load-bearing for any existing claim's correctness.
+5. **Absolute wall-clock scale mismatch, Phase C vs. Gate 3 vs. this session** (VI-E) --
+   **RESOLVED.** `results/analysis/STENCIL_LABEL_COLLISION.md` traces this to two genuinely
+   different timing conventions in the repo, confirmed by source: Gate 3/T1-T4 all wrap the
+   *entire process* (`lib_specasync_harness.sh`'s `/usr/bin/time`), while Phase B/B.1/B.2's
+   `run_robust.py` parses `bench_stencil.cu`'s own internal `[RESULT] Time:` line, which
+   brackets *only* the 20-iteration kernel loop (excludes allocation, host-side init, and
+   CUDA context/first-touch overhead for the 4.6GB working set) -- a ~2.5-2.6x gap of exactly
+   this magnitude. Phase C's original G3 script itself cannot be recovered to confirm it used
+   this exact convention (flagged as the residual uncertainty), but the benchmark source is
+   provably unchanged since before Phase C, and all config-based explanations were already
+   exhaustively ruled out (`GATE2_REPORT.md` \S5). Verdict: same workload, different measured
+   region -- a labelling problem, not a workload problem. **Consequence:** the pre-existing
+   Stencil-24K ceiling figure (~7.9%) should be retired/footnoted as kernel-loop-time-based;
+   Task T3's **Sweep-24K** point (15.31%, process-wall-clock basis, same N=24000 workload) is
+   the basis-consistent stand-in for Section VI, now visualized as such in the new F6 figure
+   (`results/figures/pipelining_ceiling.pdf`).
+6. **C3/Stencil-24K bimodal mechanism, unexplained** (VII, Discussion) -- **Advanced, not yet
+   fully resolved.** `results/analysis/BIMODALITY_TELEMETRY_MINING.md` (Part 1 telemetry
+   mining, no GPU) mined all 176 T1 ring-dump files: the high/low clusters do **not** differ
+   in fault count, batch count, or batch size (Holm-nonsignificant at m=12) -- disfavoring H1
+   (allocation-alignment changing fault granularity) as literally framed. They **do** differ
+   sharply in speculative-queue behavior (spec_enqueued/spec_drops/lock-timing, Holm-significant,
+   Cohen's d 2.5-4.0), and the same signature reproduces *continuously* (not discretely) in
+   C2/Stencil -- so the mechanism is not oracle-specific. H2 (platform/thermal) vs. H3 (genuine
+   software regime) remains undetermined: this data cannot distinguish "speculative work causes
+   the slowdown" from "an external cause slows the whole batch loop, which incidentally changes
+   queue-drain dynamics as a symptom." The decisive next check (allocation-base logging, Part 4
+   of that work block) needs GPU/platform bring-up, not yet run on this machine. Still worth a
+   discussion-section sentence; now a materially sharper one than "unexplained."
+
+**New items surfaced by the rate-mismatch verification (this session, Part 2 of the same
+work block):**
+
+7. **`GATE_T4_REPORT.md`'s rate-mismatch mechanism claim, corrected** (VI-C) --
+   `results/analysis/RATE_MISMATCH_VERIFICATION.md` found and corrected a ~15x aggregation
+   error in the original "0.4-4.7 million faults/second" figure (fault total summed across 15
+   reps divided by one rep's duration). Corrected rate is ~15x lower for both benchmarks. The
+   mechanism survives, narrowed to Stencil-24K only (order-of-magnitude, pending a
+   contended-worker-latency measurement this project doesn't have); it does not explain
+   GraphBFS-23's near-zero hit rate under the corrected arithmetic. See `CLAIM_SCOPE.md` claim
+   17 and `ARTIFACT_CATALOG.md`'s flagged decision point on whether this belongs in the
+   artifact catalog as a new category (analysis-arithmetic error) or in the methodology
+   section as an argument for independent verification passes -- deferred to the manuscript
+   author, not resolved here.
+
+**In flight (AWS, parallel to this session, not yet landed on disk):**
+
+8. **A1-A3** -- per this work block's brief, three tasks (worker telemetry, bimodality,
+   core-count control) are running on the T4 AWS instance in parallel with this session's
+   CPU-only manuscript-consolidation work. Not yet reflected anywhere in this ledger or in
+   `CLAIM_SCOPE.md`/`BIMODALITY_TELEMETRY_MINING.md` -- when they land, item 6 above (bimodal
+   mechanism) and T5 (core-count control, still the sole unrun GPU task as of the prior
+   session's `COMPLETENESS_LEDGER.md`) are the most likely places their results plug in.
+
+**Threats to validity: kernel point-release drift.** Phase B and the original (superseded)
+Gate 3 data were collected on `6.17.0-1017-aws`; T1-T4 (this project's authoritative
+interleaved/corrected data) were collected on `6.17.0-1019-aws` (`GATE2_REPORT.md` \S1). Same
+source-identical srcversion for the stock module across both point releases; the difference is
+minor and not expected to affect any qualitative finding, but is stated here for completeness
+rather than left implicit, per this project's standing disclosure practice for anything that
+changed between sessions.
 
 Items 1-4 all trace back to the same root cause the original ledger correctly identified:
 this project consistently declines to simulate, estimate, or infer missing data rather
-than collect it -- and the T4 GPU work block existed specifically to collect it. Items 5-6
+than collect it -- and the T4 GPU work block existed specifically to collect it. Items 5-7
 are the same discipline applied one level deeper: report what's now known, flag what
 still isn't, rather than paper over either.

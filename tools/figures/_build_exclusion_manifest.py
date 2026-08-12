@@ -124,6 +124,52 @@ for fname in ("decomp_24K_inpush.bin", "decomp_noinline_24K.bin",
         "all decomposition fields (d1-d7, svc, total, num_faults, num_va_spaces, num_blocks)",
         PHASEC_REASON, PHASEC_EV, "demonstrated")
 
+# T4 GPU work block, Task T2: cuFFT's legacy 25.47% hit rate does not reproduce under a
+# controlled interleaved rerun.
+CUFFT_EV = "results/analysis/GATE_T2_REPORT.md; results/figures/CUFFT_PROVENANCE.md"
+CUFFT_REASON = ("The 25.47% hit rate at this exact size/policy/depth=0/prefetch-ON "
+                 "combination does NOT reproduce under a controlled, interleaved rerun "
+                 "(Task T2, T4 GPU work block): aggregate hit rate over 15 clean reps at "
+                 "the identical configuration measures 4.07%, roughly a sixth of the legacy "
+                 "figure. No wall-clock effect either direction (2 of 3 sizes: identical "
+                 "p0-vs-p2 medians). The legacy 25.47% traces to Phase B's single, "
+                 "uncontrolled, non-interleaved pre-fix sweep and should not be carried "
+                 "forward as a T4/595.71.05 result.")
+add("results/phaseB/phaseB_telemetry.csv", "cuFFT", "67108864", "p2", "hit_rate",
+    CUFFT_REASON, CUFFT_EV, "demonstrated")
+
+# T4 GPU work block, Task T1: Gate 3's original protocol blocked C3-vs-C1/C0 (only
+# C2-vs-C1 was actually interleaved, OUTLIER_FORENSICS.md S1). T1's strict interleaved
+# rerun supersedes any significance verdict drawn from the blocked-protocol wall-time
+# rows for C3, in both directions (Stencil-24K flips to far MORE significant, not an
+# artifact of contamination; GraphBFS-23 stays null but with a much tighter MDE).
+GATE3_EV = "results/analysis/GATE_T1_REPORT.md; results/phaseB1/OUTLIER_FORENSICS.md"
+GATE3_STENCIL_REASON = ("Gate 3's original protocol blocked all reps of each config "
+                         "together rather than interleaving (OUTLIER_FORENSICS.md S1: only "
+                         "C2-vs-C1 was actually interleaved; C3-vs-C1 and C3-vs-C0 -- the "
+                         "abstract's headline pair -- were blocked, with no drift control). "
+                         "Under that blocked protocol, C3-vs-C1 for Stencil-24K was "
+                         "marginal/Holm-nonsignificant (p=0.036). Task T1's strict full "
+                         "interleaving (C0,C1,C2,C3 rotation, module reloaded before every "
+                         "run, pre-registered in PREREGISTRATION.md) reran this comparison "
+                         "clean: p=9.69e-07, Holm-significant, Cohen's d=1.749 -- far MORE "
+                         "decisive, not less, the opposite of what blocking-confound "
+                         "contamination would have predicted. The blocked-protocol wall-time "
+                         "rows are superseded for any statistical claim by T1's interleaved "
+                         "data (gate3_interleaved_times.csv); raw wall-clock values are not "
+                         "wrong, but any significance verdict drawn from them is.")
+GATE3_BFS_REASON = ("Same blocked-protocol confound as the Stencil-24K row above "
+                     "(OUTLIER_FORENSICS.md S1). Task T1's interleaved rerun reproduces the "
+                     "original null (C3 vs C1 statistically indistinguishable) but with a "
+                     "much tighter minimum detectable effect (0.16% vs the original 1.02%), "
+                     "so the original blocked-protocol GraphBFS-23 wall-time rows are "
+                     "superseded by T1's interleaved data as the authoritative source, even "
+                     "though the qualitative conclusion did not change.")
+add("results/phaseB2/gate3/gate3_times.csv", "Stencil", "24000", "C3", "wall_time",
+    GATE3_STENCIL_REASON, GATE3_EV, "demonstrated")
+add("results/phaseB2/gate3/gate3_times.csv", "GraphBFS", "23", "C3", "wall_time",
+    GATE3_BFS_REASON, GATE3_EV, "demonstrated")
+
 FIELDS = ["source_file", "benchmark", "size", "policy", "metric", "reason",
           "evidence_report", "exclusion_type"]
 

@@ -13,8 +13,8 @@
 set -euo pipefail
 
 REPO="$(cd "$(dirname "$0")/../.." && pwd)"
-SRC=/usr/src/nvidia-595.71.05
-WORK=/opt/dlami/nvme/work/nvidia-595.71.05-specasync
+: "${SRC:=/usr/src/nvidia-595.71.05}"
+: "${WORK:=/opt/dlami/nvme/work/nvidia-595.71.05-specasync}"
 UVM="$WORK/nvidia-uvm"
 
 echo "[reconstruct] rsync $SRC -> $WORK (--delete: make dest exactly pristine)"
