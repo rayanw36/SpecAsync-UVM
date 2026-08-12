@@ -23,7 +23,10 @@ except ImportError:
     HAVE_SCIPY = False
 
 REPO = Path(__file__).resolve().parent.parent
-CSV_PATH = REPO / "results/analysis/t_a2_bimodality/bimodality.csv"
+# Optional override so this same script can analyze a different platform's
+# CSV without touching the T4 default (host-portability, same pattern as
+# the KO/OUT shell-script overrides and t_a1_analyze.py's directory args).
+CSV_PATH = Path(sys.argv[1]) if len(sys.argv) > 1 else REPO / "results/analysis/t_a2_bimodality/bimodality.csv"
 
 
 def load():
@@ -58,14 +61,36 @@ def mwu(a, b, label):
             f"Mann-Whitney p={p:.4g}")
 
 
+def spearman_report(arm_rows):
+    """Spearman wall_s-vs-processed and rep_in_cell-vs-wall_s, all kept reps
+    in this arm (not just the split clusters) -- the continuous-relationship
+    check GATE_A2_REPORT.md Result 4 ran (rho=0.97 wall_s-vs-processed on the
+    T4), added here since the committed script only had the cluster-based
+    Mann-Whitney tests."""
+    wall = [float(r["wall_s"]) for r in arm_rows]
+    proc = [int(r["processed"]) for r in arm_rows]
+    rep = [int(r["rep_in_cell"]) for r in arm_rows]
+    if not HAVE_SCIPY or len(arm_rows) < 3:
+        print("  (scipy unavailable or n<3 -- skipping Spearman)")
+        return {}
+    rho_wp, p_wp = spstats.spearmanr(wall, proc)
+    rho_rw, p_rw = spstats.spearmanr(rep, wall)
+    print(f"  wall_s vs processed   Spearman rho = {rho_wp:.4f}   p = {p_wp:.4g}")
+    print(f"  rep_in_cell vs wall_s Spearman rho = {rho_rw:.4f}   p = {p_rw:.4g}")
+    return dict(rho_wall_vs_processed=rho_wp, p_wall_vs_processed=p_wp,
+                rho_rep_vs_wall=rho_rw, p_rep_vs_wall=p_rw)
+
+
 def analyze_arm(arm, rows):
     arm_rows = [r for r in rows if r["arm"] == arm]
     wall = [float(r["wall_s"]) for r in arm_rows]
     split = find_split(wall)
     print(f"\n{'='*90}\nArm: {arm}  (n={len(arm_rows)})\n{'='*90}")
+    print("\n  -- Spearman correlations (all kept reps, not just split clusters) --")
+    spearman = spearman_report(arm_rows)
     if split is None:
         print("  not enough data")
-        return None
+        return dict(arm=arm, **spearman)
     threshold, low_idxs, high_idxs, gap, ratio = split
     print(f"  sorted wall_s: {sorted(round(w,3) for w in wall)}")
     print(f"  largest gap={gap:.3f}s at threshold={threshold:.3f}s "
@@ -78,7 +103,7 @@ def analyze_arm(arm, rows):
     high_rows = [arm_rows[i] for i in high_idxs]
 
     result = dict(arm=arm, is_bimodal=is_bimodal, threshold=threshold,
-                  n_low=len(low_idxs), n_high=len(high_idxs))
+                  n_low=len(low_idxs), n_high=len(high_idxs), **spearman)
 
     if not is_bimodal:
         return result

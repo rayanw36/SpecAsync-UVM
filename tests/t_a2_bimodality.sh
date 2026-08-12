@@ -22,11 +22,11 @@
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/lib_specasync_harness.sh"
 
-KO="$REPO/driver/build/nvidia-uvm-specasync-t4-a1.ko"
+: "${KO:=$REPO/driver/build/nvidia-uvm-specasync-t4-a1.ko}"
 BENCH_STENCIL="$REPO/benchmarks/bench_stencil"
 N_STENCIL=24000
 
-OUT="$REPO/results/analysis/t_a2_bimodality"
+: "${OUT:=$REPO/results/analysis/t_a2_bimodality}"
 CSV="$OUT/bimodality.csv"
 mkdir -p "$OUT"
 csv_init "$CSV" "phase,arm,alloc_grid0,alloc_grid1,base_mod_2mb,processed,enqueued,drops,gpu_sm_before,gpu_sm_after,gpu_mem_before,gpu_mem_after,gpu_temp_before,gpu_temp_after,gpu_power_before,gpu_power_after,gpu_pstate_before,gpu_pstate_after,throttle_before,throttle_after,persistence,loadavg_before,loadavg_after"
