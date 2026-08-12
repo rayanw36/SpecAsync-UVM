@@ -205,16 +205,42 @@ NVIDIA Unified Virtual Memory Driver}
   \end{tabularx}
 \end{table}
 
-% Cross-platform confirmation subsection -- commented out per the brief.
-% Uncomment and populate only if/when T4 gap-fill runs (2a/2b, currently
-% out of scope per this work block's charter) are completed and their
-% results land on disk under a corrected protocol.
-%
-% \subsection{Cross-Platform Confirmation (RTX 5070 Ti vs.\ Tesla T4)}
-% \label{sec:eval-cross-platform}
-% % TODO: draft. Requires: (2a) prefetch-off hit-rate rerun, (2b) cuFFT
-% % interleaved T4 rerun. See results/analysis/COMPLETENESS_LEDGER.md for
-% % what is blocked here and why.
+\subsection{Cross-Platform Confirmation (RTX 5070 Ti vs.\ Tesla T4)}
+\label{sec:eval-cross-platform}
+% TODO: draft narrative prose. Data table populated below from
+% results/analysis/GATE_B5_5070TI_REPLICATION.md (Task B, Part 3 work
+% block) -- T1's exact pre-registered interleaved protocol
+% (results/analysis/PREREGISTRATION.md), rerun unmodified on a second,
+% architecturally-different GPU (RTX 5070 Ti, Blackwell, driver 595.84)
+% against a freshly-collected oracle trace (not T4's). Two results
+% reproduce (Path-B-closed magnitude order, Stencil-24K C3-vs-C1
+% significance); two do NOT reproduce (GraphBFS-23's C3-vs-C1 null,
+% Stencil-24K's C3 bimodal pattern) -- see the source report for exact
+% numbers and the honest treatment of both divergences. Do not draft this
+% subsection's prose from a stale/partial reading of the table alone;
+% integrate the source report's per-comparison detail.
+
+\begin{table}[t]
+  \centering
+  \caption{\emph{TODO: draft caption.} T1's interleaved C0--C3 protocol
+    (n=20/cell, kept phase), Tesla T4 vs.\ RTX 5070 Ti. Absolute medians are
+    not cross-platform-comparable (see
+    results/analysis/GATE\_B5\_5070TI\_REPLICATION.md); the delta\% and
+    Holm-significance columns are the comparable quantities.}
+  \label{tab:cross-platform-t1}
+  \begin{tabularx}{\columnwidth}{l l X X X X}
+    \toprule
+    Comparison & Bench & T4 $\Delta\%$ & T4 Holm & 5070Ti $\Delta\%$ & 5070Ti Holm \\
+    \midrule
+    C3 vs C0 & Stencil-24K & +278.5\% & Yes & +302.3\% & Yes \\
+    C3 vs C0 & GraphBFS-23 & +7.34\% & Yes & +4.83\% & Yes \\
+    C3 vs C1 (primary) & Stencil-24K & +6.67\% & Yes & +3.60\% & Yes \\
+    C3 vs C1 (primary) & GraphBFS-23 & +0.02\% & \textbf{No} & $-$0.39\% & \textbf{Yes} \\
+    C2 vs C1 & Stencil-24K & +8.22\% & Yes & +3.71\% & Yes \\
+    C2 vs C1 & GraphBFS-23 & $-$0.24\% & Yes & $-$0.47\% & Yes \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
 
 % =============================================================================
 \section{Discussion}
