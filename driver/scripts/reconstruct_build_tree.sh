@@ -15,6 +15,14 @@ set -euo pipefail
 REPO="$(cd "$(dirname "$0")/../.." && pwd)"
 : "${SRC:=/usr/src/nvidia-595.71.05}"
 : "${WORK:=/opt/dlami/nvme/work/nvidia-595.71.05-specasync}"
+# nvidia-uvm alone can leave conftest/ missing symbol checks (e.g.
+# NV_IS_EXPORT_SYMBOL_GPL_set_memory_encrypted) that nv-linux.h references
+# unconditionally -- those checks are only registered by the core "nvidia"
+# module's Kbuild. Building the full module set regenerates conftest/
+# completely; only nvidia-uvm.ko needs to actually be loaded afterward.
+# Confirmed necessary on the 5070 Ti (595.84); default kept at "nvidia-uvm"
+# only since the T4 (595.71.05) build has not been observed to need this.
+: "${NV_KERNEL_MODULES:=nvidia-uvm}"
 UVM="$WORK/nvidia-uvm"
 
 echo "[reconstruct] rsync $SRC -> $WORK (--delete: make dest exactly pristine)"
@@ -34,13 +42,24 @@ cp "$REPO"/driver/src/specasync_internal.h       "$UVM/"   # overwrites patch's 
 echo "[reconstruct] drop stale objects for changed translation units"
 rm -f "$UVM"/uvm_gpu_replayable_faults.o "$UVM"/uvm_va_space.o "$UVM"/uvm.o \
       "$UVM"/specasync_debugfs.o "$WORK"/nvidia-uvm.ko "$WORK"/nvidia-uvm.o 2>/dev/null || true
+if [ "$NV_KERNEL_MODULES" != "nvidia-uvm" ]; then
+    echo "[reconstruct] NV_KERNEL_MODULES=$NV_KERNEL_MODULES (not just nvidia-uvm): full clean so conftest/ regenerates for all modules"
+    make -C "$WORK" clean >/dev/null 2>&1 || true
+fi
 
-echo "[reconstruct] build nvidia-uvm module"
+echo "[reconstruct] build $NV_KERNEL_MODULES module(s)"
 # Limit the build to nvidia-uvm but feed it the core nvidia module's exported
 # symbol versions (nvUvmInterface*) so modpost can resolve them without
-# rebuilding the (prebuilt) nvidia.ko.
-make -C "$WORK" NV_KERNEL_MODULES="nvidia-uvm" \
-     KBUILD_EXTRA_SYMBOLS="$WORK/Module.symvers" \
+# rebuilding the (prebuilt) nvidia.ko. Only meaningful (and only exists) when
+# nvidia-uvm is built alone against an already-built nvidia.ko's symvers; when
+# the full module set is built together in one invocation, Module.symvers is
+# produced internally by that same build and must not be pre-fed to itself.
+EXTRA_SYMS=()
+if [ "$NV_KERNEL_MODULES" = "nvidia-uvm" ] && [ -f "$WORK/Module.symvers" ]; then
+    EXTRA_SYMS=(KBUILD_EXTRA_SYMBOLS="$WORK/Module.symvers")
+fi
+make -C "$WORK" NV_KERNEL_MODULES="$NV_KERNEL_MODULES" \
+     "${EXTRA_SYMS[@]}" \
      modules -j"$(nproc)" 2>&1 | tail -25
 
 test -f "$WORK/nvidia-uvm.ko" || { echo "[reconstruct] BUILD FAILED: no .ko" >&2; exit 1; }
