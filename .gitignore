@@ -105,3 +105,7 @@ manuscript_assets/*
 !manuscript_assets/source/
 manuscript_assets/source/*
 !manuscript_assets/source/phaseC-decomp__SOURCE_EXCERPTS.md
+
+# Gate A1 raw worker/batch telemetry rings (EBS-only; GATE_A1_REPORT.md and
+# derived CSVs carry the numbers) -- archived to GitHub Release
+results/analysis/t_a1_worker/**/*.bin
