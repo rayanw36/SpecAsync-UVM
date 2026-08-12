@@ -4,9 +4,9 @@
 *.qdrep
 *.qdstrm
 
-# CUDA compiled binaries (ignore binary, track .cu sources)
-bench_*
-!bench_*.cu
+# CUDA compiled benchmark binaries under benchmarks/ (ignore binary, track .cu sources)
+benchmarks/**/bench_*
+!benchmarks/**/bench_*.cu
 *.o
 *.so
 *.a
@@ -60,6 +60,23 @@ results/phaseB2/cufft_interleaved/telemetry/
 results/phaseC/paired_wallclock/decomp/
 results/gate3/telemetry/*.bin
 
+# 5070 Ti replication raw per-run telemetry rings (B.2-B.5 work block; large,
+# reconstructible by rerunning the harness -- derived CSVs and
+# GATE_B5_5070TI_REPLICATION.md carry the numbers that matter, same
+# convention as the T1-T4 telemetry above)
+results/phaseB2/gate3_interleaved_5070ti/telemetry/
+
+# 5070 Ti session: ad-hoc/preliminary replay sanity-check outputs, superseded
+# by t1_gate3_interleaved.sh's own trace collection + telemetry/ above --
+# not produced by any committed harness script, not needed to reproduce the
+# committed C0-C3 result (see GATE_B5_5070TI_REPLICATION.md)
+results/phaseB2/gate3_interleaved_5070ti/c3_stencil_trace.bin
+results/phaseB2/gate3_interleaved_5070ti/c3_graphbfs_trace.bin
+results/phaseB2/gate3_interleaved_5070ti/stencil_replay1_batch.bin
+results/phaseB2/gate3_interleaved_5070ti/stencil_replay2_batch.bin
+results/phaseB2/gate3_interleaved_5070ti/bfs_replay1_batch.bin
+results/phaseB2/gate3_interleaved_5070ti/bfs_replay2_batch.bin
+
 # LaTeX build artifacts (paper/main.pdf is reproducible: pdflatex main.tex,
 # bibtex main, pdflatex main.tex x2)
 paper/*.aux
@@ -72,3 +89,18 @@ paper/*.toc
 paper/*.fls
 paper/*.fdb_latexmk
 paper/*.synctex.gz
+
+# manuscript_assets/ is a read-only discovery-pass bundle: 222 of its 224
+# files are byte-identical copies of files already tracked elsewhere in this
+# repo (verified by content hash against the current worktree and, for a
+# handful, against git history at their source branch) -- reconstructible,
+# not tracked here. The tarball is fully derived from the directory.
+# Two files are genuinely unique (curated/annotated content not derivable
+# from any single tracked source) and are tracked explicitly below despite
+# living under this ignored directory.
+manuscript_assets.tar.gz
+manuscript_assets/*
+!manuscript_assets/MANIFEST.md
+!manuscript_assets/source/
+manuscript_assets/source/*
+!manuscript_assets/source/phaseC-decomp__SOURCE_EXCERPTS.md
