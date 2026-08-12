@@ -97,12 +97,20 @@ def analyze_dir(tag, out_dir):
 
 
 def main():
-    analyze_dir("SHORT RUN (complete, non-wrapping)", REPO / "results/analysis/t_a1_worker/short_run")
-    analyze_dir("FULL RUN (windowed, tail of run)", REPO / "results/analysis/t_a1_worker/full_run")
+    # Optional override so this same script can analyze a different
+    # platform's run directories without touching the T4 defaults or data
+    # (host-portability, same pattern as the KO/OUT shell-script overrides).
+    short_dir = Path(sys.argv[1]) if len(sys.argv) > 1 else REPO / "results/analysis/t_a1_worker/short_run"
+    full_dir = Path(sys.argv[2]) if len(sys.argv) > 2 else REPO / "results/analysis/t_a1_worker/full_run"
+    probe_note = sys.argv[3] if len(sys.argv) > 3 else (
+        "Uncontended probe reference (GATE_A_report.md / Gate A this session): "
+        "~5.6us queue wait, ~0.35us exec")
+
+    analyze_dir("SHORT RUN (complete, non-wrapping)", short_dir)
+    analyze_dir("FULL RUN (windowed, tail of run)", full_dir)
 
     print(f"\n{'='*100}")
-    print("Uncontended probe reference (GATE_A_report.md / Gate A this session): "
-          "~5.6us queue wait, ~0.35us exec")
+    print(probe_note)
     print("Verdict: processed == enqueued EXACTLY in every single rep, both scales "
           "-- (b) backlog is ruled out. Every enqueued item eventually executes; "
           "the near-zero hit rate is explained entirely by (a) race loss (dispatch "

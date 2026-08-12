@@ -28,7 +28,7 @@ source "$SCRIPT_DIR/lib_specasync_harness.sh"
 N_REPS="${1:-5}"
 SHORT_RUN="${SHORT_RUN:-0}"
 
-KO="$REPO/driver/build/nvidia-uvm-specasync-t4-a1.ko"
+: "${KO:=$REPO/driver/build/nvidia-uvm-specasync-t4-a1.ko}"
 BENCH_STENCIL="$REPO/benchmarks/bench_stencil"
 BENCH_BFS="$REPO/benchmarks/graph_bfs/bench_graph_bfs"
 
@@ -38,11 +38,11 @@ if [ "$SHORT_RUN" = "1" ]; then
     # COMPLETE run, not a window, for a same-mechanism cross-check.
     N_STENCIL=2000   # ~35K enqueues, calibrated
     N_BFS=18         # ~15K enqueues, calibrated
-    OUT="$REPO/results/analysis/t_a1_worker/short_run"
+    : "${OUT:=$REPO/results/analysis/t_a1_worker/short_run}"
 else
     N_STENCIL=24000
     N_BFS=23
-    OUT="$REPO/results/analysis/t_a1_worker/full_run"
+    : "${OUT:=$REPO/results/analysis/t_a1_worker/full_run}"
 fi
 
 CSV="$OUT/worker_completion.csv"
