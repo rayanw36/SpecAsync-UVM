@@ -11,8 +11,8 @@
 set -euo pipefail
 
 REPO="$(cd "$(dirname "$0")/.." && pwd)"
-RESULTS="$REPO/results/phaseC"
-MODULE="$REPO/driver/build/nvidia-uvm-specasync-phaseC.ko"
+: "${RESULTS:=$REPO/results/phaseC}"
+: "${MODULE:=$REPO/driver/build/nvidia-uvm-specasync-phaseC.ko}"
 DBGFS="/sys/kernel/debug/specasync"
 BENCH_STENCIL="$REPO/benchmarks/bench_stencil"
 BENCH_BFS="$REPO/benchmarks/graph_bfs/bench_graph_bfs"
@@ -27,19 +27,19 @@ log() { echo "[gatec1] $(date +%T) $*"; }
 load_module() {
     local extra="${1:-}"
     log "Loading phaseC module ($extra)"
-    sudo rmmod nvidia_uvm 2>/dev/null || true
-    sudo insmod "$MODULE" \
+    sudo -n rmmod nvidia_uvm 2>/dev/null || true
+    sudo -n insmod "$MODULE" \
         specasync_log_enabled=1 specasync_policy=0 \
         specasync_offload_depth=0 $extra
     sleep 0.5
-    sudo bash -c "echo 1 > $DBGFS/specasync_clear"
+    echo 1 | sudo -n tee $DBGFS/specasync_clear >/dev/null
 }
 
 # ── Snapshot helper ───────────────────────────────────────────────────────────
 snapshot() {
     local tag="$1"
     local bin="$RESULTS/decomp_${tag}.bin"
-    sudo cat "$DBGFS/specasync_decomp_log" > "$bin"
+    sudo -n cat "$DBGFS/specasync_decomp_log" > "$bin"
     local n=$(( $(wc -c < "$bin") / 112 ))
     log "  Snapshot $tag: $n records"
     python3 "$REPO/tests/gatec1_decomp_analysis.py" "$bin" "$tag" 2>&1 | tee "$RESULTS/decomp_${tag}.txt"
@@ -56,14 +56,14 @@ snapshot "stencil_8K"
 
 # ── 2. Stencil-24K (high fault pressure) ─────────────────────────────────────
 log "=== Run 2: stencil N=24000 ==="
-sudo bash -c "echo 1 > $DBGFS/specasync_clear"
+echo 1 | sudo -n tee $DBGFS/specasync_clear >/dev/null
 setarch -R "$BENCH_STENCIL" 24000
 snapshot "stencil_24K"
 
 # ── 3. GraphBFS-23 (irregular access) ────────────────────────────────────────
 if [ -x "$BENCH_BFS" ]; then
     log "=== Run 3: GraphBFS N=23 ==="
-    sudo bash -c "echo 1 > $DBGFS/specasync_clear"
+    echo 1 | sudo -n tee $DBGFS/specasync_clear >/dev/null
     setarch -R "$BENCH_BFS" 23
     snapshot "graphbfs_23"
 else
@@ -73,7 +73,7 @@ fi
 # ── 4. Fault-density sweep: stencil at N=4K, 8K, 16K, 24K ───────────────────
 log "=== Run 4: fault-density sweep ==="
 for N in 4000 8000 16000 24000; do
-    sudo bash -c "echo 1 > $DBGFS/specasync_clear"
+    echo 1 | sudo -n tee $DBGFS/specasync_clear >/dev/null
     setarch -R "$BENCH_STENCIL" $N
     snapshot "stencil_sweep_${N}"
 done
@@ -87,7 +87,8 @@ from pathlib import Path
 
 DECOMP_FMT  = '<12Q4I'
 DECOMP_SIZE = 112
-RESULTS     = Path('results/phaseC')
+import os
+RESULTS     = Path(os.environ.get('RESULTS', 'results/phaseC'))
 
 def load(path):
     raw = path.read_bytes()

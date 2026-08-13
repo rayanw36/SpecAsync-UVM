@@ -13,6 +13,7 @@ Record layout (112 bytes, struct '<12Q4I'):
   num_faults, num_va_spaces, num_blocks, _pad
 """
 
+import os
 import struct
 import sys
 import numpy as np
@@ -199,7 +200,8 @@ def main():
     print_breakdown(recs, label=label)
 
     # CSV output for further analysis
-    csv_path = Path('results/phaseC/decomp_' + label.replace(' ', '_') + '.csv')
+    results_dir = Path(os.environ.get('RESULTS', 'results/phaseC'))
+    csv_path = results_dir / ('decomp_' + label.replace(' ', '_') + '.csv')
     csv_path.parent.mkdir(parents=True, exist_ok=True)
     with open(csv_path, 'w') as f:
         f.write('batch_id,d1_ns,d2_ns,d3_ns,d4_ns,d5_ns,d6_ns,svc_ns,total_ns,'
