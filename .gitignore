@@ -123,3 +123,9 @@ results/analysis/t_a1_worker/**/*.bin
 # numbers that matter) -- large, reconstructible by rerunning the harness
 results/analysis/t_a2b_setarch_regime/*.bin
 results/analysis/t_a2b_setarch_regime/.last_*
+
+# Task 4 cuFFT rerun on 5070 Ti: raw per-run telemetry rings (large,
+# reconstructible by rerunning tests/t2_cufft_interleaved.sh -- the CSV and
+# the eventual GATE_B6_TASK4 report carry the numbers that matter, same
+# convention as cufft_interleaved/telemetry/ above)
+results/phaseB2/cufft_interleaved_5070ti/telemetry/

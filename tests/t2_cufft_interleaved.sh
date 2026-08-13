@@ -28,11 +28,11 @@ N_REPS="${1:-15}"
 WARMUP=2
 TOTAL_REPS=$((N_REPS + WARMUP))
 
-KO="$REPO/driver/build/nvidia-uvm-specasync-t4.ko"
+: "${KO:=$REPO/driver/build/nvidia-uvm-specasync-t4.ko}"
 BENCH_CUFFT="$REPO/benchmarks/bench_cufft"
 SIZES=(67108864 134217728 268435456)
 
-OUT="$REPO/results/phaseB2/cufft_interleaved"
+: "${OUT:=$REPO/results/phaseB2/cufft_interleaved}"
 CSV="$OUT/cufft_interleaved_times.csv"
 TELEM_DIR="$OUT/telemetry"
 mkdir -p "$OUT" "$TELEM_DIR"

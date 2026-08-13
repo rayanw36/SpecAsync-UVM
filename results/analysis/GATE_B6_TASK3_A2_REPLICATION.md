@@ -200,3 +200,79 @@ being no real secondary structure to explain, not with an unexplained-but-real e
 being missed. This is a genuinely different regime from the T4's, not the T4's phenomenon
 at reduced magnitude — reported as such rather than assimilated into "reproduces, smaller
 effect," the smoothing this task's standing policy explicitly disallows.
+
+## Addendum — three follow-up checks (requested after initial report)
+
+### A1. Relative-magnitude check: is the non-reproduction a resolution artifact?
+
+Computed directly from the T4's own raw data (`results/analysis/t_a2_bimodality/bimodality.csv`,
+20 kept ASLR_OFF reps), not assumed:
+
+```
+T4 ASLR_OFF sorted wall_s: [15.07, 15.11, 15.13, 15.21, 15.21, 15.21, 15.33, 15.45, 15.52,
+  15.64, 16.33, 16.84, 17.16, 17.20, 17.20, 17.22, 17.29, 17.29, 17.31, 17.31]
+median = 15.985 s   largest gap = 0.690 s (between 15.64 and 16.33)
+gap / median = 4.32%
+```
+
+(The `~4.4%` figure in the follow-up request was a fair ballpark; 4.32% is the exact value
+from the raw file, used below in place of the estimate.)
+
+Scaling that proportional gap to this platform's own ASLR_OFF median (4.49 s, this report's
+Result 3):
+
+```
+predicted-equivalent gap = 0.0432 x 4.49 s = 0.194 s
+observed TOTAL spread here, ASLR_OFF, all 20 kept reps = 0.08 s (4.45-4.53 s)
+0.194 / 0.08 = 2.42x
+```
+
+**A gap of T4's proportional size would be 2.42x larger than this platform's entire observed
+range, not just larger than one gap within it.** Even measured against `ASLR_ON`'s wider
+0.16 s total spread (the more generous comparison), the predicted-equivalent gap (0.194 s)
+still exceeds it, 1.21x. `/usr/bin/time -f "%e"`'s resolution (0.01 s) is 19x finer than the
+predicted 0.194 s gap — comfortably enough to resolve a gap of that size had one existed.
+**The non-reproduction is not a measurement-resolution ceiling effect: a T4-proportional
+bimodal split would have been clearly visible in this data, and it is absent.**
+
+### A2. Session-level instability: B5 vs. this report is same-platform, not cross-platform
+
+`GATE_B5_5070TI_REPLICATION.md` and this report ran the **identical** platform (this
+machine), identical config (Stencil-24K, C3), identical n=20 kept ASLR_OFF reps, and
+reached opposite run-order-drift conclusions: B5 rho=0.548 (p=0.0123, significant); this
+report rho=-0.062 (p=0.796, null). Reframing Result 5's (d) verdict: **this is not "B5's
+finding fails to reproduce on this platform" in the cross-platform sense used elsewhere in
+this report — it is one machine disagreeing with its own earlier session.** Neither
+session's drift figure should be read as a stable property of this platform; B5's rho=0.548
+must be treated as a single-session result, unreplicated by the next same-config session on
+the same hardware, not as established platform behavior. This is recorded here as a threat
+to validity for any future claim built on B5's drift figure specifically (the wall-time
+spread/bimodality findings in Results 1 and 3 above are not affected — those compare this
+report against the T4, a genuine cross-platform comparison, not against B5).
+
+### A3. Speculative-volume variance: consistency with (not proof of) the H3 mechanism
+
+`processed` range as a percentage of median, computed directly from each dataset's raw kept
+rows (not the cluster-median figures in Result 2, which describe only the ASLR_OFF
+low/high split):
+
+| dataset | n | min | max | median | range as % of median |
+|---|--:|--:|--:|--:|--:|
+| this platform, ASLR_OFF | 20 | 2,614,054 | 2,659,241 | 2,632,591 | **1.72%** |
+| this platform, ASLR_ON | 20 | 2,883,622 | 2,963,941 | 2,905,234 | **2.77%** |
+| T4, ASLR_OFF (`t_a2_bimodality/bimodality.csv`) | 20 | 1,853,690 | 2,914,085 | 2,226,272 | **47.63%** |
+
+This platform's `ASLR_OFF` speculative-volume variance is **~28x tighter** than the T4's
+(1.72% vs 47.63% of median). `GATE_A2_REPORT.md`'s H3 finding was that wall-clock variance
+and `processed`-volume variance move together on the T4 (rho=0.97, Result 4 above) — under
+that mechanism, a platform whose speculative-volume variance is this much smaller would be
+*predicted* to also show little-to-no wall-clock bimodality, which is exactly what Results 1
+and 2 above find. **This is consistency with the H3 mechanism, not proof of its causal
+direction** — `GATE_A2_REPORT.md` itself left open whether more processing causes slower
+runs or slower runs allow more processing, and this report's data cannot distinguish those
+two directions either (Result 4 already found no wall_s-vs-processed correlation here to
+even test the relationship on). What this addendum adds is narrower: a mechanism whose
+predicted precondition (large volume variance) is absent exactly where its predicted effect
+(wall-time bimodality) is also absent is better-corroborated than a bare non-reproduction
+with no such link — one data point toward H3 being the right general shape of explanation,
+not a demonstration that it is.
