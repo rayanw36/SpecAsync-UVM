@@ -62,6 +62,13 @@ results/phaseC/paired_wallclock/decomp/
 results/gate3/telemetry/*.bin
 results/analysis/t_a2_bimodality/ASLR_*.bin
 
+# Gate B6 Task 3: 5070 Ti A2 replication raw per-run telemetry rings + oracle
+# trace (large, reconstructible by rerunning the harness -- bimodality.csv and
+# GATE_B6_TASK3_A2_REPLICATION.md carry the numbers that matter, same
+# convention as the T4 t_a2_bimodality/ pattern above)
+results/analysis/t_a2_bimodality_5070ti/*.bin
+results/analysis/t_a2_bimodality_5070ti/.last_*
+
 # 5070 Ti replication raw per-run telemetry rings (B.2-B.5 work block; large,
 # reconstructible by rerunning the harness -- derived CSVs and
 # GATE_B5_5070TI_REPLICATION.md carry the numbers that matter, same
