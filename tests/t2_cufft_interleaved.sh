@@ -74,6 +74,26 @@ print(f"{rate:.5f},{enq},{hits}")
 PY
 }
 
+
+# Abort guard added for the post-reboot rerun, per HOST_MEMORY_LEAK_5070TI.md:
+# the ~230-250MB/reload-cycle host leak means a 204-run session can run the
+# host out of memory before completion. Checked after every run (both
+# primary and secondary configs) -- stopping cleanly at a run boundary is
+# better than pushing through under pressure, since the pressure itself is a
+# confound on the timing data.
+: "${ABORT_MIN_AVAIL_KB:=6291456}"  # 6 GiB
+check_memory_or_abort() {
+    if [ "$DRY_RUN" = "1" ]; then
+        return
+    fi
+    local avail
+    avail=$(awk '/^MemAvailable:/ {print $2}' /proc/meminfo)
+    if [ "$avail" -lt "$ABORT_MIN_AVAIL_KB" ]; then
+        harness_log "ABORT: MemAvailable=${avail}kB < ${ABORT_MIN_AVAIL_KB}kB threshold at run_order=$RUN_ORDER_IDX -- stopping per HOST_MEMORY_LEAK_5070TI.md abort condition (see leak_probe.csv / harness CSV mem_avail_after_kb column for the full trajectory)"
+        exit 1
+    fi
+}
+
 run_config() {
     local size="$1" cfg="$2" policy="$3" depth="$4" prefetch="$5" rep="$6" phase="$7"
     reload_module "$KO" "$policy" "$depth" "$prefetch"
@@ -90,6 +110,7 @@ run_config() {
     else
         sed -i "\$s/,PENDING\$/,0.0,0,0/" "$CSV"
     fi
+    check_memory_or_abort
 }
 
 build_cufft_sm75
