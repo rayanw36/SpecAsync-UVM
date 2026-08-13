@@ -126,8 +126,11 @@ low-to-moderate contention, but the mechanism does not disappear at high sustain
 rates even with 6x the physical cores.** This does not overturn Gate A1's race-loss
 explanation for the near-zero real-workload hit rate (full-run — the load regime the
 published benchmark sizes actually run at — still shows a ~430x blowup, comfortably enough
-to lose the race against demand-fault inter-arrival rates in the 0.03-0.3M faults/sec range
-this project's `RATE_MISMATCH_VERIFICATION.md` established). But it reframes *why*: the
+to lose the race against demand-fault inter-arrival rates in the ~0.008-0.19M faults/sec
+range this project established (corrected 2026-08-13, `GATE_T4_REPORT.md`/`GATE_A1_REPORT.md`
+-- supersedes the 0.03-0.3M figure originally cited here from
+`RATE_MISMATCH_VERIFICATION.md`, which was itself later found to carry a second,
+independent ring-saturation error). But it reframes *why*: the
 mechanism is not purely architectural/algorithmic (workqueue dispatch overhead independent of
 host resources) — it has a real, load-dependent CPU-contention component that this
 platform's extra cores partially, not fully, absorb. A true A3 (controlled core-count sweep
