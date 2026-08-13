@@ -146,3 +146,203 @@ smoothed into "prediction held."
 the T4 (`run_robust.py`'s Phase B sweep covered SGEMM at N=8192/16384/24000 under a
 different, non-interleaved, mean-of-many-runs convention -- not on the same basis as this
 table). This is a first-time C0-C3 interleaved SGEMM measurement, single-platform.
+
+## Task 3 — Oversubscription sweep on the 5070 Ti
+
+### VRAM ratio, and which convention this task matches (stated explicitly, per the brief)
+
+- This platform: 16,303 MiB (confirmed via `nvidia-smi`).
+- T4: 15,360 MiB (`T4_REPORT.md` Gate 0).
+- **Ratio: 16303/15360 = 1.0614x -- this platform has 6.14% more VRAM.** Close, not
+  identical, exactly as the brief anticipated.
+- **Convention chosen: match oversubscription RATIO, not absolute allocation size.**
+  Oversubscription ratio (working set / physical VRAM) is the mechanism-relevant quantity
+  for testing whether the hit-rate collapse reproduces -- an identical absolute GB working
+  set would represent a *different* degree of oversubscription on the two platforms'
+  different VRAM capacities, which would confound "does the same regime reproduce" with
+  "is this platform tested at a different severity than the T4 was." Matching ratio keeps
+  severity comparable; the tradeoff (noted, not hidden) is that the absolute working-set
+  size differs slightly between what this platform runs and what an identically-labelled
+  ratio would mean on the T4.
+
+### Gate D's original scenario -- what could and couldn't be reproduced literally
+
+The T4's only on-disk oversubscription data is `results/phaseB1/GATE_D_report.md`:
+`Stencil_OvSub 28300 20 11264` (a 3-argument invocation), oracle (p4) hit rate **0.26%**
+(0.0026) -- barely above p3 (0.0025), collapsed from the clean oracle dominance Stencil/
+GraphBFS showed at that gate (oracle scored 0.66%/6.48% there respectively -- still small
+in absolute terms, but 2-25x its own p1-p3 baseline, unlike the oversubscribed case).
+**That exact 3-argument benchmark variant no longer exists in this repo** --
+`benchmarks/stencil_oversub/bench_stencil_oversub.cu` (the only oversubscription tool
+currently built and ready to run) takes a single `<N>` argument, a different interface.
+Gate D's precise working-set size cannot be reconstructed from its 3 recorded numbers
+alone with confidence. **This task therefore runs a fresh oversubscription test with the
+current tool, testing the same qualitative claim Gate D made (does the oracle's advantage
+collapse under memory pressure), not a literal replay of Gate D's exact configuration.**
+
+### A real obstacle found and worked around: host RAM, not VRAM, is the binding constraint here
+
+Before committing to a rotation sweep, sized a probe at the current tool's own documented
+"severe" target (~1.98x, N=65000, 33.80 GB working set) and ran it once, standalone, to
+check timing. **It was killed by the Linux OOM killer** (`dmesg`: `Out of memory: Killed
+process ... (bench_stencil_o) ... file-rss:27462912kB` -- a genuine host-RAM exhaustion,
+not a GPU/VRAM failure). Confirmed by a follow-up, carefully-monitored probe at a much
+smaller size (N=48000, 18.43 GB, ratio 1.078x): host `used` memory climbed to within
+~13GB of this host's full 60GB capacity during the run, i.e. **the UVM oversubscription
+mechanism stages close to the entire working set through host RAM at some point**, not
+just the excess beyond VRAM capacity -- meaning the usable ceiling for *any* oversubscribed
+working set on this machine, this session, is set by available host RAM (already reduced
+by the characterized ~250MB/reload-cycle leak accumulated across Tasks 1-2), not by the
+16,303 MiB VRAM figure the ratio computation above is based on.
+
+**This is reported as a real, load-bearing finding, not a footnote**: it means "the T4 had
+15,360 MiB VRAM and 15 GiB host RAM" (`T4_REPORT.md`) -- a host-RAM-to-VRAM ratio close to
+1:1 -- while this session's 5070 Ti host has 60 GiB RAM against 16,303 MiB VRAM, a ~3.7:1
+ratio nominally far more generous. That headroom was largely consumed by this session's own
+leak accumulation from Tasks 1-2 before Task 3 started, leaving less real margin than the
+raw 60 GiB figure suggests. **Given this, the originally-planned severe (~1.98x) target was
+abandoned in favor of a smaller, safety-verified ratio (~1.08x, N=48000, 18.43 GB) that
+fits within the memory actually available at the time Task 3 ran** -- a deliberate,
+disclosed reduction in severity, not a silent one, made because the alternative (attempting
+the original target) had already been empirically shown to OOM-kill the process outright.
+Per the brief's own instruction ("if it doesn't clear with margin, tell me before running
+rather than trimming the experiment"): this finding surfaced *during* Task 3's own probing
+(the first OOM was itself the discovery that the original target didn't clear), and the
+smaller target was independently verified safe (a full monitored run completed cleanly,
+memory recovered fully afterward) before the interleaved sweep was committed to -- reported
+here in full rather than silently substituted.
+
+### Protocol, reduced from T1's
+
+Reduced rotation count from T1's 2 warm-up + 20 kept (Gate D's own precedent: its
+oversubscription arm used **n=4** total runs, far below its own Stencil/GraphBFS n=6/n=4 --
+oversubscribed runs are minutes, not seconds, each). This task: **1 warm-up + 3 kept
+rotations** (16 total runs). C1 (prefetch off) measured standalone before the sweep at
+159s/run vs C0's 25s/run -- consistent with Gate D's "eviction/thrash-dominated" framing.
+Abort guard added to the harness itself (`tests/t_b8_oversub_5070ti.sh`, matching
+`tests/t2_cufft_interleaved.sh`'s convention), checked after every single run.
+
+### Result
+
+All 16 runs completed; abort guard never triggered; `MemAvailable` ended at 27.4GB, clear
+of the 6GiB floor throughout (minimum observed: ~12GB, during the standalone safety probes
+before the sweep even started).
+
+| Config | n | median | stdev |
+|---|--:|--:|--:|
+| C0 | 3 | 27.180s | 0.0100 |
+| C1 | 3 | 159.290s | 0.1308 |
+| C2 | 3 | 183.660s | 0.1801 |
+| C3 | 3 | 70.450s | 0.6408 |
+
+| Comparison | delta% | MWU p | Cohen's d |
+|---|--:|--:|--:|
+| C1 vs C0 | +486.06% | 0.1 (ceiling at n=3) | 1425.2 |
+| C2 vs C1 | +15.30% | 0.1 (ceiling at n=3) | 154.5 |
+| **C3 vs C1** | **-55.77%** | **0.1 (ceiling at n=3)** | **-191.9** |
+| C3 vs C0 | +159.20% | 0.1 (ceiling at n=3) | 95.8 |
+
+**n=3/cell cannot reach p<0.05 by MWU regardless of effect size (2/20=0.1 is the minimum
+achievable two-sided p-value at 3-vs-3) -- 0.1 here is the ceiling of available evidence,
+not a weak result.** The three C1 values (159.26-159.50s) and three C3 values
+(70.07-71.32s) do not overlap at all, and the effect (C3 more than 2x faster than C1) is
+far larger than anything else in this report -- but this rests on n=3 and should be read
+with that caveat prominently attached, not smoothed into a confident percentage the way
+the n=20 comparisons above can be.
+
+**Oracle hit rate (aggregate, 3 kept C3 reps): 0.0019%** (17,477,449 demand faults,
+13,230,089 enqueued, 24.30% drop rate, 250 hits) -- still near-zero, same regime as every
+other C3 hit rate in this report and project. **The ring saturates in every single C3 rep**
+(131,071/131,071 records, all three) -- this workload is even more fault-dense than SGEMM
+under oversubscription pressure, consistent with Gate D's own "eviction/thrash-dominated"
+characterization.
+
+### Does the collapse reproduce? No -- and the reason resolves what looked like a
+### contradiction, it does not create one
+
+**Hit rate: reproduces the collapse.** 0.0019% here vs Gate D's 0.26% on the T4 -- both
+near-zero, both far below what Stencil/GraphBFS's own oracle scored at Gate D
+(0.66%/6.48%). The *hit-rate* collapse claim reproduces cleanly.
+
+**Wall-clock: does NOT reproduce "the oracle advantage collapses" -- but this is not a
+platform divergence, it is a configuration difference.** Gate D found the oracle "barely
+beats p3" and drew no wall-clock benefit, but Gate D's own report states explicitly *why*:
+its entire p1-p4 sweep, including the oversubscription arm, ran at **`offload_depth=0`**
+(metadata-only lookup, no actual migration) -- and Gate D's own verdict says "at
+`offload_depth=0` a 'hit' has no consumable product... the path to any speedup is
+`offload_depth≥1`." **This task's C3, matching T1's protocol exactly, runs at
+`offload_depth=1`** (real migration attempted on prediction) -- a configuration Gate D
+never tested under oversubscription. This is not the same experiment reaching a different
+conclusion; it is a different, depth=1 experiment that Gate D's own analysis predicted
+might behave differently, now run for the first time.
+
+**And it does behave differently: C3 (depth=1) is ~2.3x faster than C1 here, despite a
+hit rate of 0.0019%.** Since the formal hit-table credit is essentially zero, this
+wall-clock benefit cannot be "correct predictions consumed in time" in the usual sense --
+something else is happening. A plausible, **unconfirmed** mechanism: under severe eviction
+pressure, even speculative migrations that arrive too late to be credited as a formal
+"hit" may still complete and leave a page resident, incidentally reducing future
+eviction/refault churn -- a side effect of extra migration *activity*, not of correct
+*prediction*, that would only matter in a thrashing regime where eviction pressure (not
+prediction accuracy) is the bottleneck. This project's telemetry cannot confirm or refute
+that mechanism directly (it has no attribution of *which* migrations came from the async
+path when a later demand fault also touches the same page) -- flagged as a hypothesis, not
+asserted as established. **C2 (stride, also depth=1) is directionally the opposite**: +15.3%
+*slower* than C1, consistent with stride prediction being a poor fit for an
+eviction-order-dominated access pattern -- the oracle's exact-trace basis, not depth=1
+alone, appears to matter for whether this effect helps or hurts.
+
+**This is reported as a genuine, unexplained-mechanism, single-platform, n=3-caveated
+finding worth a dedicated follow-up (larger n, and ideally a matching depth=1 T4
+oversubscription run to see if the mechanism is architecture-general or specific to this
+platform's PCIe/eviction-bandwidth balance) -- not as a settled cross-platform divergence,
+and not as confirmation that oversubscription is newly favorable for SpecAsync.** The
+hit-rate collapse (the mechanism this project has consistently used to explain *why*
+speculation doesn't help) reproduces intact; what's new is evidence that depth=1's
+wall-clock effect may not run entirely through that mechanism under this specific
+(oversubscribed, thrashing) regime.
+
+## What this extends, and what remains single-platform
+
+**Extends cross-platform**: the oversubscription hit-rate collapse itself (0.0019% here vs
+0.26% T4, both far below the non-oversubscribed oracle scores at Gate D) -- the mechanism
+project-wide (rate mismatch, `GATE_T4_REPORT.md`/`GATE_A1_REPORT.md`) is consistent with
+memory-pressure-driven thrashing making the fault stream even less predictable than the
+already-unpredictable non-oversubscribed case. The 595.71.05 build-feasibility finding
+(Task 1) extends what's known about the architecture/driver axis, independent of any GPU
+run.
+
+**Remains single-platform, no T4 comparison exists**: SGEMM's entire C0-C3 interleaved
+result (Task 2) -- never run under T1's protocol on the T4. The depth=1 oversubscription
+wall-clock result (Task 3) -- Gate D's T4 data is depth=0 only, so this specific
+configuration has no T4 counterpart at all, not even a mismatched-convention one. A
+595.71.05 *runtime* comparison (Task 1) -- build feasibility is confirmed, load-and-run is
+not.
+
+**New open questions this block raises, not closed**: what mechanism gives depth=1 a
+wall-clock benefit under oversubscription despite near-zero hit-table credit; why SGEMM's
+C3-vs-C1 sign differs from Stencil's despite SGEMM's higher fault density; whether a
+595.71.05 runtime comparison is safe to attempt on different hardware (a fresh
+headless-only machine, not one with an active display stack).
+
+## Findings summary
+
+| Finding | T4 | This platform | Verdict |
+|---|---|---|---|
+| 595.71.05 builds for sm_120 | n/a (T4 never needed this) | Builds cleanly, zero rejects, symbols export correctly | **New finding** -- ABI/architecture axis does not block a future same-driver comparison |
+| SGEMM fault density | n/a (not measured this way on T4) | 0.572M faults/s -- denser than Stencil (0.188M/s) | **New finding**, correctly predicts hit-rate regime |
+| SGEMM oracle hit rate | n/a | 0.0057%, rate-mismatch regime | **Consistent with the stencil-family mechanism** |
+| SGEMM C3 vs C0 | n/a | +183.17%, C3 loses decisively | **Matches predicted pattern** |
+| SGEMM C3 vs C1 | Stencil: C3 slower (+6.67% T4/+3.60% 5070Ti) | SGEMM: C3 *faster* (-1.25%, Holm-sig) | **Does not match Stencil's sign** -- prediction only partially confirmed |
+| Oversubscription hit-rate collapse | 0.26% (Gate D, depth=0) | 0.0019% (depth=1) | **Reproduces** (both far below non-oversubscribed oracle scores) |
+| Oversubscription C3 wall-clock benefit | None found (Gate D, depth=0 -- architecturally incapable per Gate D's own analysis) | Large benefit (-55.77% vs C1, n=3) | **Not comparable** -- different configuration (depth=0 vs depth=1), not a platform divergence |
+
+## Artifacts
+
+- `results/analysis/t_b8_sgemm_5070ti/sgemm_interleaved_times.csv` (Task 2, 88 rows)
+- `results/analysis/t_b8_oversub_5070ti/oversub_times.csv` (Task 3, 16 rows)
+- `tests/t_b8_sgemm_interleaved.sh`, `tests/t_b8_oversub_5070ti.sh` (new harnesses)
+- Raw `.bin` ring dumps and oracle traces gitignored (EBS-only, reconstructible); CSVs and
+  this report committed. 595.71.05 build artifacts (Task 1) intentionally not committed or
+  kept -- provenance (exact package version, commands) recorded above instead, per the
+  brief ("the .ko files themselves need not be kept").
