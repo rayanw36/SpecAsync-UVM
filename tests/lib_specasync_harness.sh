@@ -83,6 +83,21 @@ dmesg_delta_text() {
     fi
 }
 
+# ---- per-run free-memory logging -----------------------------------------
+# Added after HOST_MEMORY_LEAK_5070TI.md characterized a ~230-250MB/reload-
+# cycle host memory leak (unaccounted pool, reproduces on the stock 595.84
+# driver -- not a SpecAsync defect, but a run-order-correlated confound for
+# every interleaved gate on this platform). Standing addition: every harness
+# that sources this library now logs MemAvailable before/after each run, for
+# free, the same way dmesg_delta already is.
+mem_available_kb() {
+    if [ "$DRY_RUN" = "1" ]; then
+        echo 0
+        return
+    fi
+    awk '/^MemAvailable:/ {print $2}' /proc/meminfo
+}
+
 # ---- module reload ------------------------------------------------------
 # reload_module <ko_path> <policy> <depth> <prefetch> [oracle_trace_path]
 #
@@ -130,7 +145,7 @@ live_switch_policy_depth() {
 csv_init() {
     local path="$1" extra="${2:-}"
     mkdir -p "$(dirname "$path")"
-    local header="run_order_idx,timestamp_iso8601,config,bench,size,rep_in_cell,wall_s,srcversion,dmesg_delta"
+    local header="run_order_idx,timestamp_iso8601,config,bench,size,rep_in_cell,wall_s,srcversion,dmesg_delta,mem_avail_before_kb,mem_avail_after_kb"
     if [ -n "$extra" ]; then
         header="$header,$extra"
     fi
@@ -142,23 +157,26 @@ csv_init() {
 time_run() {
     local csv="$1" bin="$2" args="$3" cfg="$4" bench="$5" size="$6" rep="$7" extra="${8:-}"
     RUN_ORDER_IDX=$((RUN_ORDER_IDX + 1))
-    local ts wall srcv ddelta
+    local ts wall srcv ddelta mem_before mem_after
     ts=$(date -u +%Y-%m-%dT%H:%M:%SZ)
     srcv=$(current_srcversion)
+    mem_before=$(mem_available_kb)
 
     if [ "$DRY_RUN" = "1" ]; then
         wall="0.000000"
         ddelta=0
+        mem_after=0
         harness_log "[dry-run] run_order=$RUN_ORDER_IDX cfg=$cfg bench=$bench size=$size rep=$rep bin=$bin args=$args"
     else
         dmesg_mark
         [ -x "$bin" ] || harness_die "benchmark binary not found or not executable: $bin"
         wall=$({ /usr/bin/time -f "%e" setarch -R "$bin" $args >/dev/null; } 2>&1 | tail -1)
         ddelta=$(dmesg_delta_count)
-        harness_log "run_order=$RUN_ORDER_IDX cfg=$cfg bench=$bench size=$size rep=$rep wall=${wall}s dmesg_delta=$ddelta"
+        mem_after=$(mem_available_kb)
+        harness_log "run_order=$RUN_ORDER_IDX cfg=$cfg bench=$bench size=$size rep=$rep wall=${wall}s dmesg_delta=$ddelta mem_avail=${mem_after}kB"
     fi
 
-    local row="$RUN_ORDER_IDX,$ts,$cfg,$bench,$size,$rep,$wall,$srcv,$ddelta"
+    local row="$RUN_ORDER_IDX,$ts,$cfg,$bench,$size,$rep,$wall,$srcv,$ddelta,$mem_before,$mem_after"
     if [ -n "$extra" ]; then
         row="$row,$extra"
     fi
