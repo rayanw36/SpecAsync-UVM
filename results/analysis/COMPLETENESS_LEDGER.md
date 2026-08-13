@@ -113,7 +113,7 @@ discussion-section sentence, not a warm-up artifact.
 | Needed | Status |
 |---|---|
 | Figure 3 (`the_squeeze`) | **Exists**, plus an updated version filling the gap below -- `results/figures/the_squeeze.pdf` (original) and `results/figures/the_squeeze_v2.pdf` (T4, adds the previously-missing prefetch-OFF real-benchmark inset) |
-| Prefetch-OFF real-benchmark hit-rate data | **Exists -- Task 2a resolved as Task T4** (`results/analysis/GATE_T4_REPORT.md`). Real workloads under prefetch-OFF, oracle policy: 0.02-0.25% hit rate, four orders of magnitude below the deterministic probe's 99.6%. **Mechanism claim corrected, see `results/analysis/RATE_MISMATCH_VERIFICATION.md`**: the original "0.4-4.7M/s outrun the async worker" figure had a ~15x aggregation error; corrected rate ~0.3M/s (Stencil)/~0.03M/s (GraphBFS). The rate-mismatch mechanism survives narrowed to Stencil-24K only (order-of-magnitude, pending a contended-worker-latency measurement); it does not explain GraphBFS-23 under the corrected arithmetic. Use the corrected report, not this one, for the mechanism sentence |
+| Prefetch-OFF real-benchmark hit-rate data | **Exists -- Task 2a resolved as Task T4** (`results/analysis/GATE_T4_REPORT.md`). Real workloads under prefetch-OFF, oracle policy: 0.02-0.25% hit rate, four orders of magnitude below the deterministic probe's 99.6%. **Mechanism claim corrected twice, see `results/analysis/GATE_T4_REPORT.md`'s and `results/analysis/GATE_A1_REPORT.md`'s updated sections (2026-08-13, supersedes `RATE_MISMATCH_VERIFICATION.md`'s own intermediate correction)**: the original "0.4-4.7M/s" figure had both a ~15x aggregation error AND (not caught until the later pass) a ring-saturation duplication in its numerator. Doubly-corrected rate: ~0.188M/s (Stencil-24K, n=1 clean rep), ~0.00765M/s (GraphBFS-23, n=4 clean reps). Combined with `GATE_A1_REPORT.md`'s directly-measured (not idealized-probe) contended dispatch latency, the rate-mismatch mechanism is now **established for both benchmarks** (dispatch ~1,774x/~81x the corrected inter-arrival gap) -- it is NOT narrowed to Stencil-24K only as the intermediate correction concluded. Use `GATE_T4_REPORT.md`/`GATE_A1_REPORT.md`'s current sections, not `RATE_MISMATCH_VERIFICATION.md`, for the mechanism sentence |
 
 ### VI-D. Oversubscription
 
@@ -265,17 +265,22 @@ work block:
 **New items surfaced by the rate-mismatch verification (this session, Part 2 of the same
 work block):**
 
-7. **`GATE_T4_REPORT.md`'s rate-mismatch mechanism claim, corrected** (VI-C) --
-   `results/analysis/RATE_MISMATCH_VERIFICATION.md` found and corrected a ~15x aggregation
+7. **`GATE_T4_REPORT.md`'s rate-mismatch mechanism claim, corrected twice** (VI-C) --
+   ~~`results/analysis/RATE_MISMATCH_VERIFICATION.md` found and corrected a ~15x aggregation
    error in the original "0.4-4.7 million faults/second" figure (fault total summed across 15
    reps divided by one rep's duration). Corrected rate is ~15x lower for both benchmarks. The
    mechanism survives, narrowed to Stencil-24K only (order-of-magnitude, pending a
    contended-worker-latency measurement this project doesn't have); it does not explain
-   GraphBFS-23's near-zero hit rate under the corrected arithmetic. See `CLAIM_SCOPE.md` claim
-   17 and `ARTIFACT_CATALOG.md`'s flagged decision point on whether this belongs in the
-   artifact catalog as a new category (analysis-arithmetic error) or in the methodology
-   section as an argument for independent verification passes -- deferred to the manuscript
-   author, not resolved here.
+   GraphBFS-23's near-zero hit rate under the corrected arithmetic.~~ **SUPERSEDED
+   (2026-08-13):** a second, independent error (ring saturation/duplication, not caught by
+   the first correction pass) meant even that "corrected" rate was still too high.
+   Doubly-corrected: ~0.188M/s (Stencil), ~0.00765M/s (GraphBFS, n=4 clean reps). The
+   contended-worker-latency measurement flagged as missing here now exists
+   (`GATE_A1_REPORT.md`, added the next day) -- the mechanism is **established for both
+   benchmarks**, not narrowed to Stencil-24K. See `GATE_T4_REPORT.md` Section 2 and
+   `GATE_A1_REPORT.md` Result 2 for the current figures. `ARTIFACT_CATALOG.md`'s catalog
+   entries 7-8 now formally record both the ring-saturation and the aggregation errors as
+   catalog entries (the "decision point" this ledger previously deferred is resolved).
 
 **In flight (AWS, parallel to this session, not yet landed on disk):**
 

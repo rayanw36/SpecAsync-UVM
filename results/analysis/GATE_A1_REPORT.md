@@ -107,11 +107,34 @@ uncontended 0.35 µs but two to three orders of magnitude smaller than the dispa
 component — **dispatch scheduling delay, not execution time, is where the race is lost.**
 
 This is the number `RATE_MISMATCH_VERIFICATION.md` Section 3 had to substitute the idealized
-probe for. Real demand-fault inter-arrival rates run 0.4-4.7M faults/sec (`GATE_T4_REPORT.md`)
-— sub-microsecond to low-microsecond gaps between demand faults. A worker item that takes
+probe for. ~~Real demand-fault inter-arrival rates run 0.4-4.7M faults/sec
+(`GATE_T4_REPORT.md`) — sub-microsecond to low-microsecond gaps between demand faults.~~
+
+> **CORRECTION (2026-08-13): the 0.4-4.7M faults/sec figure this cited is superseded --
+> doubly wrong, see `GATE_T4_REPORT.md`'s updated Section 2.** `specasync_log`'s ring
+> saturates (131,071-record fixed capacity, never cleared between reps in the pre-fix
+> harness) partway through the second rep for Stencil-24K and the fifth for GraphBFS-23, so
+> only the pre-saturation reps give a genuine per-rep fault count. Corrected, from those
+> clean reps: **Stencil-24K ~0.188M faults/sec (5.32µs gap, n=1 clean rep), GraphBFS-23
+> ~0.00765M faults/sec (130.7µs gap, n=4 clean reps, tightly consistent)** -- both far lower
+> than the superseded figure, and lower than `RATE_MISMATCH_VERIFICATION.md`'s own
+> intermediate "corrected" 0.296M/0.029M figures too (which inherited the same ring-
+> duplication problem in their numerator, not caught until this pass).
+>
+> **Against this task's own measured contended dispatch medians, the race-loss conclusion
+> is unchanged and, for GraphBFS-23, more decisive than the original framing implied**:
+> dispatch (9,438.1µs Stencil, 10,607.0µs GraphBFS) is **~1,774x** the corrected Stencil
+> inter-arrival gap and **~81x** the corrected GraphBFS gap. Both ratios say the worker
+> loses by orders of magnitude -- GraphBFS-23's ~81x is the number that resolves
+> `RATE_MISMATCH_VERIFICATION.md` Section 4's flagged tension (that report's own
+> still-inflated GraphBFS budget, compared against the *uncontended* probe latency, looked
+> like the worker might usually win; compared correctly against this task's *contended*
+> latency figure, it does not, decisively).
+
+A worker item that takes
 2.6-10.6 ms (median) just to be *dispatched* is racing against a demand stream arriving
-orders of magnitude faster; it essentially always loses, even though it always eventually
-runs.
+orders of magnitude faster (even under the much more conservative corrected rate above); it
+essentially always loses, even though it always eventually runs.
 
 ## Result 3 — verdict: (a) race loss, no (b) backlog, no meaningful mix
 
@@ -137,24 +160,37 @@ GraphBFS anomaly `GATE_T4_REPORT.md` could not: the earlier "worker should usual
 prediction was based on the *uncontended* probe's dispatch latency, not the *contended*
 figure this task measured for the first time.
 
-## Open item: magnitude discrepancy vs `GATE_T4_REPORT.md`'s per-run totals
+## Open item: magnitude discrepancy vs `GATE_T4_REPORT.md`'s per-run totals — RESOLVED (2026-08-13)
 
 This run's full-size `sum(enqueued)` over 5 reps (Stencil: 11.5M; GraphBFS: 1.9M) is well
 below `GATE_T4_REPORT.md`'s single-run figures (Stencil: 50.96M; GraphBFS: 20.51M) — roughly
-an order of magnitude per rep. Root-cause candidate, **not chased further here** (out of
-this task's scope, flagged per this project's standing policy against silently absorbing
-anomalies): `t4_prefetch_off_telemetry.sh`'s `run_c3_block` never calls `specasync_clear`
-between its 15 reps, so successive `dump_after_run` snapshots of `specasync_log` (the batch
-ring, same wraparound exposure as the worker ring this task fixed) are **cumulative**, not
-per-rep — later reps' dump files contain earlier reps' records too. If the batch ring did not
-wrap across those 15 reps, summing across all 15 dump files (rather than reading only the
-last one) would overcount by roughly the same records multiple times. This would inflate
-**absolute** counts but likely leaves the **hit_rate ratio** (hits/enqueued, both drawn from
-the same over-counted batch records) approximately valid, since both numerator and
-denominator scale together — so `GATE_T4_REPORT.md`'s headline 0.02-0.25% hit-rate
-conclusion is not directly undermined by this observation, but its absolute enqueue/fault
-counts should not be read as true per-run totals. This task's own counters (`g_specasync_*`,
-reset via `specasync_clear` before every rep) do not have this exposure.
+an order of magnitude per rep. ~~Root-cause candidate, **not chased further here**~~
+**Root cause confirmed** (`GATE_T4_REPORT.md`'s own later correction note, cross-checked and
+extended in this correction pass): `t4_prefetch_off_telemetry.sh`'s `run_c3_block` never
+called `specasync_clear` between its 15 reps, so successive `dump_after_run` snapshots of
+`specasync_log` (the batch ring, same wraparound exposure as the worker ring this task
+fixed) are **cumulative**, not per-rep. The ring's fixed 131,071-record capacity was in fact
+reached (Stencil: during rep 2 of 15; GraphBFS: during rep 5 of 15) — direct confirmation,
+not the "if the batch ring did not wrap" hedge below assumed. Once full, it stopped
+recording new activity rather than wrapping, so every dump taken after saturation is a
+byte-for-byte-identical copy of the same frozen snapshot, not that rep's own data. This
+inflates **absolute** counts, exactly as this open item predicted, and the **hit_rate ratio**
+does remain valid for the reason given below (numerator and denominator over-count
+together) — but the **fault-rate figure derived from those absolute counts**
+(`GATE_T4_REPORT.md` Section 2's "0.4-4.7 million faults/second") does not survive: it is
+now corrected using only the pre-saturation reps, see that report's updated Section 2 and
+this report's updated Result 2 above.
+
+This task's own counters (`g_specasync_*`, reset via `specasync_clear` before every rep) do
+not have this exposure -- confirmed unaffected by this issue.
+
+(Original hedge, retained for the record: "If the batch ring did not wrap across those 15
+reps, summing across all 15 dump files (rather than reading only the last one) would
+overcount by roughly the same records multiple times. This would inflate absolute counts but
+likely leaves the hit_rate ratio... approximately valid, since both numerator and denominator
+scale together — so `GATE_T4_REPORT.md`'s headline 0.02-0.25% hit-rate conclusion is not
+directly undermined by this observation, but its absolute enqueue/fault counts should not be
+read as true per-run totals.")
 
 **Gate A1: processed == enqueued in all 20 reps at two scales — (b) backlog is ruled out.
 Near-zero real-workload hit rate is fully explained by (a) dispatch-latency race loss

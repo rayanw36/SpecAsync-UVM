@@ -50,12 +50,58 @@ single-page touch, artificially slowing the demand-fault stream to roughly one f
 time so the async workqueue worker has time to complete its VA-block lookup and insert a
 hit-table entry *before* the next demand fault arrives. Real workloads do not do this:
 Stencil-24K and GraphBFS-23 generate **tens of millions of demand faults over 15-58 seconds
-of wall-clock time** -- a sustained rate of roughly 0.4-4.7 million faults/second. At that
+of wall-clock time** -- ~~a sustained rate of roughly 0.4-4.7 million faults/second~~.
+
+> **CORRECTION (2026-08-13, doubly superseded): the 0.4-4.7 million faults/second figure is
+> wrong twice over, both errors caught by later verification passes.** First,
+> `RATE_MISMATCH_VERIFICATION.md` found the original figure divided the fault total *summed
+> across all 15 repetitions* by *one repetition's* wall-clock duration (~15x too high).
+> Second, and not known at the time `RATE_MISMATCH_VERIFICATION.md` was written: this
+> section's own later correction note (below) established that `specasync_log`'s ring is a
+> fixed 131,071-record capacity that was never cleared between reps, so most of those 15
+> repetitions' fault totals are not independent measurements at all -- they are the same
+> saturated snapshot re-read repeatedly. `RATE_MISMATCH_VERIFICATION.md`'s own "corrected"
+> 0.296M/0.029M figures inherit this second problem (their numerator is still the
+> ring-duplicated total), so they are **also superseded**, not just this section's original
+> figure -- see that report's own updated banner.
+>
+> **Once the ring saturates, it stops recording — the true per-rep fault total is not
+> recoverable from saturated dumps, only a lower bound is.** The corrected figures below use
+> the one (Stencil) or four (GraphBFS) reps whose dumps were captured *before* saturation —
+> genuine, complete, non-duplicated single-rep counts, paired with that same rep's own
+> wall-clock time from `t4_prefetch_off_times.csv`:
+>
+> | Benchmark | Clean single-rep observation(s) | Rate | Inter-arrival gap |
+> |---|---|--:|--:|
+> | Stencil-24K | rep 1 only (88,171 batches, 3,237,375 faults, 17.22s) — ring saturates during rep 2, so only 1 clean rep exists; rep 2's partial delta (≥1,578,202 faults / 15.03s ⇒ ≥105,003 faults/s) is a genuine **lower bound**, consistent with (not exceeding) rep 1's rate | **187,943-188,001 faults/s (0.188 M/s)** | **5.32 µs** |
+> | GraphBFS-23 | reps 1-4, all clean (446,165 / 445,004 / 446,415 / 445,300 faults; 58.14 / 58.20 / 58.53 / 58.12s) — remarkably consistent, stdev 0.26% of the mean; ring saturates during rep 5 | **7,652 faults/s (0.00765 M/s)**, mean of 4 clean reps | **130.7 µs** |
+>
+> **Replacing "0.4-4.7 million faults/second" with: Stencil-24K ~0.188 million faults/second
+> (n=1 clean rep, cross-checked by a consistent lower bound from rep 2), GraphBFS-23 ~0.00765
+> million faults/second (n=4 clean reps, tightly consistent).** Both are stated as measured
+> rates from genuinely complete (pre-saturation) reps, not as bounds — the "lower bound"
+> framing applies to the *other* 14/15 (Stencil) or 11/15 (GraphBFS) reps in the original
+> dataset, which cannot be used at all for a rate calculation, clean or not.
+>
+> **Does the race-loss conclusion survive on these much more conservative numbers? Yes, more
+> decisively for GraphBFS-23 than before.** `GATE_A1_REPORT.md`'s directly measured (not
+> idealized-probe) contended dispatch-latency medians: Stencil-24K 9,438.1µs, GraphBFS-23
+> 10,607.0µs. Against the corrected inter-arrival gaps above: **Stencil-24K, dispatch is
+> ~1,774x the gap between demand faults; GraphBFS-23, dispatch is ~81x the gap.** Both
+> ratios say the worker loses the race by orders of magnitude — GraphBFS-23's ratio in
+> particular resolves the tension `RATE_MISMATCH_VERIFICATION.md` Section 4 flagged (its
+> own, still-inflated 35.03µs GraphBFS budget looked comparable to the *uncontended* probe's
+> 5.6µs latency, suggesting the worker might usually win; the properly corrected 130.7µs
+> budget against the *contended* 10,607µs figure shows the opposite, decisively). Full
+> derivation: `GATE_A1_REPORT.md` Result 2, updated in the same correction pass.
+
+At that
 rate, the workqueue-scheduled speculative worker (kernel scheduling latency: microseconds
-to tens of microseconds per dispatch) essentially never wins the race to insert its
-hit-table entry before the same address is independently demand-faulted by the relentless
-real access stream. This is a rate mismatch, not a prediction-accuracy failure -- the oracle
-policy predicts with perfect trace-based accuracy and still cannot get credited, because the
+to tens of microseconds per dispatch, and far higher under real contention -- see
+`GATE_A1_REPORT.md` Result 2) essentially never wins the race to insert its hit-table entry
+before the same address is independently demand-faulted by the relentless real access
+stream. This is a rate mismatch, not a prediction-accuracy failure -- the oracle policy
+predicts with perfect trace-based accuracy and still cannot get credited, because the
 predicted work item almost never finishes in time to matter.
 
 ## 3. Verdict on the alternative explanation

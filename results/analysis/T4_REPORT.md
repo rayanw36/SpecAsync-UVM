@@ -131,9 +131,12 @@ figures within ~0.5-1.9 percentage points despite being a fresh capture.
   the prefetcher off -- four orders of magnitude below the deterministic probe's 99.6%.
 - **Root cause identified, sharper than the task anticipated:** not a prediction-accuracy
   failure (the oracle predicts perfectly by construction) but a **rate mismatch** -- real
-  workloads sustain 0.4-4.7 million demand faults/second, far outrunning the async
+  workloads sustain ~~0.4-4.7 million~~ **(superseded twice over -- ring-saturation +
+  aggregation errors, see `GATE_T4_REPORT.md`'s updated Section 2; corrected: ~0.188M
+  Stencil-24K, ~0.00765M GraphBFS-23)** demand faults/second, far outrunning the async
   worker's scheduling latency, so a speculative hit-table entry is almost always too late
-  to be consumed. The deterministic probe's 99.6% only worked because it artificially
+  to be consumed -- confirmed, not weakened, by the correction: dispatch latency is still
+  ~1,774x (Stencil) / ~81x (GraphBFS) the corrected inter-arrival gap. The deterministic probe's 99.6% only worked because it artificially
   serialized one fault at a time.
 - Doesn't change the conclusion (C3 already showed no benefit over C1 in T1) but adds a
   concrete, quantified mechanism worth a discussion-section sentence.
