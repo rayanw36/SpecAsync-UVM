@@ -137,3 +137,11 @@ results/phaseB2/cufft_interleaved_5070ti/telemetry/
 # same convention as results/phaseC/*.bin above)
 results/phaseC/decomp_5070ti/*.bin
 results/phaseC/paired_wallclock_5070ti/decomp/*.bin
+
+# Gate B8: SGEMM + oversubscription raw telemetry rings (large, reconstructible
+# by rerunning tests/t_b8_sgemm_interleaved.sh / tests/t_b8_oversub_5070ti.sh --
+# the CSVs and GATE_B8_5070TI_REMAINING.md carry the numbers that matter)
+results/analysis/t_b8_sgemm_5070ti/telemetry/*.bin
+results/analysis/t_b8_sgemm_5070ti/*.bin
+results/analysis/t_b8_oversub_5070ti/telemetry/*.bin
+results/analysis/t_b8_oversub_5070ti/*.bin
