@@ -151,14 +151,41 @@ serviced by the demand path.
 
 `GATE_T4_REPORT.md` flagged GraphBFS as a case where the corrected rate-mismatch arithmetic
 predicted the worker should usually win the race, yet hit rate was still ~0.25%. This run
-finds **no qualitative difference** between the two benchmarks: both show the same
+finds ~~**no qualitative difference**~~ between the two benchmarks: both show the same
 order-of-magnitude dispatch-latency blowup (GraphBFS 2.6-10.6 ms median vs Stencil 3.2-9.4 ms
 median — the same regime, GraphBFS if anything slightly *lower* short-run and higher
-full-run than Stencil, not systematically faster). **Both are dominated by the same
-dispatch-latency race, not by a workload-specific mechanism** — this directly resolves the
+full-run than Stencil, not systematically faster). ~~**Both are dominated by the same
+dispatch-latency race, not by a workload-specific mechanism**~~ — this directly resolves the
 GraphBFS anomaly `GATE_T4_REPORT.md` could not: the earlier "worker should usually win"
 prediction was based on the *uncontended* probe's dispatch latency, not the *contended*
 figure this task measured for the first time.
+
+> **RE-EXAMINED (2026-08-13), against the fault-rate correction (`GATE_T4_REPORT.md` Section
+> 2, `GATE_A1_REPORT.md` Result 2 above): "no qualitative difference" is too strong and is
+> amended, not retracted.** The doubly-corrected inter-arrival gaps are far apart between the
+> two benchmarks -- Stencil-24K 5.32µs vs GraphBFS-23 130.7µs, a **24.6x** difference -- which
+> propagates into the race margin: dispatch is ~1,774x the gap for Stencil but only ~81x for
+> GraphBFS, a **~22x** difference in how decisively each workload's worker loses. That is a
+> real, substantial quantitative difference this report did not have when it was written
+> (the rates it cited were still ~15-780x too high on both benchmarks, which compressed the
+> apparent gap between them).
+>
+> **What survives unamended:** dispatch latency itself -- the actual quantity this task
+> measured -- is essentially unchanged by the rate correction (it never depended on the fault
+> rate) and remains genuinely close between benchmarks: 10,607.0µs (GraphBFS) vs 9,438.1µs
+> (Stencil), a ratio of **1.12x**, same order of magnitude, no qualitative difference there.
+> The ~22x margin difference is driven entirely by the fault-arrival-rate side (Stencil
+> generates faults ~24.6x denser than GraphBFS), not by anything different about how the two
+> workloads dispatch or execute worker items. **The mechanism claim survives**: both
+> benchmarks are dominated by the same contended-dispatch-latency race, not a workload-
+> specific dispatch or backlog difference, and neither shows the worker winning (81x is
+> still a decisive loss, not a close race). **What should be amended**: "no qualitative
+> difference" should read as "no difference in the dispatch mechanism itself, but a real
+> ~22x difference in how close the race is" -- GraphBFS's race, while still lost, is an
+> order of magnitude closer to competitive than Stencil's, entirely because GraphBFS faults
+> far more sparsely, and a manuscript sentence built on this result should carry that
+> nuance rather than stating the two workloads as interchangeable examples of the same
+> finding.
 
 ## Open item: magnitude discrepancy vs `GATE_T4_REPORT.md`'s per-run totals — RESOLVED (2026-08-13)
 

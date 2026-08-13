@@ -50,7 +50,25 @@ valid while corrupting the window/wall-clock ratio and everything downstream of 
 case, none of these were caught by the original analysis, or by peer review of the
 resulting report -- each required someone to come back with a specific, adversarial question
 ("does this number survive a sanity bound?", "what happens if I recompute this from a
-different angle?") rather than trusting a plausible-looking result. This is the concrete
+different angle?") rather than trusting a plausible-looking result.
+
+**A sharper lesson sits inside artifact #8 specifically, worth stating on its own: a
+verification pass that reuses an upstream aggregation inherits that aggregation's defects.**
+`RATE_MISMATCH_VERIFICATION.md` was itself a dedicated verification pass -- it caught and
+fixed the 15x denominator error carefully, cross-checking its inputs against
+`GATE_T4_REPORT.md`'s published totals before recomputing. But "cross-checking against the
+published totals" was exactly the mistake: those totals were themselves artifact #7's
+ring-duplicated sum, and a match against a wrong number is not validation. The verification
+pass corrected the arithmetic it was looking for (the division) while silently carrying
+forward the one input it never re-derived from source (the numerator) -- so its own
+"corrected" rate was still wrong, by nearly the same order of magnitude the first error was,
+and stayed that way until a second pass parsed the raw `.bin` ring dumps directly instead of
+trusting any prior report's aggregate figure, including the verification pass's own. **The
+lesson is not "verify twice" -- two independent passes both reused the same corrupted
+upstream number and both produced a plausible-looking result.** It is that a verification
+pass only protects against the specific failure mode it was designed to catch; any input it
+takes as given, rather than re-deriving from the rawest available source, can carry a
+different, unrelated defect straight through the correction. This is the concrete
 argument for verification passes as methodology, not just as cleanup: three of this
 project's headline quantitative claims (a real-workload fault rate, an end-to-end
 pipelining ceiling, and -- earlier in the project's history -- the STREAM speedup and
