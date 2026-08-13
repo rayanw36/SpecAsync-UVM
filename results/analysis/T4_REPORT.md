@@ -180,10 +180,17 @@ untouched (its update was conditional on T5 running).
 
 ## End-to-end pipelining ceiling
 
-**0.20% to 19.06%**, computable for 6 of 7 Phase C workloads (was 1 of 7 before this
-block). The pre-existing Stencil-24K figure (~7.9%) remains on a different wall-clock
-basis than these six and should not be blended into the same table without the caveat
-(Section "Open items").
+~~**0.20% to 19.06%**~~ **SUPERSEDED (2026-08-13, `CEILING_BASIS_VERIFICATION.md`): the
+underlying `GATE_T3_REPORT.md` formula summed the dispatch-window numerator across 5 trials
+while dividing by a single trial's median wall-clock, inflating every figure by a factor
+close to 5x -- proven wrong, not just suspected, by span-based fractions exceeding 100% (a
+physical impossibility) on this same T4 data under the same formula. Corrected range:
+**0.13% to 7.94%**, computable for 6 of 7 Phase C workloads (was 1 of 7 before this block).
+The pre-existing Stencil-24K figure (~7.9%, `PIPELINING_CEILING.md`) does not carry this
+defect (its numerator was never multi-trial-aggregated) and now agrees closely with the
+corrected six-workload figures, despite remaining on a different wall-clock basis (Section
+"Open items") -- independent corroboration for the corrected convention. Full derivation:
+`CEILING_BASIS_VERIFICATION.md`.
 
 ## cuFFT verdict
 

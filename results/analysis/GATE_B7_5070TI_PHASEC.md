@@ -196,35 +196,81 @@ clock numerator and decomp-derived denominator both from the same DECOMP=1 run, 
 | Sweep-16K | 150,062.4 | 466,049.4 | 32.20% | 0.570s | 81.76% | **26.33%** |
 | Sweep-24K | 313,403.2 | 987,448.2 | 31.74% | 1.080s | 91.43% | **29.02%** |
 
-**End-to-end ceiling range: 0.13% (GraphBFS-23) to 29.02% (Sweep-24K).**
+~~**End-to-end ceiling range: 0.13% (GraphBFS-23) to 29.02% (Sweep-24K).**~~ **SUPERSEDED —
+see the correction below.**
 
-### Comparison to T4
+> **CORRECTION (2026-08-13, `CEILING_BASIS_VERIFICATION.md`): the table above shares a units
+> bug with `GATE_T3_REPORT.md`, which this report deliberately copied.** The numerator
+> (`sum(total_ns)`) is aggregated across all 5 trials' batches while the denominator
+> (wall-clock median) is a single trial's value — inflates every ceiling by a factor
+> mechanically close to 5x, proven wrong (not just suspected) by span-based fractions
+> exceeding 100% on the T4's own data under the same formula. Corrected convention:
+> median-of-trials aggregation, span instead of sum as the numerator (see
+> `CEILING_BASIS_VERIFICATION.md` Section 7).
+>
+> | Workload | **Superseded ceiling** | **Corrected ceiling** |
+> |---|--:|--:|
+> | Stencil-8K | ~~16.92%~~ | **3.92%** |
+> | GraphBFS-23 | ~~0.13%~~ | **0.08%** |
+> | Sweep-4K | ~~8.19%~~ | **1.86%** |
+> | Sweep-8K | ~~16.73%~~ | **3.94%** |
+> | Sweep-16K | ~~26.33%~~ | **6.53%** |
+> | Sweep-24K | ~~29.02%~~ | **7.25%** |
+>
+> **Corrected range: 0.08% to 7.25%** (vs. the superseded 0.13-29.02%).
 
-| Workload | T4 ceiling | This platform | Verdict |
+### Comparison to T4 — SUPERSEDED, direction reverses under the corrected convention
+
+~~| Workload | T4 ceiling | This platform | Verdict |~~
+~~|---|--:|--:|---|~~
+~~| Stencil-8K | 19.06% | 16.92% | Reproduces (same order, ~2pt lower) |~~
+~~| GraphBFS-23 | 0.20% | 0.13% | Reproduces (both near-zero, compute-bound) |~~
+~~| Sweep-4K | 12.18% | 8.19% | Reproduces the qualitative pattern (lowest of the Sweep family on both) |~~
+~~| Sweep-8K | 18.33% | 16.73% | Reproduces closely |~~
+~~| Sweep-16K | 16.39% | 26.33% | **Diverges** — this platform notably higher |~~
+~~| Sweep-24K | 15.31% | 29.02% | **Diverges** — this platform notably higher (~1.9x) |~~
+
+**Corrected table** (using each platform's "span, median-of-trials" ceiling from
+`CEILING_BASIS_VERIFICATION.md` Section 6):
+
+| Workload | T4 ceiling (corrected) | This platform (corrected) | Verdict |
 |---|--:|--:|---|
-| Stencil-8K | 19.06% | 16.92% | Reproduces (same order, ~2pt lower) |
-| GraphBFS-23 | 0.20% | 0.13% | Reproduces (both near-zero, compute-bound) |
-| Sweep-4K | 12.18% | 8.19% | Reproduces the qualitative pattern (lowest of the Sweep family on both) |
-| Sweep-8K | 18.33% | 16.73% | Reproduces closely |
-| Sweep-16K | 16.39% | 26.33% | **Diverges** — this platform notably higher |
-| Sweep-24K | 15.31% | 29.02% | **Diverges** — this platform notably higher (~1.9x) |
+| Stencil-8K | 7.09% | 3.92% | T4 higher |
+| GraphBFS-23 | 0.13% | 0.08% | Both near-zero, T4 slightly higher |
+| Sweep-4K | 4.34% | 1.86% | T4 higher |
+| Sweep-8K | 7.39% | 3.94% | T4 higher |
+| Sweep-16K | 7.94% | 6.53% | T4 higher |
+| Sweep-24K | 7.43% | 7.25% | Roughly equal |
 
-**T4 range 0.20-19.06%; this platform's range 0.13-29.02% — wider on the high end, driven by
-Sweep-16K and Sweep-24K.** This is not noise: Section 4 already explains the mechanism —
-this platform's `window/wall-clock` fraction is much higher at the larger sizes (91.43% vs
-T4's 56.73% for Sweep-24K) because the dispatch window shrank *less* (2.35x) than
-process-wall-clock did overall (3.79x) between the two platforms, so fault-servicing eats a
-bigger share of a now-smaller pie. **Where platforms agree on magnitude but the significance
-verdict for "does the ceiling stay in a narrow band across workloads" would differ: T4's
-ceiling range spans a 95x ratio top-to-bottom (19.06/0.20), this platform's spans a 223x
-ratio (29.02/0.13) — both show the same qualitative shape (GraphBFS near-zero, stencil family
-double-digit), so this is reported as a magnitude divergence at the high end, not a
-disagreement about which workloads are pipelining-friendly.**
+**Downstream consequence (a), as flagged when the units bug was found: the "diverges at the
+high end, this platform notably higher" finding reported in the superseded table above was
+itself an artifact of the same 5x-and-worse-scaled bug, not a real cross-platform
+divergence.** Under the corrected convention, **the T4 is higher than the 5070 Ti at 5 of 6
+workloads**, the opposite pattern from what was originally reported. Section 4's mechanism
+(dispatch window shrinking less than overall wall-clock between platforms) is not itself
+wrong — the 2.35x/3.79x/8x ordering there doesn't depend on the ceiling formula — but the
+specific claim that this mechanism produces a *higher* ceiling on the faster platform does
+not survive the correction. Retracted as stated; Section 4's underlying speedup-ordering
+finding stands on its own (it never used the flawed ceiling formula).
 
 **Sweep-24K/Stencil-24K label-collision caveat, restated for this platform's own numbers**:
 Task 1's kernel-loop Stencil-24K figure (369.735ms) is *not* the wall-clock denominator used
 for this section's Sweep-24K ceiling (that denominator is the process-wall-clock 1.080s,
 Section 0). Both are reported in this document; they must not be blended.
+
+**Downstream consequence (b): the corrected range resolves an apparent tension, not creates
+one.** This report and every other Phase C document report an oracle-perfect, zero-cost
+speculation mechanism (D1+D2 fully hidden) yielding no measurable net benefit (Phase B's
+decisive result, `PHASEC_REPORT.md`'s "Decision" section). Under the superseded formula, that
+sat awkwardly next to a headline "up to 29%" (this platform) or "up to 19%" (T4) pipelining
+ceiling — a reader could reasonably ask why up to a fifth or a quarter of wall-clock time
+being theoretically recoverable produced zero measured gain. **Under the corrected range
+(sub-8% everywhere on both platforms), that tension mostly dissolves**: a ceiling that small
+is consistent with a negative result rather than in tension with it — there was never much
+headroom to capture in the first place, and Phase B's own finding (D4/D5 is not offloadable,
+D1+D2's offloadable share does not translate to a system-level win even where it exists) is
+sufficient on its own without needing the ceiling to have been small too. The correction
+strengthens the coherence of the paper's existing negative conclusion; it does not weaken it.
 
 ## 7. What this block does and does not extend
 
@@ -234,13 +280,14 @@ gate's near-perfect pass rate, and the qualitative end-to-end-ceiling pattern (G
 near-zero / stencil family double-digit). Section VI can now state these as **cross-
 architecture findings**, not T4-only, per the manuscript-scope motivation for this block.
 
-**Does not extend / diverges**: the absolute end-to-end ceiling magnitude at the two largest
-Sweep sizes (this platform runs ~1.7-1.9x higher than T4 there) — attributable, per Section
-4, to migration-adjacent dispatch time not benefiting from this platform's faster
-interconnect/GPU as much as the rest of the pipeline does. The instrumentation-overhead
-absolute-percentage comparison (Section 2) is flagged as an open tension, not a reproduction
-or a divergence in the ordinary sense — the direction of the discrepancy (smaller, not
-larger, than a naive fixed-cost model predicts) is itself the interesting part.
+**Does not extend / diverges**: ~~the absolute end-to-end ceiling magnitude at the two
+largest Sweep sizes (this platform runs ~1.7-1.9x higher than T4 there)~~ **RETRACTED — this
+was an artifact of the ceiling-formula units bug (Section 6 correction,
+`CEILING_BASIS_VERIFICATION.md`), not a real divergence. Under the corrected convention the
+T4 runs higher than this platform at 5 of 6 workloads, not lower.** The instrumentation-
+overhead absolute-percentage comparison (Section 2) is flagged as an open tension, not a
+reproduction or a divergence in the ordinary sense — the direction of the discrepancy
+(smaller, not larger, than a naive fixed-cost model predicts) is itself the interesting part.
 
 **Not comparable**: any number using this report's kernel-loop convention (Task 1) against
 any number using this report's or the T4's process-wall-clock convention (Task 4, all of
@@ -269,7 +316,7 @@ Gate 3/T1-T4) — see Section 0.
 | D3 ≈ 0 (no lock contention) | ~0.1% | 0.05-0.14% | **Reproduces** |
 | D1+D2 offloadable share | 9-36% | 10.4-33.2% | **Reproduces** |
 | GraphBFS-23 outlier position | heaviest D4/D5, lightest D1+D2 | heaviest D4/D5, lightest D1+D2 | **Reproduces** |
-| End-to-end ceiling range | 0.20-19.06% | 0.13-29.02% | **Diverges at the high end** (Section 6) — mechanism: Section 4 |
+| End-to-end ceiling range | ~~0.20-19.06%~~ **0.13-7.94%** | ~~0.13-29.02%~~ **0.08-7.25%** | ~~Diverges at the high end~~ **SUPERSEDED: was a units-mismatch artifact (Section 6 correction); corrected, T4 runs higher at 5/6 workloads** |
 | Kernel-loop / wall-clock speedup vs PCIe bandwidth | n/a (single platform) | 4.45x / 3.79x vs ~8x PCIe | **New cross-platform finding**, not a T4 comparison |
 
 ## Artifacts

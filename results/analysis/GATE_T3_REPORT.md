@@ -68,6 +68,34 @@ dispatch window as a fraction of wall-clock; end-to-end ceiling as their product
 
 **End-to-end ceiling range across these six: 0.20% (GraphBFS-23) to 19.06% (Stencil-8K).**
 
+> **CORRECTION (2026-08-13, `CEILING_BASIS_VERIFICATION.md`): the `window/wall-clock` step
+> above is wrong — SUPERSEDED, not deleted.** The numerator (`sum(total_ns)`) is aggregated
+> across all 5 trials' batches, while the denominator (wall-clock median) represents only
+> one trial. Summing five roughly-similar trials and dividing by one trial's median inflates
+> the ratio by a factor mechanically close to 5 — confirmed both algebraically and by direct
+> evidence: recomputing the same formula on the T4's own committed data (same defect, see
+> `CEILING_BASIS_VERIFICATION.md` Section 4) produces `window/wall-clock` fractions **above
+> 100%** at 4 of 6 workloads under the span convention, which is physically impossible for a
+> quantity that must be a subset of process wall-clock time. The formula was never checked
+> against an elapsed-span sanity bound before now (`CEILING_BASIS_VERIFICATION.md` Section 5).
+>
+> Corrected convention (median-of-trials aggregation, matching the wall-clock denominator's
+> own single-trial scale; span instead of sum as the numerator, since a ceiling meant to
+> bound wall-clock savings should be measured against elapsed calendar time, not summed
+> per-batch busy time — see `CEILING_BASIS_VERIFICATION.md` Section 7 for the reasoning):
+>
+> | Workload | **Superseded ceiling** | **Corrected ceiling** |
+> |---|--:|--:|
+> | Stencil-8K | ~~19.06%~~ | **7.09%** |
+> | GraphBFS-23 | ~~0.20%~~ | **0.13%** |
+> | Sweep-4K | ~~12.18%~~ | **4.34%** |
+> | Sweep-8K | ~~18.33%~~ | **7.39%** |
+> | Sweep-16K | ~~16.39%~~ | **7.94%** |
+> | Sweep-24K | ~~15.31%~~ | **7.43%** |
+>
+> **Corrected range: 0.13% to 7.94%** (vs. the superseded 0.20-19.06%). Full derivation,
+> the 4-convention comparison, and the recommendation rationale: `CEILING_BASIS_VERIFICATION.md`.
+
 ## 4. Cross-check against the original Stencil-24K (~7.9%): does NOT reproduce, and why
 
 **No.** `Sweep-24K` is the same underlying benchmark and size as the original
@@ -108,12 +136,19 @@ separate adjustment (adding one would double-count).
 ## 6. What the manuscript can now say
 
 Before this task: end-to-end ceiling computable for 1/7 workloads. After: computable for
-6/7, on a consistent basis with each other (Section 4's caveat on the 7th). **Range: 0.20%
-(GraphBFS-23) to 19.06% (Stencil-8K)** -- a wide spread, driven mostly by how much of each
-workload's wall-clock time is spent in fault servicing at all: GraphBFS-23 spends only
-1.48% of its wall-clock inside the dispatch window (it's compute-bound, not fault-bound),
-while the stencil family spends 33-57%. Section VI can now state a real range instead of
-falling back to window-share-only language for six of seven workloads -- but should
-present the six new numbers and the one pre-existing Stencil-24K number as two separately
-sourced sets, per Section 4's caveat, rather than blend them into one continuous
-seven-workload table without the footnote.
+6/7, on a consistent basis with each other (Section 4's caveat on the 7th). ~~Range: 0.20%
+(GraphBFS-23) to 19.06% (Stencil-8K)~~ **SUPERSEDED — see the correction note under Section 3.
+Corrected range: 0.13% (GraphBFS-23) to 7.94% (Sweep-16K)**, still driven mostly by how much
+of each workload's wall-clock time is spent in fault servicing at all: GraphBFS-23 spends
+only a small fraction of its wall-clock inside the dispatch window (it's compute-bound, not
+fault-bound), while the stencil family spends much more. Section VI can now state a real
+range instead of falling back to window-share-only language for six of seven workloads --
+but should present the six new numbers and the one pre-existing Stencil-24K number as two
+separately sourced sets, per Section 4's caveat, rather than blend them into one continuous
+seven-workload table without the footnote. **Also note**: the corrected, much smaller
+ceiling range (sub-8% everywhere) is more consistent with this project's own negative
+result for speculative prefetching (Phase B/C's "no net throughput gain" conclusion) than
+the superseded up-to-19% figure was — a small pipelining headroom that SpecAsync's own
+architecture cannot reach (D4/D5 is not offloadable, Section "Decision" in
+`PHASEC_REPORT.md`) is a better fit for "no benefit materializes" than a headroom as large
+as 19% would have been.
