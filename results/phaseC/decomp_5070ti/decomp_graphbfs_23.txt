@@ -1,0 +1,29 @@
+Loaded 455 decomp records from /home/rayenchikhaoui/SpecAsync-UVM/results/phaseC/decomp_5070ti/decomp_graphbfs_23.bin
+
+=== Gate G2 (monotonicity): 455/455 pass ===
+
+=== Gate G1 (accounting closure ±2%): 455/455 pass ===
+
+======================================================================
+Phase C dispatch-window decomposition  graphbfs_23
+  n = 455 batches
+======================================================================
+Sub-phase                       Median µs     p95 µs   % of total
+----------------------------------------------------------------------
+D1 fault-buffer drain                5.78      17.58         7.6%
+D2 preprocess/sort/dedup             2.12      21.74         2.8%
+svc_total (D3+D4+overhead)          58.64     303.55        77.3%
+D3 va_space lock WAIT                0.04       0.09         0.1%
+D4 va_space lock HOLD (incl D5)      58.36     303.25        76.9%
+  D5 dispatch (inside D4)           57.86     300.48        76.3%
+D6 replay push                       1.14       6.40         1.5%
+D7 residual (gaps)                   0.05       0.08         0.1%
+----------------------------------------------------------------------
+TOTAL window                        75.85
+
+  Fault count distribution (faults/batch):
+    median=34  p95=244  min=1  max=256
+  VA-space acquisitions/batch: median=1  p95=1
+  dispatch calls/batch: median=5  p95=35
+
+CSV written to /home/rayenchikhaoui/SpecAsync-UVM/results/phaseC/decomp_5070ti/decomp_graphbfs_23.csv
