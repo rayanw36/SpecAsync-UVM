@@ -145,3 +145,8 @@ results/analysis/t_b8_sgemm_5070ti/telemetry/*.bin
 results/analysis/t_b8_sgemm_5070ti/*.bin
 results/analysis/t_b8_oversub_5070ti/telemetry/*.bin
 results/analysis/t_b8_oversub_5070ti/*.bin
+
+# OVERSUB_SPEEDUP_VERIFICATION.md re-runs: same convention, separate telemetry
+# subdirs (tests/t_b8_oversub_verify_n10.sh / t_b8_oversub_verify_depth0.sh)
+results/analysis/t_b8_oversub_5070ti/telemetry_n10_verify/*.bin
+results/analysis/t_b8_oversub_5070ti/telemetry_depth0_verify/*.bin
