@@ -1,0 +1,6 @@
+metric,label,c1_median,c3_median,pct_delta,mwu_p,holm_threshold,holm_significant,cohens_d
+wall_s,wall-clock (s),161.41,69.425,-56.988414596369495,0.00018165114609146497,0.016666666666666666,YES,90.80759106347266
+total_demand_faults,total demand faults,5342703.0,5956860.5,11.49525811185836,0.00018267179110955002,0.025,YES,-12.872565967357977
+hit_rate,hit rate,0.0,1.8199281313171515e-05,nan,6.386444750436982e-05,0.0125,YES,-11.670063363545964
+trace_repeat_median,thrash: per-page repeat median,1.0,1.0,0.0,1.0,0.05,no,nan
+trace_repeat_p90,thrash: per-page repeat p90,1.0,2.0,100.0,1.5937911688066244e-05,0.01,YES,nan

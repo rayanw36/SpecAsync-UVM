@@ -1,0 +1,9 @@
+run_order_idx,timestamp_iso8601,config,bench,size,rep_in_cell,phase,wall_s,htod_mb,dtoh_mb,cpu_page_faults,gpu_page_faults,exit_code,srcversion,mem_avail_before_kb,mem_avail_after_kb
+1,2026-08-15T07:51:17Z,C1,bench_stencil_oversub,48000,warmup_1,warmup,0,0,0,0,0,0,DRYRUN,0,0
+2,2026-08-15T07:51:17Z,C3,bench_stencil_oversub,48000,warmup_1,warmup,0,0,0,0,0,0,DRYRUN,0,0
+3,2026-08-15T07:51:17Z,C1,bench_stencil_oversub,48000,kept_2,kept,0,0,0,0,0,0,DRYRUN,0,0
+4,2026-08-15T07:51:17Z,C3,bench_stencil_oversub,48000,kept_2,kept,0,0,0,0,0,0,DRYRUN,0,0
+5,2026-08-15T07:51:17Z,C1,bench_stencil_oversub,48000,kept_3,kept,0,0,0,0,0,0,DRYRUN,0,0
+6,2026-08-15T07:51:17Z,C3,bench_stencil_oversub,48000,kept_3,kept,0,0,0,0,0,0,DRYRUN,0,0
+7,2026-08-15T07:51:17Z,C1,bench_stencil_oversub,48000,kept_4,kept,0,0,0,0,0,0,DRYRUN,0,0
+8,2026-08-15T07:51:17Z,C3,bench_stencil_oversub,48000,kept_4,kept,0,0,0,0,0,0,DRYRUN,0,0

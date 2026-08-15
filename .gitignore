@@ -150,3 +150,14 @@ results/analysis/t_b8_oversub_5070ti/*.bin
 # subdirs (tests/t_b8_oversub_verify_n10.sh / t_b8_oversub_verify_depth0.sh)
 results/analysis/t_b8_oversub_5070ti/telemetry_n10_verify/*.bin
 results/analysis/t_b8_oversub_5070ti/telemetry_depth0_verify/*.bin
+
+# Gate B9: oversubscription mechanism block -- raw per-run telemetry rings,
+# oracle trace files, and nsys reports (large, reconstructible by rerunning
+# the tests/t_b9_*.sh harnesses -- the CSVs (task*_times.csv,
+# task*_aggregate_comparison.csv, task*_run_summary.csv) and
+# GATE_B9_OVERSUB_MECHANISM.md / GATE_B9_TASK2_REBUILD.md carry the numbers
+# that matter, same convention as every telemetry/*.bin pattern above)
+results/analysis/gate_b9_oversub_mechanism/telemetry_*/
+results/analysis/gate_b9_oversub_mechanism/task1_nsys_reports/
+results/analysis/gate_b9_oversub_mechanism/task1_smi_polls/
+results/analysis/gate_b9_oversub_mechanism/*.bin
