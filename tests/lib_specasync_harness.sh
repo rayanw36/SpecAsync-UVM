@@ -214,15 +214,42 @@ clear_ring() {
 # under oversubscription should route it through run_with_memory_watchdog
 # instead of a bare invocation.
 #
+# SECOND INCIDENT, same gate, right after the first: the watchdog fired
+# correctly (killed the runaway process, marker file proves it, no kernel
+# OOM-killer entry) -- but the CALLING script's own incident-reporting code
+# went silent immediately after and the whole script exited without ever
+# writing its planned log lines or CSV row. Root cause, reconstructed:
+# MemAvailable kept falling for ~16s *after* the kill signal (the killed
+# process's ~18GB UM allocation takes real wall-clock time for the driver to
+# tear down and reclaim), and the original abort-path code -- both inside
+# this function (`harness_log "$(cat "$marker_file")"`) and in the caller
+# (`$(cat ...)`, `$(basename ...)` inside harness_log, `$(mem_available_kb)`
+# which itself forks awk) -- forked a subprocess for every one of those
+# calls, right in that post-kill window when a fork can itself fail. A
+# failed command substitution under `set -e` (inherited from this file)
+# terminates the script immediately, silently, before anything flushes.
+#
+# Fix, applied here as a standing library change so every future caller
+# inherits it for free: NOTHING in the poll loop or the fire branch below
+# forks. MemAvailable is read with a plain `read` loop over /proc/meminfo
+# (no awk); the marker is written with `printf` to a fd opened ONCE before
+# the run starts (no `> file` reopen at fire time, no command substitution);
+# `kill` and `wait` are bash builtins. Pair with harness_log_nofork() and
+# mem_watchdog_read_marker() below for the same guarantee in caller code.
+#
 # run_with_memory_watchdog <floor_kb> <marker_file> -- <command...>
 #   Launches <command...> in its own process group (setsid), polls
 #   MemAvailable every 1s while it runs, and if MemAvailable drops below
-#   <floor_kb>, kills the whole process group immediately and writes
-#   "WATCHDOG: ..." to <marker_file>. Returns the command's exit code, or
-#   137 (matching a SIGKILL exit convention) if the watchdog fired.
-#   <marker_file> is removed at the start of every call; check for its
-#   existence afterward to distinguish a watchdog kill from a normal
-#   non-zero exit.
+#   <floor_kb>, kills the whole process group immediately and writes a
+#   fixed-format line ("WATCHDOG floor_kb=<N> avail_kb=<N> pgid=<pid>") to
+#   <marker_file>. Returns the command's exit code, or 137 (matching a
+#   SIGKILL exit convention) if the watchdog fired.
+#
+#   IMPORTANT: <marker_file> is now pre-created (truncated to empty) at the
+#   start of EVERY call, whether or not the watchdog fires -- so it always
+#   exists afterward. Do NOT test `[ -f "$marker_file" ]` to detect a fire
+#   (always true); check this function's RETURN CODE (137) instead, or test
+#   `[ -s "$marker_file" ]` (non-empty) if you need the file check too.
 #
 # Floor guidance: 6 GiB (this project's standing abort floor) for ordinary
 # benchmark runs; use a higher floor (e.g. 10 GiB) for nsys or other tools
@@ -240,16 +267,27 @@ run_with_memory_watchdog() {
         return 0
     fi
 
+    # Pre-open the marker fd now, before the run starts -- see incident note
+    # above. Never reopen or otherwise touch marker_file by path again.
+    exec {__wd_fd}>"$marker_file"
+
     setsid "$@" &
     local cmd_pid=$!
 
     (
+        local avail_kb key val unit
         while kill -0 "$cmd_pid" 2>/dev/null; do
-            local avail
-            avail=$(awk '/^MemAvailable:/ {print $2}' /proc/meminfo)
-            if [ "$avail" -lt "$floor_kb" ]; then
-                echo "WATCHDOG: MemAvailable=${avail}kB < ${floor_kb}kB -- killing pgid $cmd_pid" > "$marker_file"
-                kill -9 -- "-$cmd_pid" 2>/dev/null || true
+            avail_kb=""
+            while IFS=': ' read -r key val unit; do
+                if [ "$key" = "MemAvailable" ]; then
+                    avail_kb="$val"
+                    break
+                fi
+            done < /proc/meminfo
+            if [ -n "$avail_kb" ] && [ "$avail_kb" -lt "$floor_kb" ]; then
+                printf 'WATCHDOG floor_kb=%s avail_kb=%s pgid=%s\n' \
+                    "$floor_kb" "$avail_kb" "$cmd_pid" >&"$__wd_fd"
+                kill -9 -- "-$cmd_pid" 2>/dev/null
                 break
             fi
             sleep 1
@@ -257,18 +295,63 @@ run_with_memory_watchdog() {
     ) &
     local watchdog_pid=$!
 
+    # Save/restore errexit around `wait` by its PRIOR state, not
+    # unconditionally -- an unconditional `set -e` here previously clobbered
+    # a caller's own `set +e ... set -e` wrapper the instant this function
+    # returned a non-zero (137) status, killing the caller's script before
+    # it could even capture $? (reproduced with an artificially high floor
+    # and zero real memory pressure -- this was a set -e scoping bug, not
+    # the fork-under-pressure failure it first looked like).
+    local __wd_errexit_was_set=0
+    case $- in *e*) __wd_errexit_was_set=1 ;; esac
+
     local exit_code
     set +e
     wait "$cmd_pid"
     exit_code=$?
-    set -e
+    [ "$__wd_errexit_was_set" = 1 ] && set -e
 
     kill "$watchdog_pid" 2>/dev/null || true
     wait "$watchdog_pid" 2>/dev/null || true
 
-    if [ -f "$marker_file" ]; then
-        harness_log "$(cat "$marker_file")"
+    exec {__wd_fd}>&-
+
+    if [ -s "$marker_file" ]; then
         return 137
     fi
     return "$exit_code"
+}
+
+# ---- fork-free helpers for abort-path code in CALLING scripts -----------
+# Use these instead of harness_log / $(...) / mem_available_kb inside any
+# code that runs after run_with_memory_watchdog reports a fire (return code
+# 137). See that function's header for why: a fork right after a watchdog
+# kill can itself fail while the killed process's memory is still being
+# reclaimed, silently aborting the very code meant to report the incident.
+
+# harness_log_nofork <message> -- same shape as harness_log, but the
+# timestamp comes from printf's builtin %(...)T strftime (bash >= 4.2), not
+# `date`, and there is no $(basename ...) lookup -- so it never forks.
+harness_log_nofork() {
+    printf '[abort %(%H:%M:%S)T] %s\n' -1 "$*" >&2
+}
+
+# mem_watchdog_read_marker <marker_file> <floor_var> <avail_var> <pgid_var>
+# Fork-free parse of a marker file written by run_with_memory_watchdog into
+# the three named variables (via `read`/`printf -v`, no command
+# substitution, no subshell -- a here-string does not fork in bash).
+mem_watchdog_read_marker() {
+    local marker="$1" _floor_var="$2" _avail_var="$3" _pgid_var="$4"
+    local line
+    read -r line < "$marker"
+    local -a parts
+    read -r -a parts <<< "$line"
+    local part
+    for part in "${parts[@]}"; do
+        case "$part" in
+            floor_kb=*) printf -v "$_floor_var" '%s' "${part#floor_kb=}" ;;
+            avail_kb=*) printf -v "$_avail_var" '%s' "${part#avail_kb=}" ;;
+            pgid=*)     printf -v "$_pgid_var" '%s' "${part#pgid=}" ;;
+        esac
+    done
 }
