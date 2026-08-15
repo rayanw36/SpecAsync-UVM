@@ -203,3 +203,72 @@ clear_ring() {
     fi
     echo 1 | sudo tee "$DBGFS/specasync_clear" >/dev/null 2>&1 || true
 }
+
+# ---- in-run memory watchdog ----------------------------------------------
+# Added after Gate B9 Task 1(c): the between-runs check_memory_or_abort
+# pattern above cannot catch a memory spike that happens *during* a run --
+# an nsys UM-fault-tracing pass on the 5070 Ti OOM-killed the benchmark
+# process mid-run (host anon-rss 17.1GB + nsys's own multi-GB sqlite/trace
+# buffer, invisible to a guard that only samples between runs). This is a
+# standing fix: any harness that launches a memory-hungry foreground command
+# under oversubscription should route it through run_with_memory_watchdog
+# instead of a bare invocation.
+#
+# run_with_memory_watchdog <floor_kb> <marker_file> -- <command...>
+#   Launches <command...> in its own process group (setsid), polls
+#   MemAvailable every 1s while it runs, and if MemAvailable drops below
+#   <floor_kb>, kills the whole process group immediately and writes
+#   "WATCHDOG: ..." to <marker_file>. Returns the command's exit code, or
+#   137 (matching a SIGKILL exit convention) if the watchdog fired.
+#   <marker_file> is removed at the start of every call; check for its
+#   existence afterward to distinguish a watchdog kill from a normal
+#   non-zero exit.
+#
+# Floor guidance: 6 GiB (this project's standing abort floor) for ordinary
+# benchmark runs; use a higher floor (e.g. 10 GiB) for nsys or other tools
+# that must flush a large buffer to disk at teardown, since the flush itself
+# needs headroom the bare workload wouldn't.
+run_with_memory_watchdog() {
+    local floor_kb="$1" marker_file="$2"
+    shift 2
+    if [ "$1" = "--" ]; then shift; fi
+
+    rm -f "$marker_file"
+
+    if [ "$DRY_RUN" = "1" ]; then
+        harness_log "[dry-run] run_with_memory_watchdog floor_kb=$floor_kb marker=$marker_file cmd=$*"
+        return 0
+    fi
+
+    setsid "$@" &
+    local cmd_pid=$!
+
+    (
+        while kill -0 "$cmd_pid" 2>/dev/null; do
+            local avail
+            avail=$(awk '/^MemAvailable:/ {print $2}' /proc/meminfo)
+            if [ "$avail" -lt "$floor_kb" ]; then
+                echo "WATCHDOG: MemAvailable=${avail}kB < ${floor_kb}kB -- killing pgid $cmd_pid" > "$marker_file"
+                kill -9 -- "-$cmd_pid" 2>/dev/null || true
+                break
+            fi
+            sleep 1
+        done
+    ) &
+    local watchdog_pid=$!
+
+    local exit_code
+    set +e
+    wait "$cmd_pid"
+    exit_code=$?
+    set -e
+
+    kill "$watchdog_pid" 2>/dev/null || true
+    wait "$watchdog_pid" 2>/dev/null || true
+
+    if [ -f "$marker_file" ]; then
+        harness_log "$(cat "$marker_file")"
+        return 137
+    fi
+    return "$exit_code"
+}
