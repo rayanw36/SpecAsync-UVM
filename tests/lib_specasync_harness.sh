@@ -98,6 +98,31 @@ mem_available_kb() {
     awk '/^MemAvailable:/ {print $2}' /proc/meminfo
 }
 
+# ---- reload verification --------------------------------------------------
+# Added after a leaked `nsys --start-agent` helper process (orphaned by an
+# earlier watchdog kill that only reached the profiled process's own group,
+# not this separately-spawned side process -- Gate B9) held nvidia_uvm's
+# refcount open for over an hour. Every `rmmod ... || true` in that window
+# failed SILENTLY (module busy), every subsequent insmod then failed too
+# ("File exists"), and an entire mechanism run executed against a stale,
+# never-actually-switched module with nobody noticing until the resulting
+# data (an oracle trace with 0 entries) forced an investigation. These
+# checks fail loudly instead of silently continuing on a mismatch.
+verify_module_reload() {
+    local expected_policy="$1" expected_depth="$2"
+    if [ "$DRY_RUN" = "1" ]; then
+        return
+    fi
+    local actual_policy actual_depth
+    actual_policy=$(cat "$POL_PARAM" 2>/dev/null || echo "?")
+    actual_depth=$(cat "$DEPTH_PARAM" 2>/dev/null || echo "?")
+    if [ "$actual_policy" != "$expected_policy" ] || [ "$actual_depth" != "$expected_depth" ]; then
+        local refcnt
+        refcnt=$(cat /sys/module/nvidia_uvm/refcnt 2>/dev/null || echo "?")
+        harness_die "reload_module: module did NOT reload with the intended config -- wanted policy=$expected_policy depth=$expected_depth, sysfs shows policy=$actual_policy depth=$actual_depth (nvidia_uvm refcnt=$refcnt). rmmod likely failed silently (module busy). NOT continuing against a wrong/stale module."
+    fi
+}
+
 # ---- module reload ------------------------------------------------------
 # reload_module <ko_path> <policy> <depth> <prefetch> [oracle_trace_path]
 #
@@ -113,12 +138,18 @@ reload_module() {
     [ -f "$ko" ] || harness_die "module not found: $ko (Phase 2 must build it first)"
     dmesg_mark
     sudo rmmod nvidia_uvm 2>/dev/null || true
+    if [ -d /sys/module/nvidia_uvm ]; then
+        local refcnt
+        refcnt=$(cat /sys/module/nvidia_uvm/refcnt 2>/dev/null || echo "?")
+        harness_die "reload_module: rmmod failed to unload nvidia_uvm (refcnt=$refcnt) -- module is busy, likely a leaked process holding it open (check: find /proc/*/fd -lname '*nvidia*' 2>/dev/null). NOT proceeding with insmod against a wrong/stale module state."
+    fi
     local extra="specasync_policy=$policy specasync_offload_depth=$depth uvm_perf_prefetch_enable=$prefetch specasync_log_enabled=1"
     if [ -n "$trace" ]; then
         extra="$extra specasync_oracle_trace_path=$trace"
     fi
     sudo insmod "$ko" $extra
     sleep 0.3
+    verify_module_reload "$policy" "$depth"
     local d
     d=$(dmesg_delta_count)
     if [ "$d" -gt 0 ]; then
