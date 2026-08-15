@@ -20,6 +20,47 @@ for completeness -- not counted among the eleven).
 | 10 | **`setarch -R` regime effect** | This session, Gate A2/A2b | `ASLR_OFF` wall-clock variance and speculative-volume variance, Stencil-24K, oracle policy (C3) | Not a false conclusion in the usual sense -- a **methodological property of oracle-based evaluation** that, if unstated, would let a reader assume T1's `setarch -R`-pinned results reflect general platform noise rather than a regime specifically tied to running the speculative pipeline with a fixed allocation address | Oracle replay (policy=4) requires a fixed `cudaMallocManaged` base address for trace-address alignment across collect/replay sessions, so every oracle-based run in this project necessarily uses `setarch -R`. `GATE_A2B_SETARCH_REGIME.md` (pre-registered, C1-vs-C3 split test) found the `ASLR_ON`/`ASLR_OFF` wall-clock and speculative-volume variance difference is **absent in C1** (no speculation, p=0.970 location, p=0.179 spread) but **present and large in C3** (oracle): Levene's test stat=10.659, p=0.0043, variance ratio (OFF/ON) = **522.7x**, reproducing `GATE_A2_REPORT.md`'s original finding closely on an independent n=10/arm sample two days later | Deliberately investigated, not stumbled into -- `GATE_A2_REPORT.md` first flagged the ASLR-correlated volume difference as "a secondary, unplanned observation... outside this task's scope to chase further"; `GATE_A2B_SETARCH_REGIME.md` was pre-registered specifically to test whether it was general (would implicate T1) or speculation-specific (would not) | **No** -- caught by design, before any claim depending on the distinction was published. Listed here as a methodological property to disclose, not a bug that produced a wrong number | T1 (platform-of-record) is not contaminated by a general paging artifact (C1's null result rules that out), but its reported run-to-run variance should be read as characteristic of the `ASLR_OFF` speculative regime specifically, not general instance noise -- a manuscript methods/limitations sentence, not a retraction | `GATE_A2_REPORT.md`, `GATE_A2B_SETARCH_REGIME.md` |
 | 11 | **Host memory leak as a run-order confound** | This session, Gate B6 (`HOST_MEMORY_LEAK_5070TI.md`) | `MemAvailable` across any session of repeated (module reload + CUDA run) cycles on the RTX 5070 Ti / driver 595.84 host | Not a false conclusion produced yet -- a **candidate, unconfirmed contributor** to an already-published finding (B5's run-order wall-clock drift, rho=0.548, p=0.0123) that, if not flagged, could be mistaken for a settled platform property rather than a live open question | Reproducible ~244MB leaked per (module-reload + CUDA-run) cycle, confirmed to reproduce at the same rate on the **stock, unpatched** NVIDIA 595.84 driver (not a SpecAsync defect -- an upstream driver issue), monotonic across a session (not per-run noise), lands in `/proc/meminfo`'s unaccounted pool (not reclaimable via `drop_caches`) | A dedicated characterization pass (4 conditions x n≥5 cycles, batch-overlap-style controlled comparison against the stock driver) run specifically because Task 4's cuFFT rerun hit a near-OOM condition mid-session -- the leak was severe enough to force a stop-and-characterize before continuing, not found by a passive audit | **Partially** -- the leak itself was not previously reported as a finding (it caused an operational stop, not a wrong number in a report), but B5's drift finding it may help explain was already published without this candidate mechanism attached | Flagged explicitly as **candidate, not proven** -- Task 3 (this platform's non-reproduction of B5's drift) is equally consistent with plain session-to-session noise; the leak explanation is offered alongside, not in place of, that simpler account | `HOST_MEMORY_LEAK_5070TI.md`, `GATE_B6_TASK3_A2_REPLICATION.md` (addendum) |
 
+## Second occurrence of artifact #7 (Gate B9, 2026-08-15)
+
+**The fix applied to `t4_prefetch_off_telemetry.sh` addressed one script; the exposure is
+architectural.** Any script that reads `specasync_log` (or `specasync_decomp_log`, or
+`specasync_worker_log` -- all three are the same 131,072-slot, drop-on-full ring design) a
+single time at the end of a run, rather than clearing and re-reading periodically, inherits
+this artifact regardless of whether the per-rep-clear bug that caused the *first* occurrence
+is present or not. `tests/t_b9_task2_mechanism.sh` (Gate B9 Task 2, C1-vs-C3 mechanism
+instrumentation at ~1.08x oversubscription, N=48000/iters=20) did clear the ring correctly
+between every rep -- and still saturated **within every single one of its 20 kept runs**,
+because a single rep's fault volume at this oversubscription level vastly exceeds ring
+capacity on its own; no cross-rep contamination was needed to trigger it this time.
+
+Two new details this occurrence adds, not present in the original:
+
+1. **Different arms saturating at the same record count is not evidence of equal
+   coverage.** C1 and C3 both hit exactly 131,071 records in all 20/20 runs -- but C1's run
+   took ~161s and C3's took ~69s, so the captured window covers **2.8% of C1's run** versus
+   **7.9% of C3's run** (measured directly from each snapshot's `t0_ns`/`t4_ns` span against
+   the run's wall-clock). A naive between-arm comparison of ring-derived totals (here,
+   `total_demand_faults`: C3 appeared to have +11.5% more than C1) silently compares
+   different *fractions* of two runs of very different length, not the same slice of
+   comparable work. The direction of the apparent difference cannot be trusted without first
+   establishing the arms are looking at the same relative window, which in general they are
+   not once either ring saturates.
+2. **Not all rings saturate the same way, and the ones that don't can point the opposite
+   direction.** `specasync_fault_trace` (the demand-fault address ring used for the
+   thrash/re-migration proxy) is a genuine circular *overwrite* buffer with no drop-on-full
+   behavior -- it holds the **trailing** window of a run once its 1,048,576-slot capacity is
+   exceeded, which it was in all 20/20 runs here too. So in the same Gate B9 Task 2 run, the
+   batch/decomp/work-ring metrics reflected the first ~3-8% of each run and the trace-ring
+   metric reflected the last portion -- two telemetry sources from the *same* run, covering
+   *disjoint* and *non-overlapping* time windows, neither comparable to the other nor to the
+   run as a whole.
+
+Caught before any figure was published (Task 2's demand-fault comparison was flagged and
+withheld pending a redesigned periodic-drain harness rather than reported), but it is the
+second time this exact architectural gap has produced a plausible-looking, wrong headline
+number from otherwise-correct per-rep instrumentation. See `GATE_B9_OVERSUB_MECHANISM.md`
+(once written) for the drain-harness redesign and its validation.
+
 ## Decision point (RESOLVED 2026-08-13): does the rate-arithmetic error belong in this catalog?
 
 **Resolved: yes, as artifact #8.** This entry originally deferred the choice between adding

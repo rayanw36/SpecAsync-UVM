@@ -63,6 +63,41 @@ atomic_t                 g_specasync_processed   = ATOMIC_INIT(0);
 atomic_t                 g_specasync_enqueued    = ATOMIC_INIT(0);
 atomic_t                 g_specasync_drops       = ATOMIC_INIT(0);
 
+/*
+ * Gate B9: three more true kernel-side totals, same rationale as the Task A1
+ * atomics above (specasync_log/specasync_worker_log are 131,072-slot
+ * drop-on-full rings that saturate within the first ~3-8% of a real
+ * oversubscribed run's wall-clock -- confirmed by direct measurement, see
+ * ARTIFACT_CATALOG.md's "Second occurrence of artifact #7" note -- so
+ * counting ring records undercounts a full-run total by roughly an order
+ * of magnitude, not just "a recent window" as the A1 comment above already
+ * warned). Each has exactly one, unambiguous increment site, matched 1:1 to
+ * where the corresponding per-batch/per-work-item ring field is written, so
+ * this is a pure additional observation, not a change to any existing
+ * accounting. All three are reset by specasync_clear, same as the A1 three.
+ *
+ * g_specasync_demand_faults — total demand faults serviced, incremented by
+ * block_faults at the exact same point _sa_rec.num_faults is (the batch
+ * record field this is meant to replace as the reliable total). Runs
+ * unconditionally, independent of specasync_policy.
+ *
+ * g_specasync_spec_hits — total speculative hit-table hits, incremented by
+ * the same specasync_hit_table_consume() return value that feeds
+ * _sa_rec.spec_hits.
+ *
+ * g_specasync_spec_migrations — total SUCCESSFUL speculative migrations
+ * (depth>=1 worker-issued uvm_va_block_make_resident() calls that returned
+ * NV_OK), i.e. SPECASYNC_RESULT_MIGRATION_DONE. This counts only the
+ * speculative-worker path, NOT demand-fault-path migrations (C1's entire
+ * workload, and C3's own non-speculative fallback) -- those go through
+ * stock UVM's make_resident/service_fault_batch_block with zero specasync
+ * instrumentation, and adding a demand-path migration counter is out of
+ * scope for this change (see GATE_B9_OVERSUB_MECHANISM.md for why).
+ */
+atomic_t                 g_specasync_demand_faults   = ATOMIC_INIT(0);
+atomic_t                 g_specasync_spec_hits       = ATOMIC_INIT(0);
+atomic_t                 g_specasync_spec_migrations = ATOMIC_INIT(0);
+
 #define SPECASYNC_MAX_QUEUE_DEPTH  1024  /* increased for per-fault enqueue (Gate 1) */
 
 /* ---- Per-VA-space prediction state ---------------------------------- */
@@ -294,6 +329,8 @@ static void specasync_worker_fn(struct work_struct *work)
 
 			wrec.result = (mstatus == NV_OK) ? SPECASYNC_RESULT_MIGRATION_DONE
 							 : SPECASYNC_RESULT_THROTTLED;
+			if (mstatus == NV_OK)
+				atomic_inc(&g_specasync_spec_migrations);
 		} else {
 			wrec.result = SPECASYNC_RESULT_THROTTLED;
 		}
@@ -2761,16 +2798,19 @@ static NV_STATUS service_fault_batch(uvm_parent_gpu_t *parent_gpu,
             u64 _t3 = ktime_get_ns();
             _sa_rec.t3_ns = _t3;   /* overwritten each dispatch; keeps last */
             _sa_rec.num_faults += block_faults;
+            atomic_add((int)block_faults, &g_specasync_demand_faults);
             if (va_space && va_space->specasync_pred &&
                 va_space->specasync_pred->hit_table) {
                 NvU32 _j;
                 for (_j = i; _j < i + block_faults; _j++) {
                     uvm_fault_buffer_entry_t *_fe2 =
                         batch_context->ordered_fault_cache[_j];
-                    _sa_rec.spec_hits +=
-                        specasync_hit_table_consume(
+                    int _hit = specasync_hit_table_consume(
                             va_space->specasync_pred->hit_table,
                             _fe2->fault_address, _t3);
+                    _sa_rec.spec_hits += _hit;
+                    if (_hit)
+                        atomic_inc(&g_specasync_spec_hits);
                 }
             }
         }

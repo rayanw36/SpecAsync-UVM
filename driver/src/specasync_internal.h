@@ -41,6 +41,17 @@ extern atomic_t                 g_specasync_processed;
 extern atomic_t                 g_specasync_enqueued;
 extern atomic_t                 g_specasync_drops;
 
+/*
+ * Gate B9: same rationale as above, for the three fields that previously
+ * lived only in specasync_batch_record/specasync_work_record (both
+ * 131,072-slot drop-on-full rings, confirmed to saturate within ~3-8% of a
+ * real oversubscribed run's wall-clock). See uvm_gpu_replayable_faults.c's
+ * definition-site comment for the exact increment locations.
+ */
+extern atomic_t                 g_specasync_demand_faults;
+extern atomic_t                 g_specasync_spec_hits;
+extern atomic_t                 g_specasync_spec_migrations;
+
 /* Forward declaration — struct is defined in uvm_gpu_replayable_faults.c */
 struct specasync_predict_state;
 struct specasync_predict_state *specasync_predict_state_alloc(void);

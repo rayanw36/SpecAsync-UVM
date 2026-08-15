@@ -220,6 +220,10 @@ static ssize_t clear_write(struct file *filp, const char __user *ubuf,
 	atomic_set(&g_specasync_processed, 0);
 	atomic_set(&g_specasync_enqueued, 0);
 	atomic_set(&g_specasync_drops, 0);
+	/* Gate B9: same per-run-clean-total reasoning as the three above. */
+	atomic_set(&g_specasync_demand_faults, 0);
+	atomic_set(&g_specasync_spec_hits, 0);
+	atomic_set(&g_specasync_spec_migrations, 0);
 
 	/*
 	 * Reset head/tail under the lock so the ring appears empty immediately.
@@ -527,6 +531,18 @@ int specasync_debugfs_init(struct dentry *parent_dentry)
 				&g_specasync_enqueued);
 	debugfs_create_atomic_t("specasync_drops", 0444, specasync_dir,
 				&g_specasync_drops);
+
+	/*
+	 * Gate B9: same rationale, for the fields specasync_log/
+	 * specasync_worker_log's ring saturation made unreliable as full-run
+	 * totals (ARTIFACT_CATALOG.md "Second occurrence of artifact #7").
+	 */
+	debugfs_create_atomic_t("specasync_demand_faults", 0444, specasync_dir,
+				&g_specasync_demand_faults);
+	debugfs_create_atomic_t("specasync_spec_hits", 0444, specasync_dir,
+				&g_specasync_spec_hits);
+	debugfs_create_atomic_t("specasync_spec_migrations", 0444, specasync_dir,
+				&g_specasync_spec_migrations);
 
 	if (specasync_policy == 4)
 		specasync_load_oracle_trace();
