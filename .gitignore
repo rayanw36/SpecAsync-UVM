@@ -161,3 +161,14 @@ results/analysis/gate_b9_oversub_mechanism/telemetry_*/
 results/analysis/gate_b9_oversub_mechanism/task1_nsys_reports/
 results/analysis/gate_b9_oversub_mechanism/task1_smi_polls/
 results/analysis/gate_b9_oversub_mechanism/*.bin
+
+# Gate B10: augmentation block (C0-vs-C4) -- same convention as Gate B9
+# above: raw per-run telemetry (watchdog markers, wall-clock scratch files),
+# oracle trace .bin files, and the launcher's own stdout log are all
+# reconstructible by rerunning tests/t_b10_c0_vs_c4.sh. The CSVs
+# (t_b10_c0_vs_c4_times.csv, t_b10_aggregate_comparison.csv,
+# t_b10_atomics_summary.csv), the analysis script, and
+# GATE_B10_AUGMENTATION.md carry the numbers that matter.
+results/analysis/gate_b10_augmentation/telemetry_b10/
+results/analysis/gate_b10_augmentation/*.bin
+results/analysis/gate_b10_augmentation/run.log

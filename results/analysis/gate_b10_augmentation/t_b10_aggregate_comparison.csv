@@ -1,0 +1,4 @@
+iters,n_per_arm,c0_median_s,c4_median_s,pct_c4_vs_c0,mwu_p,holm_threshold,holm_significant,cohens_d,mde_pct_preregistered
+1,10,3.2300,3.3700,4.3344,0.00014851,0.01666667,YES,12.5688,3.9
+5,10,8.2650,10.8200,30.9135,0.00016780,0.02500000,YES,21.7250,5.6
+20,10,27.1850,17.3900,-36.0309,0.00017562,0.05000000,YES,-70.4191,0.13
