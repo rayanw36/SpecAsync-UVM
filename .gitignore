@@ -172,3 +172,10 @@ results/analysis/gate_b9_oversub_mechanism/*.bin
 results/analysis/gate_b10_augmentation/telemetry_b10/
 results/analysis/gate_b10_augmentation/*.bin
 results/analysis/gate_b10_augmentation/run.log
+
+# Gate B10 Task C+D: replication (iters=20) + crossover fill (iters=8,12,16)
+# -- same convention as Gate B10 above, reconstructible by rerunning
+# tests/t_b10c_replication_crossover.sh.
+results/analysis/gate_b10_replication/telemetry_b10c/
+results/analysis/gate_b10_replication/*.bin
+results/analysis/gate_b10_replication/run.log
