@@ -1,0 +1,5 @@
+directory,tag,n_slots,n_valid,faults,enqueued,drops,hits,avg_faults_per_batch,hit_rate
+oracle_probe,old_buggy,256,256,256,256,0,254,1.0000,0.9922
+oracle_probe,new_fix,256,256,256,256,0,254,1.0000,0.9922
+oracle_coalesce,old,57,57,451,57,0,1,7.9123,0.0175
+oracle_coalesce,new,56,56,442,56,0,23,7.8929,0.4107

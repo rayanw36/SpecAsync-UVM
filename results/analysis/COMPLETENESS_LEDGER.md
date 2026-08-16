@@ -299,6 +299,29 @@ minor and not expected to affect any qualitative finding, but is stated here for
 rather than left implicit, per this project's standing disclosure practice for anything that
 changed between sessions.
 
+**Threats to validity: T4 kernel-loop time (`PHASEC_REPORT.md` G3, 1645.6ms) is a
+permanent, unrecoverable provenance gap -- not an open item awaiting work.** This is the
+same measurement family as item 5 above (the Stencil-24K wall-clock scale mismatch, which
+`STENCIL_LABEL_COLLISION.md` already flagged as unable to confirm "Phase C's original G3
+script itself cannot be recovered"): both trace to the same lost/never-committed
+kernel-loop-timing harness from Phase C's original T4 session. This session's F9 figure
+(`bandwidth_scaling_ladder`) needed G3's 1645.6ms median as one input to the
+kernel-loop-speedup rung (T4 vs RTX 5070 Ti); the raw per-trial times behind that median
+were checked against two sources -- everything still on local disk, and the
+`raw-t4-20260812` Release tarball (935 MiB, 1157 files, the most complete T4 raw-telemetry
+archive that exists) -- and are in neither. No script from that era
+(`tests/gate_b7_decomp_overhead.sh`, which produced the RTX 5070 Ti's equivalent
+`overhead_times_interleaved.csv`, is a later, 5070-Ti-only script with no T4 counterpart
+ever written) saved individual trial times to a file; only the summary median was ever
+recorded, in prose. Unlike every other provenance gap this project has closed by rerunning
+the source harness, **there is nothing left to rerun** -- the T4 platform of record
+(g4dn.xlarge, driver 595.71.05) and the original Phase C session are both gone, and
+`results/analysis/RECOVERY_F7_F9_F11.md` (2026-08-16) is the closing record of the search,
+not an open action item. `bandwidth_scaling_ladder.pdf` renders this rung's reported value
+visually distinct (hatched, footnoted "reported, not independently verified here") rather
+than presenting it as equally solid as the ladder's other three rungs, all of which were
+recovered and exact-match their published figures this session.
+
 Items 1-4 all trace back to the same root cause the original ledger correctly identified:
 this project consistently declines to simulate, estimate, or infer missing data rather
 than collect it -- and the T4 GPU work block existed specifically to collect it. Items 5-7

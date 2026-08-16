@@ -198,37 +198,42 @@ each, whether a derived CSV or summary already exists in git alongside it.
 **Not exhaustive** -- this is what was checked with reasonable confidence
 in the time available, not a guarantee nothing else is exposed.
 
-**Confirmed exposed (no committed derived CSV; only markdown prose cites
-numbers from raw data that is gone from git and, for two of these, not
-checked against a release tarball):**
+**UPDATE (follow-up session): #1 and #2 are now recovered, #3 is partially
+recovered.** `tools/analysis/recover_oracle_probe_coalescing_fix.py` and
+`tools/analysis/recover_gate_c_gate_d.py` -- see their docstrings and stdout
+for the full cross-check record. Summary:
 
-1. **`results/phaseB1/oracle_probe/` + `results/phaseB1/oracle_coalesce/`**
-   -- back the "coalesced-probe hit rate jumped 0.0175 -> 0.4107 (23x)"
-   figure in `results/phaseB1/GATE_B_diagnosis.md` and `PIPELINE_VALIDATION.md`.
-   This is the positive-control verification that FIX-1 (the oracle
-   cursor-desync bug, `ARTIFACT_CATALOG.md` #1) actually worked -- a
-   fairly central methodological result with zero committed derived data
-   behind it. Raw `.bin` files ARE present on disk right now (recovered
-   incidentally while extracting the T4 tarball for Task 1/2), so this one
-   is likely a quick follow-up if wanted, just not attempted here (out of
-   this task's declared scope).
-2. **`results/phaseB1/gate_c/{stream_134217728,stream_268435456}.csv`**
-   -- yes, CSVs, but gitignored (`.gitignore`: `results/phaseB1/gate_c/*.csv`).
-   These back `GATE_C_report.md`'s STREAM interleaved-rerun figures (p1
-   -8.8%->+1.5-2.05%, p5 null-worker isolation) -- the finding that led to
-   `exclusion_manifest.csv`'s STREAM rows. The manifest captures the
-   *qualitative* conclusion (drop the STREAM speedup claim) but the
-   per-run dataset behind the specific percentages is not independently
-   reproducible from git. Also recovered on disk during this session's
-   tarball extraction (2 files, in the T4 tarball) -- not converted here.
-3. **`results/phaseB1/gate_d/{stencil,graphbfs,stencil_ovsub}/times.csv`**
-   -- gitignored; only `summary.txt` (regex-parsed text, not a CSV) is
-   committed. Backs `oversub_collapse.pdf` (the pre-existing F4 figure) and
-   `CLAIM_SCOPE.md`'s oversubscription hit-rate-collapse row. `summary.txt`
-   carries the aggregate hit rates `oversub_collapse.py` actually plots, so
-   this is a milder exposure than #1/#2 -- but per-run wall-clock/hit
-   distributions (for e.g. a variance or outlier check) aren't
-   independently auditable from git. Also recovered on disk this session.
+1. **`results/phaseB1/oracle_probe/` + `results/phaseB1/oracle_coalesce/`
+   -- RECOVERED.** Parsed with the standard `"<6Q6I"` batch-record format.
+   The directory names are swapped from the intuitive guess (`oracle_probe/`
+   holds the *serialized* probe, `oracle_coalesce/` the *coalesced* one) --
+   confirmed empirically (avg faults/batch), not assumed from the name.
+   Both rows of `GATE_B_diagnosis.md`'s table reproduce exactly: serialized
+   OLD=0.9922/NEW=0.9922 (published "0.99"/"0.99"), coalesced
+   OLD=0.0175/NEW=0.4107 (published exactly), improvement=23.41x (published
+   "(23x)"). Written to
+   `results/phaseB1/oracle_probe_coalescing_fix_recovered.csv`.
+2. **`results/phaseB1/gate_c/{stream_134217728,stream_268435456}.csv` --
+   RECOVERED.** These were already clean per-cycle CSVs, just gitignored;
+   no parsing needed. p0/p1/p5 medians recomputed and match
+   `GATE_C_report.md`'s published table exactly at both sizes (347.99/
+   355.13/355.12ms and 675.31/687.24/685.74ms). Copied to
+   `results/phaseB1/gate_c_stream_{134217728,268435456}_recovered.csv`.
+3. **`results/phaseB1/gate_d/{stencil,graphbfs,stencil_ovsub}/` --
+   PARTIALLY recovered.** `times.csv` (per-run wall-clock) was already
+   clean and is now copied to `results/phaseB1/gate_d_{stencil,graphbfs,
+   stencil_ovsub}_times_recovered.csv`. The `p0-p4_batch.bin` hit-rate
+   rings, however, do **not** parse with the standard `"<6Q6I"` format --
+   values come out many orders of magnitude wrong (e.g. faults=
+   14,185,906,036,344 vs. `summary.txt`'s published 4,191). This ring
+   predates the standardized batch-record layout used everywhere else in
+   this project, and its correct layout was not identified in the time
+   available. **Left unconverted, not backfilled from `summary.txt`'s
+   prose** -- `oversub_collapse.pdf`'s hit-rate figures remain
+   text-summary-only, not independently reproducible from a committed CSV.
+   This is a genuinely open item (unlike the T4 kernel-loop gap, which is
+   closed/unrecoverable) if someone wants to reverse-engineer the old ring
+   layout later.
 
 **Checked and NOT exposed** (derived CSV already covers what's cited):
 `t_a2_bimodality` (T4 and 5070 Ti -- `bimodality.csv` already has a
