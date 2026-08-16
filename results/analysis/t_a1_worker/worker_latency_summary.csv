@@ -1,0 +1,9 @@
+platform,scale,bench,n,dispatch_median_us,dispatch_p90_us,exec_median_us,exec_p90_us
+T4,full_run,bench_stencil,655355,9438.138,11535.898,9.327,11.881
+T4,full_run,bench_graph_bfs,655355,10606.971,12068.930,10.093,12.728
+T4,short_run,bench_stencil,82261,3198.006,3804.209,2.821,3.092
+T4,short_run,bench_graph_bfs,58852,2579.642,6577.915,2.964,10.186
+5070Ti,full_run,bench_stencil,655355,2306.307,3605.794,2.244,3.316
+5070Ti,full_run,bench_graph_bfs,655355,2274.567,3113.006,2.234,3.576
+5070Ti,short_run,bench_stencil,130878,25.609,334.658,0.401,0.511
+5070Ti,short_run,bench_graph_bfs,74246,60.325,1702.366,0.451,2.885

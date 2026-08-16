@@ -1,8 +1,30 @@
-# F7, F9, F11: not built -- committed-data provenance gaps
+# F7, F9, F11: provenance recovery record
+
+**STATUS UPDATE:** the gaps this document originally reported are now resolved
+(see `results/analysis/RECOVERY_F7_F9_F11.md` for the full recovery record).
+F7, F9, and F11 are now built (`results/figures/dispatch_latency_race.{pdf,png}`,
+`bandwidth_scaling_ladder.{pdf,png}`, `hitrate_vs_speedup.{pdf,png}`) from
+recovered, committed, cross-checked derived CSVs. This file is kept for the
+historical record of what was originally missing and why; the "not built"
+language below describes the state as of the first figure-generation pass,
+before the recovery pass that added `tools/analysis/recover_*.py` /
+`build_*.py` and their output CSVs.
+
+**One gap remains genuinely unrecoverable and is called out explicitly in
+`bandwidth_scaling_ladder`'s own figure (hatched bar, footnoted) rather than
+silently fixed**: the T4-side kernel-loop time behind `PHASEC_REPORT.md`'s
+1645.6ms figure has no raw-trial source on disk or in either release tarball
+checked (`raw-t4-20260812`, `raw-5070ti-phasec-20260813`) -- it predates any
+harness that saved individual trial times to a file. The 5070 Ti side of that
+same rung (369.735ms) IS recovered and exact-matches its published figure.
+
+---
+
+## Original findings (2026-08-16, before recovery)
 
 Per this figure-generation task's policy ("every number must come from a committed CSV
 ... if a value exists only in a markdown report and not in a CSV, say so and do not
-hardcode it"), F7, F9, and F11 as specified cannot be built purely from committed data.
+hardcode it"), F7, F9, and F11 as specified could not be built purely from committed data.
 This documents exactly what's missing and why, so the gap is a recorded fact, not a
 silent omission. F8 (`decomposition_crossplatform`) and F10 (`oversub_threeway`) ARE
 fully CSV-backed and were built -- see their own script docstrings.

@@ -1,0 +1,4 @@
+platform,tag,n,dispatch_median_us,dispatch_p90_us,exec_median_us,exec_p90_us,note
+T4,prefoff_adj,256,5.598,10.864,0.300,0.500,"GATE_A_report.md (results/phaseB1/) -- original Gate A, 254/256, cited dispatch~5.6us/exec~0.35us"
+T4,t4gate2,256,8.478,8.778,0.447,0.473,"GATE_A_report.md (results/analysis/) -- restart/rebuild session, 255/256=99.61%"
+5070Ti,task1_probe,256,5.260,5.360,0.100,0.170,"GATE_B6_TASK1_REBUILD.md / GATE_B6_TASK2_A1_REPLICATION.md -- 255/256=99.61%, dispatch=5.26us/exec=0.10us"

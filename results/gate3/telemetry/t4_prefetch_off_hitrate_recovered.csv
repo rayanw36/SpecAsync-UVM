@@ -1,0 +1,9 @@
+bench,rep,methodology,wall_s,faults,enqueued,drops,hits,hit_rate_pct,fault_rate_per_s
+bench_stencil,1,corrected_marginal_clean,17.22,3237375,2704974,532401,357,0.013198,188000.87
+bench_graph_bfs,1,corrected_marginal_clean,58.14,446165,342953,103212,2986,0.870673,7673.98
+bench_graph_bfs,2,corrected_marginal_clean,58.2,445004,359652,85352,142,0.039483,7646.12
+bench_graph_bfs,3,corrected_marginal_clean,58.53,446415,413336,33079,207,0.050080,7627.11
+bench_graph_bfs,4,corrected_marginal_clean,58.12,445300,373392,71908,175,0.046868,7661.73
+bench_stencil,2,corrected_marginal_lower_bound,15.03,1578202,,,,,105003.46
+bench_stencil,ALL_15_SUMMED,superseded_multicounted,,70655453,50964514,19690939,9933,0.019490,
+bench_graph_bfs,ALL_15_SUMMED,superseded_multicounted,,24918253,20505109,4413144,51569,0.251493,

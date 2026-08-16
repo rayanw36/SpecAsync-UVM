@@ -1,0 +1,5 @@
+rung,t4_value,t4_unit,rtx5070ti_value,rtx5070ti_unit,ratio,source
+pcie_raw_bandwidth,7.877,GB/s,63.015,GB/s,8.000,"results/analysis/platform/{T4,5070TI}_PLATFORM_PROVENANCE.txt"
+kernel_loop_time,,ms,369.735,ms,,T4: UNRECOVERABLE (see note); 5070Ti: results/phaseC/decomp_overhead_5070ti/overhead_times_interleaved.csv
+process_wallclock,4.090,s,1.080,s,3.787,"results/phaseC/paired_wallclock{,_5070ti}/t3_paired_times*.csv"
+dispatch_window_sum,2320404.6,us,987448.2,us,2.350,T4: results/phaseC/paired_wallclock/decomp_stencil_sweep_24000_t3.csv; 5070Ti: results/phaseC/paired_wallclock_5070ti/decomp_sweep_24000_5070ti_t3.csv
