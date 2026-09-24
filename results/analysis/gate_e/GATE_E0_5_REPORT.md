@@ -423,3 +423,164 @@ the module rebuild/reload yourself (via `!`-prefixed commands) and hand me a
 loadable `.ko` to test against, or (c) something else you'd prefer. Your
 call.
 
+---
+
+## Continuation — port to 595.91.07, Step 3, enumeration check
+
+Proceeding on the 5070 Ti per instruction (T4 access unavailable for now).
+This session's commits: `e7de063` (Step 2 + Gate E0/E0.5 reports),
+`dcc301e` (fixed a `*/`-in-comment build break Step 2's own comment
+introduced — see below), and the commit at the end of this section (Step 3 +
+enumeration-parity fix). §1's instruction (commit and push before dropping
+to a console session, because the `gh` credential lives in the keyring and a
+headless session can't push) was followed at every stopping point in this
+section — each push is confirmed by its own `git push` output, not assumed.
+
+### §2 — Port to 595.91.07: mechanical, confirmed before applying anything
+
+Fetched the public `NVIDIA/open-gpu-kernel-modules` repo at both the `595.84`
+and `595.91.07` tags for every file SpecAsync's patches touch or that Gate
+E0.5's fix depends on: `uvm_gpu_replayable_faults.c`, `uvm_va_block.c`,
+`uvm_perf_prefetch.c`, `uvm_va_space.c`, `uvm_va_space.h`, `uvm.c`,
+`nvidia-uvm-sources.Kbuild`. **All seven are byte-identical between the two
+tags** (`diff -q`, confirmed for every file, not sampled). Also confirmed
+this host's installed `/usr/src/nvidia-595.91.07` matches the public
+`595.91.07` tag exactly for the same seven files (same method
+`DRIVER_595_84_PORT_INVESTIGATION.md` used for the 595.84/local comparison).
+
+Direct answers to the three questions asked before applying anything:
+
+- **`service_fault_batch()`'s structure, including the old-2645 dispatch
+  loop and the Gate 1 loop region: unchanged.** The whole file is
+  byte-identical, so there is nothing to re-verify from scratch — Step 2's
+  offset and enumeration reasoning (both derived by reading this exact file)
+  carries over without modification.
+- **Prefetcher threshold/defaults/params (`uvm_perf_prefetch.c`): unchanged.**
+  Byte-identical file. No revision needed to any C0-vs-C1 reasoning on this
+  account.
+- **Fault batching/coalescing (`uvm_va_block.c`): unchanged.** Byte-identical
+  file. *k* (coalesced-faults-per-dispatch-group) should not differ from
+  this cause between 595.84 and 595.91.07.
+
+**The port is mechanical**, confirmed before building, not assumed. Applied
+`driver/scripts/reconstruct_build_tree.sh` with `SRC=/usr/src/nvidia-595.91.07`,
+a new local `WORK` directory (no `/opt/dlami/nvme`, which was AWS-only), and
+`NV_KERNEL_MODULES="nvidia nvidia-uvm nvidia-modeset nvidia-drm nvidia-peermem"`
+(the full 5-module build `GATE_B9_TASK2_REBUILD.md` already established this
+exact 5070 Ti host's kernel needs, for `conftest/` registration — the
+`nvidia-uvm`-alone default fails here with `NV_IS_EXPORT_SYMBOL_GPL_*`
+undefined errors, reproduced once before switching). Glue patch applied
+clean (`patching file nvidia-uvm-sources.Kbuild` / `specasync_internal.h` /
+`uvm.c` / `uvm_va_space.c` / `uvm_va_space.h`, no rejects). Only
+`nvidia-uvm.ko` is ever unloaded/reloaded; `nvidia`/`nvidia-modeset`/
+`nvidia-drm`/`nvidia-peermem` stay whatever the desktop is already running,
+matching the prior session's established procedure.
+
+**One real bug found and fixed during this build, not upstream's fault:**
+Step 2's own new comment contained the literal text `t_b8_*/t_b9_*` — the
+glob wildcard immediately followed by a path separator forms `*/`, which
+closes a C block comment early. The compiler then parsed the rest of the
+comment as code, failing on the apostrophe in
+"`specasync_oracle_next_addr_n()'s existing`" two sentences later
+("missing terminating ' character") and spuriously flagging `family` as an
+unused variable from the same now-uncommented text. Fixed by rewording to
+"the t_b8 and t_b9 script families" (commit `dcc301e`, pushed before this
+paragraph was written).
+
+Both modules built clean, no warnings, against 595.91.07, kernel
+`7.0.0-31-generic` (this host's actual running kernel — vermagic confirms
+it):
+
+| module | source state | srcversion |
+|---|---|---|
+| OLD | git HEAD before Step 2 (`ca4a143`) | `A25B8956A04371E44ED230B` |
+| NEW (post Step 2 + Step 3) | current `driver/src/` | `ACB91A66456F53C974C9DED` |
+
+Saved at `driver/build/595.91.07/nvidia-uvm-specasync-{OLD-preE05,NEW-e0.5fix}.ko`
+(gitignored, per this project's `*.ko` pattern — not committed; reproducible
+from committed source + `reconstruct_build_tree.sh` on any 595.91.07 host).
+**Both are 5070 Ti / driver 595.91.07 only** — noted explicitly per §7's
+instruction, so nothing here gets compared against 595.84-era B5-B10 data
+without that distinction being visible.
+
+### §4 — Enumeration check, finished properly this time
+
+**Static.** Enumerated every skip/early-exit in both loops in
+`service_fault_batch()`:
+
+- Gate 1 (prediction) loop: no `continue`/`break`, one per-iteration skip
+  condition, `if (_fe && _fe->va_space)`.
+- The recording loop Step 2 added: no `continue`/`break`; **originally
+  checked only `if (_te)`, one condition short of Gate 1's.** This is
+  exactly the smaller, harder-to-spot mismatch you warned about: any
+  coalesced-fault entry with a non-NULL pointer but NULL `va_space` would
+  have been recorded but never predicted-on, a real (if probably rare)
+  divergence between the two enumerated sets. `UVM_ASSERT(current_entry->
+  va_space)` at the old trace-push site (and the dispatch loop, unchanged)
+  establishes `va_space` is expected non-NULL for every entry
+  `preprocess_fault_batch()` hands to `service_fault_batch()` by the time
+  either loop runs, which is presumably why Gate 1's own author added the
+  defensive check and why nothing has visibly broken from its absence in
+  30-some fault-handler revisions — but "presumably safe because of an
+  assert elsewhere" is not the same as "provably enumerates the same set,"
+  so the check was added to match Gate 1 exactly: `if (_te && _te-
+  >va_space)`. Now both loops have literally the same skip condition,
+  verifiable by inspection, not by trusting an assert holds. Included in
+  the srcversion `ACB91A66456F53C974C9DED` build above.
+
+**Dynamic** (the stronger check): requires an actual replay run —
+`g_specasync_trace_pushes` (new, `specasync_telemetry.h`) vs.
+`g_specasync_oracle_consumes` (new, `specasync_internal.h`/
+`specasync_debugfs.c`), asserted equal in the same process. Implemented as
+part of Step 3 below; **not yet run** — needs the headless session next.
+
+### Step 3 — implemented (ring capacity, read-path fix, full counter suite)
+
+All required by Step 5's validation (`measured oracle accuracy... by
+decile, zero overwrites`) and by this section's own dynamic check, so
+brought forward from the original plan rather than deferred:
+
+- **`specasync_trace_ring_slots`**, new module param (int, `0444`), default
+  unchanged (`SPECASYNC_TRACE_RING_SLOTS_DEFAULT = 1<<20`, same value as the
+  old compile-time constant). `alloc_trace_ring()` rounds up to a power of
+  two (`roundup_pow_of_two`) since the `head & mask` push path requires it.
+  Every existing non-oversubscribed collection stays under the default, so
+  behavior is unchanged unless a larger value is explicitly requested.
+- **`trace_ring_read()` fixed for chronological order on wrap.** Previously
+  read linearly from physical slot 0 regardless of wrap state (Gate E0 §3's
+  "rotated, not just repeated" finding). Now: below capacity, identical to
+  before (start slot 0); once wrapped, starts at `head % capacity` (the
+  oldest surviving entry) and rotates the two-segment copy accordingly,
+  matching the pattern the other three rings already use for their
+  head/tail bookkeeping.
+- **Counters, all exposed read-only via debugfs, all reset by
+  `specasync_clear`** (matching the existing demand_faults/spec_hits/
+  spec_migrations convention — a clean per-run total, no delta arithmetic):
+  `specasync_trace_pushes`, `specasync_trace_overwrites`,
+  `specasync_oracle_consumes`, `specasync_oracle_wraps`,
+  `specasync_oracle_correct`, `specasync_oracle_predictions`, and
+  `specasync_oracle_{correct,total}_decile{0..9}`.
+- **Accuracy scoring**, in `specasync_oracle_next_addr_n()` (now takes
+  `current_fault_addr` too): each call scores the *previous* call's
+  prediction against the fault being serviced now (one call in arrears,
+  since a prediction can only be checked once the fault it targeted either
+  does or doesn't occur), before computing and storing the new prediction.
+  Decile = predicted position's location within the loaded trace
+  (`predicted_index * 10 / trace_len`), a real-time proxy for "how far into
+  the run" since Step 2 made recording and consumption advance at matching
+  rates (near one full pass per run, not many). Protected by a dedicated
+  spinlock (`g_oracle_score_lock`) separate from `g_oracle_idx`'s atomic,
+  since the three-field last-prediction state is a read-modify-write group,
+  not a single atomic op. `g_oracle_last_pred_valid` is cleared on
+  `specasync_clear` (so a new rep's first fault is never scored against a
+  stale prediction left over from the previous rep); `g_oracle_idx` itself
+  is deliberately left untouched by `specasync_clear`, unchanged from
+  existing behavior.
+- **Wraps counted exactly**, not inferred: `specasync_oracle_next_addr_n()`
+  compares `old/len` before and after each advance (using the raw,
+  un-modulo'd cumulative cursor) and adds the lap difference.
+
+Compiles clean, no warnings (checked by isolating `nvidia-uvm.o`'s rebuild
+and grepping for `warning|error` — none). Not yet run against real telemetry
+— that's the rest of Step 5, next.
+

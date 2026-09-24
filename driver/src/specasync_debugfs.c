@@ -24,6 +24,7 @@
 #include <linux/slab.h>
 #include <linux/uaccess.h>
 #include <linux/vmalloc.h>
+#include <linux/log2.h>
 #include "specasync_telemetry.h"
 #include "specasync_internal.h"
 
@@ -40,12 +41,24 @@ int   specasync_policy            = 1;   /* 1 = adjacent-page */
 int   specasync_offload_depth     = 0;   /* 0 = metadata-only */
 int   specasync_trace_faults      = 0;   /* 0 = disabled; 1 = record demand-fault addrs */
 char *specasync_oracle_trace_path = NULL;
+/*
+ * Gate E0.5 (Step 3): trace-ring capacity as a module parameter. Rounded up
+ * to a power of two at allocation time (alloc_trace_ring()) because the
+ * push path indexes with `head & mask`. 0444: read-only after load, since
+ * the ring is allocated once in specasync_debugfs_init() and never resized.
+ * Default unchanged from the prior compile-time constant
+ * (SPECASYNC_TRACE_RING_SLOTS_DEFAULT, 1<<20) -- every existing
+ * non-oversubscribed collection stays under this, so nothing that already
+ * worked changes behavior.
+ */
+int   specasync_trace_ring_slots  = SPECASYNC_TRACE_RING_SLOTS_DEFAULT;
 
 module_param(specasync_log_enabled,       int,  0644);
 module_param(specasync_policy,            int,  0644);
 module_param(specasync_offload_depth,     int,  0644);
 module_param(specasync_trace_faults,      int,  0644);
 module_param(specasync_oracle_trace_path, charp, 0444);
+module_param(specasync_trace_ring_slots,  int,  0444);
 
 MODULE_PARM_DESC(specasync_log_enabled,
 	"Enable telemetry ring buffers (1=enabled [default], 0=disabled)");
@@ -55,6 +68,36 @@ MODULE_PARM_DESC(specasync_offload_depth,
 	"Offload depth: 0=metadata-only[default] 1=residency-prep 2=stub(unsafe)");
 MODULE_PARM_DESC(specasync_oracle_trace_path,
 	"Path to oracle trace file (u64 array of future fault addresses); policy=4 only");
+MODULE_PARM_DESC(specasync_trace_ring_slots,
+	"Fault-trace ring capacity in u64 entries, rounded up to a power of two (default 1048576)");
+
+/* ── Gate E0.5 counters (defined here, declared extern in specasync_telemetry.h / specasync_internal.h) ── */
+atomic_t g_specasync_trace_pushes           = ATOMIC_INIT(0);
+atomic_t g_specasync_trace_overwrites       = ATOMIC_INIT(0);
+atomic_t g_specasync_oracle_consumes        = ATOMIC_INIT(0);
+atomic_t g_specasync_oracle_wraps           = ATOMIC_INIT(0);
+atomic_t g_specasync_oracle_correct         = ATOMIC_INIT(0);
+atomic_t g_specasync_oracle_predictions     = ATOMIC_INIT(0);
+atomic_t g_specasync_oracle_correct_decile[10];
+atomic_t g_specasync_oracle_total_decile[10];
+
+/*
+ * Gate E0.5 accuracy instrumentation: state for scoring each oracle
+ * prediction against the fault it was made for, one call in arrears (see
+ * specasync_oracle_next_addr_n(), further down this file, which is the
+ * only reader/writer of these three fields). g_oracle_idx's own
+ * atomic_fetch_add serializes callers' *cursor* advances into a total
+ * order, but these three fields are a read-modify-write as a group and
+ * need their own lock -- two concurrent callers could otherwise interleave
+ * a read of g_oracle_last_pred from one call with a write from another.
+ * Declared here (ahead of clear_write(), which resets
+ * g_oracle_last_pred_valid) rather than next to g_oracle_trace/g_oracle_idx
+ * below, purely for C's top-to-bottom declaration order.
+ */
+static u64            g_oracle_last_pred       = 0;
+static int            g_oracle_last_pred_valid = 0;
+static u32            g_oracle_last_pred_pos   = 0;
+static DEFINE_SPINLOCK(g_oracle_score_lock);
 
 /* ── Static debugfs dentries ─────────────────────────────────────────────── */
 
@@ -226,6 +269,34 @@ static ssize_t clear_write(struct file *filp, const char __user *ubuf,
 	atomic_set(&g_specasync_spec_migrations, 0);
 
 	/*
+	 * Gate E0.5: same per-run-clean-total reasoning, for the recording/
+	 * consumption enumeration-parity and accuracy counters. g_oracle_idx
+	 * (the trace replay cursor position) is deliberately NOT reset here,
+	 * unchanged from existing behavior -- only g_oracle_last_pred_valid is
+	 * cleared, so the first prediction scored after a clear is never
+	 * compared against a stale prediction left over from before it.
+	 */
+	atomic_set(&g_specasync_trace_pushes, 0);
+	atomic_set(&g_specasync_trace_overwrites, 0);
+	atomic_set(&g_specasync_oracle_consumes, 0);
+	atomic_set(&g_specasync_oracle_wraps, 0);
+	atomic_set(&g_specasync_oracle_correct, 0);
+	atomic_set(&g_specasync_oracle_predictions, 0);
+	{
+		int _d;
+		for (_d = 0; _d < 10; _d++) {
+			atomic_set(&g_specasync_oracle_correct_decile[_d], 0);
+			atomic_set(&g_specasync_oracle_total_decile[_d], 0);
+		}
+	}
+	{
+		unsigned long _flags;
+		spin_lock_irqsave(&g_oracle_score_lock, _flags);
+		g_oracle_last_pred_valid = 0;
+		spin_unlock_irqrestore(&g_oracle_score_lock, _flags);
+	}
+
+	/*
 	 * Reset head/tail under the lock so the ring appears empty immediately.
 	 * Then zero the backing buffers outside the lock — a 9 MB memset inside
 	 * a spinlock would block hardware IRQs for milliseconds.  New records
@@ -345,7 +416,8 @@ u64 specasync_oracle_next_addr(void)
 EXPORT_SYMBOL_GPL(specasync_oracle_next_addr);
 
 /*
- * specasync_oracle_next_addr_n() — Gate B cursor-sync variant.
+ * specasync_oracle_next_addr_n() — Gate B cursor-sync variant, Gate E0.5
+ * accuracy-scoring variant.
  *
  * Advance the trace cursor by `consumed` (the number of demand faults the
  * current service batch will handle) and return the trace entry the cursor now
@@ -354,10 +426,21 @@ EXPORT_SYMBOL_GPL(specasync_oracle_next_addr);
  * per-batch (advance-by-1) cursor desynced as soon as any batch coalesced more
  * than one fault, so every "prediction" was an already-faulted page.  Still O(1):
  * one atomic add + one array index, no scan.
+ *
+ * Gate E0.5 addition: `current_fault_addr` is the address of the fault being
+ * serviced right now -- i.e. the fault the *previous* call's return value
+ * was a prediction for. Score it before computing the new prediction:
+ * matching means the oracle correctly named this exact next fault. Also
+ * counts total consumes (for the enumeration-parity check against
+ * g_specasync_trace_pushes) and wraps (real count from the un-modulo'd
+ * cumulative advance, not inferred).
  */
-u64 specasync_oracle_next_addr_n(u32 consumed)
+u64 specasync_oracle_next_addr_n(u64 current_fault_addr, u32 consumed)
 {
 	int old, len;
+	u64 next_addr;
+	unsigned long flags;
+	u32 lap_before, lap_after, pred_pos, decile;
 
 	if (!g_oracle_trace || g_oracle_trace_len == 0)
 		return 0;
@@ -365,10 +448,42 @@ u64 specasync_oracle_next_addr_n(u32 consumed)
 		consumed = 1;
 
 	len = (int)g_oracle_trace_len;
+
+	atomic_inc(&g_specasync_oracle_consumes);
+
+	spin_lock_irqsave(&g_oracle_score_lock, flags);
+	if (g_oracle_last_pred_valid) {
+		decile = (u32)(((u64)g_oracle_last_pred_pos * 10) / (u32)len);
+		if (decile > 9)
+			decile = 9;
+		atomic_inc(&g_specasync_oracle_predictions);
+		atomic_inc(&g_specasync_oracle_total_decile[decile]);
+		if (g_oracle_last_pred == current_fault_addr) {
+			atomic_inc(&g_specasync_oracle_correct);
+			atomic_inc(&g_specasync_oracle_correct_decile[decile]);
+		}
+	}
+	spin_unlock_irqrestore(&g_oracle_score_lock, flags);
+
 	/* old = cursor before this batch; cursor becomes old + consumed */
 	old = atomic_fetch_add((int)consumed, &g_oracle_idx);
+
+	lap_before = (u32)old / (u32)len;
+	lap_after  = (u32)(old + (int)consumed) / (u32)len;
+	if (lap_after > lap_before)
+		atomic_add((int)(lap_after - lap_before), &g_specasync_oracle_wraps);
+
+	pred_pos  = ((unsigned)(old + (int)consumed)) % (unsigned)len;
+	next_addr = g_oracle_trace[pred_pos];
+
+	spin_lock_irqsave(&g_oracle_score_lock, flags);
+	g_oracle_last_pred       = next_addr;
+	g_oracle_last_pred_pos   = pred_pos;
+	g_oracle_last_pred_valid = 1;
+	spin_unlock_irqrestore(&g_oracle_score_lock, flags);
+
 	/* Return the first page that will fault after this batch. */
-	return g_oracle_trace[((unsigned)(old + (int)consumed)) % (unsigned)len];
+	return next_addr;
 }
 EXPORT_SYMBOL_GPL(specasync_oracle_next_addr_n);
 
@@ -415,39 +530,92 @@ static int alloc_decomp_ring(void)
 
 static int alloc_trace_ring(void)
 {
-	g_trace_ring.buf = kvmalloc_array(SPECASYNC_TRACE_RING_SLOTS,
-					  sizeof(u64), GFP_KERNEL | __GFP_ZERO);
+	u32 slots = (u32)specasync_trace_ring_slots;
+
+	if (slots < 2)
+		slots = SPECASYNC_TRACE_RING_SLOTS_DEFAULT;
+	slots = roundup_pow_of_two(slots);
+
+	g_trace_ring.buf = kvmalloc_array(slots, sizeof(u64), GFP_KERNEL | __GFP_ZERO);
 	if (!g_trace_ring.buf)
 		return -ENOMEM;
-	g_trace_ring.mask = SPECASYNC_TRACE_RING_SLOTS - 1;
+	g_trace_ring.mask = slots - 1;
 	g_trace_ring.head = 0;
 	spin_lock_init(&g_trace_ring.lock);
+	pr_info("specasync: trace ring allocated: %u slots (%zu bytes)%s\n",
+		slots, (size_t)slots * sizeof(u64),
+		(slots != (u32)specasync_trace_ring_slots) ?
+			" (rounded up to a power of two)" : "");
 	return 0;
 }
 
-/* debugfs read for the fault-address trace ring (flat u64 array, no tail ptr) */
+/*
+ * debugfs read for the fault-address trace ring (flat u64 array, no tail
+ * pointer -- the whole ring is "valid" once head exceeds capacity).
+ *
+ * Gate E0.5 fix: once wrapped, chronological order starts at the OLDEST
+ * surviving slot (head % capacity, the slot about to be overwritten next),
+ * not at physical slot 0. Reading linearly from slot 0 without this
+ * rotation (the prior behavior) returned the right *set* of trailing
+ * entries but in an order rotated by `head % capacity` places relative to
+ * true recording order -- see GATE_E0_REPORT.md Sec. 3 for the original
+ * finding. Below the wrap point (head <= capacity, i.e. every non-
+ * oversubscribed collection today), start_slot is 0 and behavior is
+ * byte-for-byte unchanged from before.
+ */
 static ssize_t trace_ring_read(struct file *filp, char __user *ubuf,
 			       size_t count, loff_t *ppos)
 {
 	struct specasync_trace_ring *r = &g_trace_ring;
-	u32 head;
-	size_t bytes_avail, to_copy;
+	u32 head, capacity, start_slot, avail_slots;
+	size_t bytes_avail, to_copy, pos;
 	unsigned long flags;
 
 	spin_lock_irqsave(&r->lock, flags);
 	head = r->head;
 	spin_unlock_irqrestore(&r->lock, flags);
 
-	/* Clamp to ring size; head may have wrapped beyond one revolution */
-	if (head > SPECASYNC_TRACE_RING_SLOTS)
-		head = SPECASYNC_TRACE_RING_SLOTS;
+	capacity = r->mask + 1;
 
-	bytes_avail = (size_t)head * sizeof(u64);
+	if (head > capacity) {
+		start_slot  = head & r->mask;   /* oldest surviving entry */
+		avail_slots = capacity;
+	} else {
+		start_slot  = 0;
+		avail_slots = head;
+	}
+
+	bytes_avail = (size_t)avail_slots * sizeof(u64);
 	if (*ppos >= (loff_t)bytes_avail)
 		return 0;
+
 	to_copy = min(count, bytes_avail - (size_t)*ppos);
-	if (copy_to_user(ubuf, (u8 *)r->buf + *ppos, to_copy))
-		return -EFAULT;
+	/* Snap to whole u64 entries so the slot-boundary math below stays exact. */
+	to_copy = (to_copy / sizeof(u64)) * sizeof(u64);
+	if (to_copy == 0)
+		return 0;
+	pos = (size_t)*ppos;
+
+	{
+		u32 logical_slot0 = (u32)(pos / sizeof(u64));
+		u32 copy_slots    = (u32)(to_copy / sizeof(u64));
+		u32 phys_slot0    = (start_slot + logical_slot0) & r->mask;
+		u32 first_chunk   = min(copy_slots, capacity - phys_slot0);
+		u32 second_chunk  = copy_slots - first_chunk;
+
+		if (copy_to_user(ubuf,
+				(u8 *)r->buf + (size_t)phys_slot0 * sizeof(u64),
+				(size_t)first_chunk * sizeof(u64)))
+			return -EFAULT;
+
+		if (second_chunk > 0) {
+			if (copy_to_user(ubuf + (size_t)first_chunk * sizeof(u64),
+					(u8 *)r->buf,
+					(size_t)second_chunk * sizeof(u64)))
+				return -EFAULT;
+		}
+	}
+
 	*ppos += to_copy;
 	return (ssize_t)to_copy;
 }
@@ -543,6 +711,46 @@ int specasync_debugfs_init(struct dentry *parent_dentry)
 				&g_specasync_spec_hits);
 	debugfs_create_atomic_t("specasync_spec_migrations", 0444, specasync_dir,
 				&g_specasync_spec_migrations);
+
+	/*
+	 * Gate E0.5: enumeration-parity (trace_pushes vs. oracle_consumes),
+	 * ring-health (trace_overwrites, oracle_wraps), and accuracy
+	 * (oracle_correct / oracle_predictions, overall and by decile of
+	 * predicted position within the trace) counters. See
+	 * GATE_E0_5_REPORT.md for how each is meant to be read.
+	 */
+	debugfs_create_atomic_t("specasync_trace_pushes", 0444, specasync_dir,
+				&g_specasync_trace_pushes);
+	debugfs_create_atomic_t("specasync_trace_overwrites", 0444, specasync_dir,
+				&g_specasync_trace_overwrites);
+	debugfs_create_atomic_t("specasync_oracle_consumes", 0444, specasync_dir,
+				&g_specasync_oracle_consumes);
+	debugfs_create_atomic_t("specasync_oracle_wraps", 0444, specasync_dir,
+				&g_specasync_oracle_wraps);
+	debugfs_create_atomic_t("specasync_oracle_correct", 0444, specasync_dir,
+				&g_specasync_oracle_correct);
+	debugfs_create_atomic_t("specasync_oracle_predictions", 0444, specasync_dir,
+				&g_specasync_oracle_predictions);
+	{
+		static char decile_names[10][40];
+		int _d;
+		for (_d = 0; _d < 10; _d++) {
+			snprintf(decile_names[_d], sizeof(decile_names[_d]),
+				 "specasync_oracle_correct_decile%d", _d);
+			debugfs_create_atomic_t(decile_names[_d], 0444, specasync_dir,
+						&g_specasync_oracle_correct_decile[_d]);
+		}
+	}
+	{
+		static char decile_names2[10][40];
+		int _d;
+		for (_d = 0; _d < 10; _d++) {
+			snprintf(decile_names2[_d], sizeof(decile_names2[_d]),
+				 "specasync_oracle_total_decile%d", _d);
+			debugfs_create_atomic_t(decile_names2[_d], 0444, specasync_dir,
+						&g_specasync_oracle_total_decile[_d]);
+		}
+	}
 
 	if (specasync_policy == 4)
 		specasync_load_oracle_trace();

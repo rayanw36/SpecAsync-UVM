@@ -327,3 +327,38 @@ this project consistently declines to simulate, estimate, or infer missing data 
 than collect it -- and the T4 GPU work block existed specifically to collect it. Items 5-7
 are the same discipline applied one level deeper: report what's now known, flag what
 still isn't, rather than paper over either.
+
+## Platform provenance gap: every 5070 Ti result predates a driver upgrade that removed its own build (Gate E0.5)
+
+**Finding, stated for the record; not chased further here.** `results/analysis/GATE_B5_
+5070TI_REPLICATION.md` through `GATE_B10_REPLICATION.md` (the entire B5-B10 series, plus
+`BIMODALITY_TELEMETRY_MINING.md`, `RATE_MISMATCH_VERIFICATION.md`'s cross-platform checks,
+and every other 5070-Ti-sourced figure in the project) were produced against a SpecAsync
+build for driver **595.84**, srcversion `4488C9F6F75570BB2FB34F8` (and its predecessors).
+As of this session (2026-09-24), this host's installed driver is **595.91.07** -- an
+upgrade that happened at the OS level after the last B-series work, most likely a routine
+update, outside this project's control or awareness at the time. `/usr/src/nvidia-595.84`
+no longer exists (DKMS retains only the currently-installed version's source), and no
+`.ko` built for 595.84 loads against a 595.91.07 `nvidia.ko`/kernel (`vermagic`/symbol
+mismatch). **Every 5070 Ti result in this project's history was, as of this session, not
+re-runnable on its own host** -- not because the data is lost (it is committed and intact)
+but because the exact build that produced it can no longer be reconstructed from this
+machine's currently-installed driver alone.
+
+Gate E0.5 confirmed the underlying stock source is unaffected (`uvm_gpu_replayable_
+faults.c`, `uvm_va_block.c`, `uvm_perf_prefetch.c`, `uvm_va_space.c`/`.h`, `uvm.c`,
+`nvidia-uvm-sources.Kbuild` -- every file SpecAsync's patches touch -- are byte-identical
+between the public `595.84` and `595.91.07` tags, and this host's installed
+`/usr/src/nvidia-595.91.07` matches the public tag exactly) and re-ported cleanly
+(srcversion `A25B8956A04371E44ED230B` pre-Gate-E0.5-fix, `5A9735756EDB93ACE3DE92F`
+post-fix, both `vermagic 7.0.0-31-generic`), so this specific instance of the gap is
+closed as of this session. The general problem is not: nothing in this project's protocol
+pinned or recorded the *host's* driver version as a precondition separate from the
+`.ko`'s own `srcversion`/`vermagic` (which do get recorded, correctly, per run) -- so nobody
+would have noticed the 595.84 build had become unbuildable until someone tried to rebuild
+it, which nobody had reason to do until now. This belongs in the manuscript's
+reproducibility/limitations section and in the repository's artifact description, as a
+concrete argument for pinning driver versions explicitly (not just recording srcversion
+after the fact) in any artifact meant to be re-run later on the same physical machine.
+Also: the manuscript's platform table states 595.84 for this host, which is now stale
+(currently 595.91.07) -- flagged for correction, manuscript not edited here.

@@ -247,7 +247,7 @@ static u64 specasync_predict_next(uvm_va_space_t *va_space, u64 fault_addr,
 		 * demand stream has already passed.  Old code advanced by 1/batch
 		 * and desynced permanently after the first coalesced batch.
 		 */
-		return specasync_oracle_next_addr_n(batch_faults);
+		return specasync_oracle_next_addr_n(fault_addr, batch_faults);
 
 	default:
 		return fault_addr + PAGE_SIZE;
@@ -2678,8 +2678,17 @@ static NV_STATUS service_fault_batch(uvm_parent_gpu_t *parent_gpu,
     if (batch_context->num_coalesced_faults > 0) {
         NvU32 _ti;
         for (_ti = 0; _ti < batch_context->num_coalesced_faults; _ti++) {
+            /*
+             * Per-entry skip condition kept IDENTICAL to the Gate 1 loop
+             * above (`if (_fe && _fe->va_space)`), by construction, not by
+             * inspection alone: this loop and Gate 1 must enumerate the
+             * same set of coalesced faults, or a skip present in one loop
+             * and not the other reproduces this fix's own defect at a
+             * smaller, harder-to-notice ratio. See GATE_E0_5_REPORT.md,
+             * "enumeration check" section.
+             */
             uvm_fault_buffer_entry_t *_te = batch_context->ordered_fault_cache[_ti];
-            if (_te)
+            if (_te && _te->va_space)
                 specasync_trace_push(_te->fault_address);
         }
     }

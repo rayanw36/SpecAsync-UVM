@@ -360,31 +360,67 @@ static inline int specasync_hit_table_consume(struct specasync_hit_table *ht,
  *
  * Captures demand-fault addresses in service order for oracle trace files.
  * Enable with module param specasync_trace_faults=1.
- * 1M slots × 8 B = 8 MB; ring wraps (old data overwritten).
+ * Default 1M slots x 8 B = 8 MB; ring wraps (old data overwritten).
+ *
+ * Gate E0.5 (Step 3): capacity is now a module parameter
+ * (specasync_trace_ring_slots, 0444 -- read-only after load, since the ring
+ * is sized once at specasync_debugfs_init()), rounded up to a power of two
+ * at allocation time because the `head & mask` push path requires it. This
+ * default is unchanged from the original compile-time constant, so every
+ * existing non-oversubscribed collection (well under 1M entries) behaves
+ * identically; only runs that need a larger trace (e.g. Stencil-24K's
+ * ~3.24M coalesced faults/run after the Gate E0.5 recording-granularity fix)
+ * need to pass a larger value at insmod time.
  */
-#define SPECASYNC_TRACE_RING_SLOTS  (1U << 20)
+#define SPECASYNC_TRACE_RING_SLOTS_DEFAULT  (1U << 20)
 
 struct specasync_trace_ring {
 	u64        *buf;   /* kvmalloc'd at init */
 	u32         head;
-	u32         mask;
+	u32         mask;  /* capacity - 1; capacity = mask + 1, always power of 2 */
 	spinlock_t  lock;
 };
 
 extern struct specasync_trace_ring g_trace_ring;
 extern int specasync_trace_faults;
 
+/*
+ * g_specasync_trace_pushes -- total specasync_trace_push() calls this run
+ * that actually wrote a slot (i.e. specasync_trace_faults was on and the
+ * ring existed), independent of ring capacity/wrap. Compare against
+ * g_specasync_oracle_consumes (specasync_debugfs.c) on a REPLAY run (same
+ * process, same module load) as the enumeration-parity check: the two
+ * loops that produce/consume trace entries are supposed to enumerate the
+ * same set of coalesced faults, so pushes == consumes (+/- a handful for
+ * in-flight state) confirms it; any large deviation means one loop is
+ * skipping faults the other isn't. See GATE_E0_5_REPORT.md.
+ *
+ * g_specasync_trace_overwrites -- pushes that landed on a slot already
+ * written earlier THIS run (i.e. push count already exceeded ring
+ * capacity at push time). The trace ring has no drop-on-full behavior by
+ * design (it's meant to hold the trailing window under oversubscription),
+ * so "overwrite" here means exactly what Gate E0 Sec. 3/7 described:
+ * the recorded trace is shorter than the run and repeats.
+ */
+extern atomic_t g_specasync_trace_pushes;
+extern atomic_t g_specasync_trace_overwrites;
+
 static inline void specasync_trace_push(u64 va_addr)
 {
 	struct specasync_trace_ring *r = &g_trace_ring;
 	unsigned long flags;
+	u32 capacity;
 
 	if (!specasync_trace_faults || !r->buf)
 		return;
 	spin_lock_irqsave(&r->lock, flags);
+	capacity = r->mask + 1;
+	if (r->head >= capacity)
+		atomic_inc(&g_specasync_trace_overwrites);
 	r->buf[r->head & r->mask] = va_addr;
 	r->head++;
 	spin_unlock_irqrestore(&r->lock, flags);
+	atomic_inc(&g_specasync_trace_pushes);
 }
 
 #endif /* SPECASYNC_TELEMETRY_H */
