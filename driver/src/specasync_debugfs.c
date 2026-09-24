@@ -25,6 +25,8 @@
 #include <linux/uaccess.h>
 #include <linux/vmalloc.h>
 #include <linux/log2.h>
+#include <linux/sort.h>
+#include <linux/bsearch.h>
 #include "specasync_telemetry.h"
 #include "specasync_internal.h"
 
@@ -65,6 +67,18 @@ int   specasync_trace_ring_slots  = SPECASYNC_TRACE_RING_SLOTS_DEFAULT;
  */
 int   specasync_log_replay_order        = 0;
 int   specasync_replay_order_ring_slots = SPECASYNC_REPLAY_ORDER_RING_SLOTS_DEFAULT;
+/*
+ * Gate E0.9: first-touch oracle (policy 6). specasync_ft_table_path points
+ * at a table built by tests/prepare_first_touch_table.py; loaded only when
+ * specasync_policy == SPECASYNC_POLICY_FIRST_TOUCH at init time, mirroring
+ * how specasync_oracle_trace_path/policy 4 already works.
+ * specasync_ft_lookahead is L, the module parameter the whole of Gate E0.9b
+ * sweeps; default 1 (predict at most one rank ahead of demand).
+ */
+char *specasync_ft_table_path      = NULL;
+int   specasync_ft_lookahead       = 1;
+int   specasync_log_ft_predictions = 0;
+int   specasync_ft_log_ring_slots  = SPECASYNC_REPLAY_ORDER_RING_SLOTS_DEFAULT;
 
 module_param(specasync_log_enabled,       int,  0644);
 module_param(specasync_policy,            int,  0644);
@@ -74,6 +88,10 @@ module_param(specasync_oracle_trace_path, charp, 0444);
 module_param(specasync_trace_ring_slots,  int,  0444);
 module_param(specasync_log_replay_order,        int, 0644);
 module_param(specasync_replay_order_ring_slots, int, 0444);
+module_param(specasync_ft_table_path,      charp, 0444);
+module_param(specasync_ft_lookahead,       int,   0444);
+module_param(specasync_log_ft_predictions, int,   0644);
+module_param(specasync_ft_log_ring_slots,  int,   0444);
 
 MODULE_PARM_DESC(specasync_log_enabled,
 	"Enable telemetry ring buffers (1=enabled [default], 0=disabled)");
@@ -89,6 +107,14 @@ MODULE_PARM_DESC(specasync_log_replay_order,
 	"Gate E0.7 diagnostic: log actual replay fault-address order (0=off [default], 1=on)");
 MODULE_PARM_DESC(specasync_replay_order_ring_slots,
 	"Gate E0.7 diagnostic replay-order ring capacity, rounded up to a power of two (default 1048576)");
+MODULE_PARM_DESC(specasync_ft_table_path,
+	"Path to first-touch table (tests/prepare_first_touch_table.py output); policy=6 only");
+MODULE_PARM_DESC(specasync_ft_lookahead,
+	"Gate E0.9: policy 6 lookahead L in ranks (default 1)");
+MODULE_PARM_DESC(specasync_log_ft_predictions,
+	"Gate E0.9 diagnostic: log (seq,rank) per policy-6 prediction (0=off [default], 1=on)");
+MODULE_PARM_DESC(specasync_ft_log_ring_slots,
+	"Gate E0.9 diagnostic ft-log ring capacity, rounded up to a power of two (default 1048576)");
 
 /* ── Gate E0.5 counters (defined here, declared extern in specasync_telemetry.h / specasync_internal.h) ── */
 atomic_t g_specasync_trace_pushes           = ATOMIC_INIT(0);
@@ -99,6 +125,14 @@ atomic_t g_specasync_oracle_correct         = ATOMIC_INIT(0);
 atomic_t g_specasync_oracle_predictions     = ATOMIC_INIT(0);
 atomic_t g_specasync_oracle_correct_decile[10];
 atomic_t g_specasync_oracle_total_decile[10];
+
+/* Gate E0.9: first-touch oracle (policy 6) counters and diagnostic ring. */
+atomic_t g_specasync_ft_predictions   = ATOMIC_INIT(0);
+atomic_t g_specasync_ft_skipped       = ATOMIC_INIT(0);
+atomic_t g_specasync_ft_held          = ATOMIC_INIT(0);
+atomic_t g_specasync_ft_unknown_page  = ATOMIC_INIT(0);
+atomic_t g_specasync_ft_exhausted     = ATOMIC_INIT(0);
+struct specasync_trace_ring g_ft_log_ring;
 
 /*
  * Gate E0.5 accuracy instrumentation: state for scoring each oracle
@@ -118,6 +152,33 @@ static int            g_oracle_last_pred_valid = 0;
 static u32            g_oracle_last_pred_pos   = 0;
 static DEFINE_SPINLOCK(g_oracle_score_lock);
 
+/* Gate E0.9: sorted (page, rank) entry for bsearch(), built from g_ft_table at load time. */
+struct specasync_ft_sorted_entry {
+	u64 page;
+	u32 rank;
+	u32 _pad;
+};
+
+/*
+ * Gate E0.9: first-touch oracle (policy 6) state. g_ft_next_to_predict is
+ * the algorithm's cursor (monotonic, never decreasing -- see
+ * specasync_ft_predict()). Declared as atomic_t per instruction even though
+ * service_fault_batch() -> the Gate 1 prediction loop -> specasync_predict_next()
+ * is, on this codebase's structure, called from a single per-GPU fault-
+ * servicing context (uvm_parent_gpu_service_replayable_faults(), one
+ * caller at a time per parent GPU) -- true single-GPU serialization is
+ * expected but not independently proven for multi-GPU systems, so the
+ * cursor read-modify-write is still protected by g_ft_cursor_lock rather
+ * than relying on atomic_t's single-op guarantees alone (the skip-then-
+ * predict decision is a multi-step sequence, not a single atomic op).
+ */
+static u64                          *g_ft_table       = NULL;  /* rank -> page, vmalloc'd */
+static u32                           g_ft_table_len   = 0;
+static struct specasync_ft_sorted_entry *g_ft_sorted  = NULL;  /* page-sorted, vmalloc'd */
+static atomic_t                      g_ft_next_to_predict = ATOMIC_INIT(0);
+static atomic_t                      g_ft_seq             = ATOMIC_INIT(0);
+static DEFINE_SPINLOCK(g_ft_cursor_lock);
+
 /* ── Static debugfs dentries ─────────────────────────────────────────────── */
 
 static struct dentry *specasync_dir;
@@ -127,6 +188,7 @@ static struct dentry *dentry_clear;
 static struct dentry *dentry_fault_trace;
 static struct dentry *dentry_decomp_log;
 static struct dentry *dentry_replay_order;
+static struct dentry *dentry_ft_log;
 
 /* ── Ring-buffer read helper ─────────────────────────────────────────────── */
 
@@ -321,6 +383,30 @@ static ssize_t clear_write(struct file *filp, const char __user *ubuf,
 		spin_lock_irqsave(&g_replay_order_ring.lock, _flags);
 		g_replay_order_ring.head = 0;
 		spin_unlock_irqrestore(&g_replay_order_ring.lock, _flags);
+	}
+	/*
+	 * Gate E0.9: first-touch oracle counters and cursor reset the same way
+	 * -- a clean per-run total, and next_to_predict restarts at 0 so a new
+	 * rep's first fault maps to rank 0 again, matching that rep's own fresh
+	 * process launch (unlike g_oracle_idx, which this project's existing
+	 * convention leaves un-reset across reps of the same module load).
+	 */
+	atomic_set(&g_specasync_ft_predictions, 0);
+	atomic_set(&g_specasync_ft_skipped, 0);
+	atomic_set(&g_specasync_ft_held, 0);
+	atomic_set(&g_specasync_ft_unknown_page, 0);
+	atomic_set(&g_specasync_ft_exhausted, 0);
+	{
+		unsigned long _flags;
+		spin_lock_irqsave(&g_ft_cursor_lock, _flags);
+		atomic_set(&g_ft_next_to_predict, 0);
+		spin_unlock_irqrestore(&g_ft_cursor_lock, _flags);
+	}
+	{
+		unsigned long _flags;
+		spin_lock_irqsave(&g_ft_log_ring.lock, _flags);
+		g_ft_log_ring.head = 0;
+		spin_unlock_irqrestore(&g_ft_log_ring.lock, _flags);
 	}
 
 	/*
@@ -517,6 +603,194 @@ u64 specasync_oracle_next_addr_n(u64 current_fault_addr, u32 consumed)
 }
 EXPORT_SYMBOL_GPL(specasync_oracle_next_addr_n);
 
+/* ── Gate E0.9: first-touch oracle (policy 6) ────────────────────────────── */
+
+#define SPECASYNC_FT_TABLE_MAGIC 0x3145545454465350ULL
+
+static int cmp_ft_sorted_entry(const void *a, const void *b)
+{
+	const struct specasync_ft_sorted_entry *ea = a, *eb = b;
+
+	if (ea->page < eb->page)
+		return -1;
+	if (ea->page > eb->page)
+		return 1;
+	return 0;
+}
+
+static int cmp_ft_bsearch_key(const void *key, const void *elt)
+{
+	u64 k = *(const u64 *)key;
+	const struct specasync_ft_sorted_entry *e = elt;
+
+	if (k < e->page)
+		return -1;
+	if (k > e->page)
+		return 1;
+	return 0;
+}
+
+/*
+ * Load a first-touch table built by tests/prepare_first_touch_table.py:
+ *   u64 magic, u64 count, u64 first_touch[count]   (rank -> page)
+ * Builds the sorted (page, rank) lookup array via the kernel's sort() --
+ * this file does not trust a second, independently-derived sorted copy
+ * from userspace; there is exactly one source of truth (first_touch[]) and
+ * one place it gets sorted.
+ */
+static int specasync_load_ft_table(void)
+{
+	struct file *filp;
+	loff_t size;
+	ssize_t ret;
+	u64 header[2];
+	u64 magic, count;
+	u32 i;
+
+	if (!specasync_ft_table_path || !*specasync_ft_table_path)
+		return 0;
+
+	filp = filp_open(specasync_ft_table_path, O_RDONLY, 0);
+	if (IS_ERR(filp)) {
+		pr_warn("specasync: cannot open first-touch table %s: %ld\n",
+			specasync_ft_table_path, PTR_ERR(filp));
+		return PTR_ERR(filp);
+	}
+
+	size = i_size_read(file_inode(filp));
+	if (size < (loff_t)sizeof(header)) {
+		pr_warn("specasync: first-touch table too small (%lld bytes)\n",
+			(long long)size);
+		filp_close(filp, NULL);
+		return -EINVAL;
+	}
+
+	{
+		loff_t off = 0;
+
+		ret = kernel_read(filp, header, sizeof(header), &off);
+	}
+	if (ret != sizeof(header)) {
+		pr_warn("specasync: first-touch table header short read\n");
+		filp_close(filp, NULL);
+		return -EIO;
+	}
+	magic = header[0];
+	count = header[1];
+	if (magic != SPECASYNC_FT_TABLE_MAGIC) {
+		pr_warn("specasync: first-touch table bad magic %llx\n",
+			(unsigned long long)magic);
+		filp_close(filp, NULL);
+		return -EINVAL;
+	}
+	if (size != (loff_t)(sizeof(header) + count * sizeof(u64))) {
+		pr_warn("specasync: first-touch table size mismatch (count=%llu size=%lld)\n",
+			(unsigned long long)count, (long long)size);
+		filp_close(filp, NULL);
+		return -EINVAL;
+	}
+
+	g_ft_table = vmalloc(count * sizeof(u64));
+	if (!g_ft_table) {
+		filp_close(filp, NULL);
+		return -ENOMEM;
+	}
+	{
+		loff_t off = sizeof(header);
+
+		ret = kernel_read(filp, g_ft_table, count * sizeof(u64), &off);
+	}
+	filp_close(filp, NULL);
+	if (ret != (ssize_t)(count * sizeof(u64))) {
+		vfree(g_ft_table);
+		g_ft_table = NULL;
+		pr_warn("specasync: first-touch table short read\n");
+		return -EIO;
+	}
+	g_ft_table_len = (u32)count;
+
+	g_ft_sorted = vmalloc((size_t)g_ft_table_len * sizeof(struct specasync_ft_sorted_entry));
+	if (!g_ft_sorted) {
+		vfree(g_ft_table);
+		g_ft_table = NULL;
+		g_ft_table_len = 0;
+		return -ENOMEM;
+	}
+	for (i = 0; i < g_ft_table_len; i++) {
+		g_ft_sorted[i].page = g_ft_table[i];
+		g_ft_sorted[i].rank = i;
+		g_ft_sorted[i]._pad = 0;
+	}
+	sort(g_ft_sorted, g_ft_table_len, sizeof(struct specasync_ft_sorted_entry),
+	     cmp_ft_sorted_entry, NULL);
+
+	atomic_set(&g_ft_next_to_predict, 0);
+	pr_info("specasync: first-touch table loaded: %u distinct pages, lookahead=%d\n",
+		g_ft_table_len, specasync_ft_lookahead);
+	return 0;
+}
+
+/*
+ * specasync_ft_predict() — policy 6. See specasync_internal.h and
+ * GATE_E0_9_REPORT.md for the algorithm and its accuracy-by-construction
+ * rationale. fault_addr is expected page-aligned already (verified from
+ * source; see tests/prepare_first_touch_table.py's docstring) -- masked
+ * again here anyway, defensively, since a wrong page lookup here would
+ * silently mispredict rather than fail loudly.
+ */
+u64 specasync_ft_predict(u64 fault_addr)
+{
+	u64 page = fault_addr & ~((u64)PAGE_SIZE - 1);
+	struct specasync_ft_sorted_entry *found;
+	unsigned long flags;
+	u32 r, old_next, my_seq;
+	u64 result = 0;
+	bool did_predict = false;
+
+	if (!g_ft_table || g_ft_table_len == 0)
+		return 0;
+
+	my_seq = (u32)atomic_fetch_inc(&g_ft_seq);
+
+	found = bsearch(&page, g_ft_sorted, g_ft_table_len,
+			sizeof(struct specasync_ft_sorted_entry), cmp_ft_bsearch_key);
+	if (!found) {
+		atomic_inc(&g_specasync_ft_unknown_page);
+		return 0;
+	}
+	r = found->rank;
+
+	spin_lock_irqsave(&g_ft_cursor_lock, flags);
+
+	old_next = (u32)atomic_read(&g_ft_next_to_predict);
+	if (old_next <= r) {
+		u32 skipped = r + 1 - old_next;
+
+		atomic_add((int)skipped, &g_specasync_ft_skipped);
+		atomic_set(&g_ft_next_to_predict, (int)(r + 1));
+		old_next = r + 1;
+	}
+
+	if (old_next >= g_ft_table_len) {
+		atomic_inc(&g_specasync_ft_exhausted);
+	} else if (old_next <= r + (u32)specasync_ft_lookahead) {
+		result = g_ft_table[old_next];
+		atomic_set(&g_ft_next_to_predict, (int)(old_next + 1));
+		atomic_inc(&g_specasync_ft_predictions);
+		did_predict = true;
+	} else {
+		atomic_inc(&g_specasync_ft_held);
+	}
+
+	spin_unlock_irqrestore(&g_ft_cursor_lock, flags);
+
+	if (did_predict)
+		specasync_ft_log_push(my_seq, old_next);
+
+	return result;
+}
+EXPORT_SYMBOL_GPL(specasync_ft_predict);
+
 /* ── Ring buffer allocation / deallocation ───────────────────────────────── */
 
 static int alloc_batch_ring(void)
@@ -701,6 +975,40 @@ static const struct file_operations replay_order_ring_fops = {
 	.llseek = default_llseek,
 };
 
+/* Gate E0.9: mirrors alloc_replay_order_ring() for the (seq,rank) prediction log. */
+static int alloc_ft_log_ring(void)
+{
+	u32 slots = (u32)specasync_ft_log_ring_slots;
+
+	if (slots < 2)
+		slots = SPECASYNC_REPLAY_ORDER_RING_SLOTS_DEFAULT;
+	slots = roundup_pow_of_two(slots);
+
+	g_ft_log_ring.buf = kvmalloc_array(slots, sizeof(u64), GFP_KERNEL | __GFP_ZERO);
+	if (!g_ft_log_ring.buf)
+		return -ENOMEM;
+	g_ft_log_ring.mask = slots - 1;
+	g_ft_log_ring.head = 0;
+	spin_lock_init(&g_ft_log_ring.lock);
+	pr_info("specasync: first-touch prediction-log ring allocated: %u slots (%zu bytes)%s\n",
+		slots, (size_t)slots * sizeof(u64),
+		(slots != (u32)specasync_ft_log_ring_slots) ?
+			" (rounded up to a power of two)" : "");
+	return 0;
+}
+
+static ssize_t ft_log_ring_read(struct file *filp, char __user *ubuf,
+				size_t count, loff_t *ppos)
+{
+	return generic_trace_ring_read(&g_ft_log_ring, ubuf, count, ppos);
+}
+
+static const struct file_operations ft_log_ring_fops = {
+	.owner  = THIS_MODULE,
+	.read   = ft_log_ring_read,
+	.llseek = default_llseek,
+};
+
 /* ── Public init / exit ──────────────────────────────────────────────────── */
 
 /*
@@ -736,6 +1044,10 @@ int specasync_debugfs_init(struct dentry *parent_dentry)
 	if (ret)
 		goto err_replay_order;
 
+	ret = alloc_ft_log_ring();
+	if (ret)
+		goto err_ft_log;
+
 	specasync_dir = debugfs_create_dir("specasync", parent_dentry);
 	if (IS_ERR_OR_NULL(specasync_dir)) {
 		ret = specasync_dir ? PTR_ERR(specasync_dir) : -ENOMEM;
@@ -760,13 +1072,17 @@ int specasync_debugfs_init(struct dentry *parent_dentry)
 	dentry_replay_order = debugfs_create_file("specasync_replay_order", 0444,
 						  specasync_dir, NULL,
 						  &replay_order_ring_fops);
+	dentry_ft_log = debugfs_create_file("specasync_ft_log", 0444,
+					    specasync_dir, NULL,
+					    &ft_log_ring_fops);
 
 	if (IS_ERR_OR_NULL(dentry_batch_log) ||
 	    IS_ERR_OR_NULL(dentry_worker_log) ||
 	    IS_ERR_OR_NULL(dentry_clear) ||
 	    IS_ERR_OR_NULL(dentry_fault_trace) ||
 	    IS_ERR_OR_NULL(dentry_decomp_log) ||
-	    IS_ERR_OR_NULL(dentry_replay_order)) {
+	    IS_ERR_OR_NULL(dentry_replay_order) ||
+	    IS_ERR_OR_NULL(dentry_ft_log)) {
 		ret = -EIO;
 		goto err_files;
 	}
@@ -835,8 +1151,26 @@ int specasync_debugfs_init(struct dentry *parent_dentry)
 		}
 	}
 
+	/*
+	 * Gate E0.9: first-touch oracle (policy 6) counters. accuracy-by-
+	 * construction means these describe timeliness/coverage, not
+	 * correctness -- see GATE_E0_9_REPORT.md.
+	 */
+	debugfs_create_atomic_t("specasync_ft_predictions", 0444, specasync_dir,
+				&g_specasync_ft_predictions);
+	debugfs_create_atomic_t("specasync_ft_skipped", 0444, specasync_dir,
+				&g_specasync_ft_skipped);
+	debugfs_create_atomic_t("specasync_ft_held", 0444, specasync_dir,
+				&g_specasync_ft_held);
+	debugfs_create_atomic_t("specasync_ft_unknown_page", 0444, specasync_dir,
+				&g_specasync_ft_unknown_page);
+	debugfs_create_atomic_t("specasync_ft_exhausted", 0444, specasync_dir,
+				&g_specasync_ft_exhausted);
+
 	if (specasync_policy == 4)
 		specasync_load_oracle_trace();
+	if (specasync_policy == SPECASYNC_POLICY_FIRST_TOUCH)
+		specasync_load_ft_table();
 
 	pr_info("specasync: init OK  log_enabled=%d policy=%d offload_depth=%d decomp=%d\n",
 		specasync_log_enabled, specasync_policy, specasync_offload_depth,
@@ -846,6 +1180,9 @@ int specasync_debugfs_init(struct dentry *parent_dentry)
 err_files:
 	debugfs_remove_recursive(specasync_dir);
 err_dir:
+	kvfree(g_ft_log_ring.buf);
+	g_ft_log_ring.buf = NULL;
+err_ft_log:
 	kvfree(g_replay_order_ring.buf);
 	g_replay_order_ring.buf = NULL;
 err_replay_order:
@@ -885,9 +1222,22 @@ void specasync_debugfs_exit(void)
 	kvfree(g_replay_order_ring.buf);
 	g_replay_order_ring.buf = NULL;
 
+	kvfree(g_ft_log_ring.buf);
+	g_ft_log_ring.buf = NULL;
+
 	if (g_oracle_trace) {
 		vfree(g_oracle_trace);
 		g_oracle_trace = NULL;
 	}
+
+	if (g_ft_table) {
+		vfree(g_ft_table);
+		g_ft_table = NULL;
+	}
+	if (g_ft_sorted) {
+		vfree(g_ft_sorted);
+		g_ft_sorted = NULL;
+	}
+	g_ft_table_len = 0;
 }
 EXPORT_SYMBOL_GPL(specasync_debugfs_exit);

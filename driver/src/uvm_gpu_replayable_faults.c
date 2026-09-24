@@ -249,6 +249,17 @@ static u64 specasync_predict_next(uvm_va_space_t *va_space, u64 fault_addr,
 		 */
 		return specasync_oracle_next_addr_n(fault_addr, batch_faults);
 
+	case 6: /* first-touch oracle -- Gate E0.9. Accuracy-by-construction:
+		 * the table is this run's own first-touch order, so there is no
+		 * cross-run alignment question (unlike policy 4). Returns 0 (no
+		 * prediction this fault) whenever the cursor is held back by
+		 * specasync_ft_lookahead, the page is unknown to the table, or
+		 * the table is exhausted -- all three are normal, frequent,
+		 * intended outcomes here, not error paths; see
+		 * specasync_ft_predict() and its ft_* counters.
+		 */
+		return specasync_ft_predict(fault_addr);
+
 	default:
 		return fault_addr + PAGE_SIZE;
 	}

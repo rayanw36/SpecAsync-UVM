@@ -93,6 +93,16 @@ struct specasync_work_record {
 #define SPECASYNC_POLICY_MARKOV   3
 #define SPECASYNC_POLICY_ORACLE   4
 #define SPECASYNC_POLICY_NULL     5   /* Gate C: worker wakes/dequeues, no lookup */
+/*
+ * Gate E0.9: the gate's own brief specified "policy 5" for the first-touch
+ * oracle -- policy 5 was already SPECASYNC_POLICY_NULL (the Gate C
+ * worker-presence control, used by artifact #3's STREAM investigation and
+ * elsewhere). Reusing 5 would silently corrupt that control for every
+ * historical and future script that passes specasync_policy=5 expecting
+ * "no lookup." Using 6 instead; flagged here and in GATE_E0_9_REPORT.md
+ * rather than complying with the literal instruction.
+ */
+#define SPECASYNC_POLICY_FIRST_TOUCH 6
 
 /* ── Phase C dispatch-window decomposition record (112 bytes, '<12Q4I') ─────
  *
@@ -451,6 +461,50 @@ static inline void specasync_replay_order_push(u64 va_addr)
 		return;
 	spin_lock_irqsave(&r->lock, flags);
 	r->buf[r->head & r->mask] = va_addr;
+	r->head++;
+	spin_unlock_irqrestore(&r->lock, flags);
+}
+
+/* ── Gate E0.9: first-touch oracle (policy 6) ───────────────────────────────
+ *
+ * Counters, all reset by specasync_clear, all exposed read-only via debugfs:
+ *   ft_predictions   -- coalesced faults for which a prediction was emitted.
+ *   ft_skipped       -- ranks the cursor jumped over because a page ahead of
+ *                        it was first-touched before speculation reached it
+ *                        (demand outran the oracle for those specific ranks).
+ *   ft_held          -- coalesced faults where a valid next rank exists but
+ *                        lies beyond next_to_predict + L (lookahead cap), so
+ *                        nothing was predicted this fault.
+ *   ft_unknown_page   -- coalesced faults on a page absent from the loaded
+ *                        first-touch table entirely (table/run mismatch).
+ *   ft_exhausted     -- coalesced faults after the cursor reached the end of
+ *                        the table (every distinct page already predicted).
+ *
+ * Prediction log (opt-in, specasync_log_ft_predictions, reuses the E0.7
+ * diagnostic ring machinery): one u64 per prediction, packing the policy-6-
+ * local call sequence number (high 32 bits) and the predicted rank (low 32
+ * bits) -- both comfortably fit 32 bits for every workload in this project
+ * (millions of faults, ~1.1M distinct pages at most).
+ */
+extern atomic_t g_specasync_ft_predictions;
+extern atomic_t g_specasync_ft_skipped;
+extern atomic_t g_specasync_ft_held;
+extern atomic_t g_specasync_ft_unknown_page;
+extern atomic_t g_specasync_ft_exhausted;
+
+extern struct specasync_trace_ring g_ft_log_ring;
+extern int specasync_log_ft_predictions;
+
+static inline void specasync_ft_log_push(u32 seq, u32 rank)
+{
+	struct specasync_trace_ring *r = &g_ft_log_ring;
+	unsigned long flags;
+	u64 packed = ((u64)seq << 32) | (u64)rank;
+
+	if (!specasync_log_ft_predictions || !r->buf)
+		return;
+	spin_lock_irqsave(&r->lock, flags);
+	r->buf[r->head & r->mask] = packed;
 	r->head++;
 	spin_unlock_irqrestore(&r->lock, flags);
 }

@@ -100,4 +100,20 @@ u64  specasync_oracle_next_addr(void);
  */
 u64  specasync_oracle_next_addr_n(u64 current_fault_addr, u32 consumed);
 
+/*
+ * Gate E0.9: first-touch oracle (policy 6). Accuracy-by-construction --
+ * the table is built from the same run's own first-touch order, so there
+ * is no cross-run alignment question at all; only timeliness (governed by
+ * specasync_ft_lookahead, L) is free to vary. See GATE_E0_9_REPORT.md.
+ *
+ * fault_addr must already be page-aligned (true for every fault_address
+ * reaching this call today -- verified from source, see
+ * tests/prepare_first_touch_table.py's docstring). Returns the predicted
+ * VA address, or 0 if nothing should be predicted for this fault (unknown
+ * page, held back by lookahead, or table exhausted -- see the ft_* counters
+ * in specasync_telemetry.h for which).
+ */
+u64  specasync_ft_predict(u64 fault_addr);
+extern int specasync_ft_lookahead;
+
 #endif /* SPECASYNC_INTERNAL_H */
