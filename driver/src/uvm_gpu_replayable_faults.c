@@ -2640,6 +2640,50 @@ static NV_STATUS service_fault_batch(uvm_parent_gpu_t *parent_gpu,
         }
     }
 
+    /*
+     * Gate E0.5 fix: record the demand-fault trace at the same granularity
+     * the oracle cursor consumes it -- once per coalesced fault, not once
+     * per va-block dispatch group.  Previously specasync_trace_push() sat
+     * inside the loop below and fired once per dispatch group (potentially
+     * many coalesced faults collapsed into one va_block service call), while
+     * specasync_oracle_next_addr_n() (called from the Gate 1 loop above,
+     * batch_faults=1 per coalesced fault) advanced the cursor once per
+     * coalesced fault -- a workload-dependent rate mismatch (measured ~11.7x
+     * on Stencil-24K, ~2.1x on GraphBFS-23; see GATE_E0_REPORT.md sec.7,
+     * GATE_E0_5_REPORT.md) that made every real-workload oracle trace wrap
+     * and repeat many times over during a single replay, independent of
+     * ring capacity.
+     *
+     * Deliberately a SEPARATE loop, not merged into the Gate 1 loop above:
+     * this call is gated only by specasync_trace_faults (checked inside
+     * specasync_trace_push() itself), NOT by specasync_log_enabled.  Every
+     * real trace-collection script in this project
+     * (t1_gate3_interleaved.sh, gate3_favorable_run.sh, t_a2_bimodality.sh,
+     * the t_b8_*/t_b9_* family, etc.) runs collection with
+     * specasync_log_enabled=0 specasync_trace_faults=1 specifically so the
+     * batch/work/decomp telemetry rings and the Gate 1 prediction/enqueue
+     * path stay off during collection (no speculative activity to
+     * contaminate the recorded fault stream, no ring overhead). Putting
+     * this call inside the Gate 1 loop's `if (specasync_log_enabled ...)`
+     * block would silently stop recording in every one of those scripts --
+     * the same class of bug this fix exists to remove, with different
+     * numbers. Iterating ordered_fault_cache in the same 0..num_coalesced_
+     * faults-1 order as the Gate 1 loop is what makes trace[k] the address
+     * of the k-th coalesced fault on both the recording and the consumption
+     * side; specasync_oracle_next_addr_n()'s existing (unchanged) cursor
+     * arithmetic already returns, for a call made while servicing fault k,
+     * the address at trace[k+1] -- correct "next fault" semantics that only
+     * needed a trace recorded at matching granularity to be meaningful.
+     */
+    if (batch_context->num_coalesced_faults > 0) {
+        NvU32 _ti;
+        for (_ti = 0; _ti < batch_context->num_coalesced_faults; _ti++) {
+            uvm_fault_buffer_entry_t *_te = batch_context->ordered_fault_cache[_ti];
+            if (_te)
+                specasync_trace_push(_te->fault_address);
+        }
+    }
+
     ats_invalidate->tlb_batch_pending = false;
 
     for (i = 0; i < batch_context->num_coalesced_faults;) {
@@ -2649,7 +2693,6 @@ static NV_STATUS service_fault_batch(uvm_parent_gpu_t *parent_gpu,
         uvm_gpu_va_space_t *gpu_va_space;
 
         UVM_ASSERT(current_entry->va_space);
-        specasync_trace_push(current_entry->fault_address);
 
         if (current_entry->va_space != va_space) {
             if (prev_gpu_va_space) {
