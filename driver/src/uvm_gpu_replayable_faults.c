@@ -2659,7 +2659,7 @@ static NV_STATUS service_fault_batch(uvm_parent_gpu_t *parent_gpu,
      * specasync_trace_push() itself), NOT by specasync_log_enabled.  Every
      * real trace-collection script in this project
      * (t1_gate3_interleaved.sh, gate3_favorable_run.sh, t_a2_bimodality.sh,
-     * the t_b8_*/t_b9_* family, etc.) runs collection with
+     * the t_b8 and t_b9 script families, etc.) runs collection with
      * specasync_log_enabled=0 specasync_trace_faults=1 specifically so the
      * batch/work/decomp telemetry rings and the Gate 1 prediction/enqueue
      * path stay off during collection (no speculative activity to
