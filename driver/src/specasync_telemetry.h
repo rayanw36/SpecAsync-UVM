@@ -405,6 +405,56 @@ extern int specasync_trace_faults;
 extern atomic_t g_specasync_trace_pushes;
 extern atomic_t g_specasync_trace_overwrites;
 
+/*
+ * Gate E0.7, Check 1: diagnostic-only ring logging the ACTUAL fault address
+ * being serviced on every specasync_oracle_next_addr_n() call, in call
+ * order, during a REPLAY run. Exists purely to answer "is the predicted
+ * address right but out of order, or wrong entirely" -- E0.5 logged only
+ * aggregate correct/total counters, which cannot distinguish those two
+ * cases and must not be used to try (see GATE_E0_5_REPORT.md's counters:
+ * they say *whether* fault k+1 was predicted correctly, not what the
+ * actual fault sequence was when it wasn't).
+ *
+ * Deliberately a separate ring/param from the collection-side trace ring
+ * above (specasync_trace_faults/g_trace_ring) -- this logs the REPLAY run's
+ * true fault order, not a collection run's. Opt-in
+ * (specasync_log_replay_order=0 by default), reuses the same
+ * power-of-two-rounded sizing pattern as g_trace_ring via its own
+ * independent module param so it can be sized to the specific run under
+ * test without touching the collection ring's capacity.
+ *
+ * The corresponding PREDICTED address for the k-th oracle_next_addr_n()
+ * call (k = 0, 1, 2, ... within one clear/reload) is NOT separately logged
+ * here -- it doesn't need to be. specasync_oracle_next_addr_n()'s cursor
+ * arithmetic is a proven, deterministic identity (Step 2/3, verified
+ * exactly against group_probe's oracle_correct=7/7): starting from
+ * g_oracle_idx==0, call k reads trace[(k+1) % len]. Deriving the predicted-
+ * address sequence from the already-logged trace file via this exact,
+ * fixed formula is not "reconstructing an ordering from an aggregate" (the
+ * thing the standing rules forbid) -- it is using a known closed-form rule
+ * to compute one sequence from another that is separately, fully logged.
+ * The actual-fault-address sequence this ring provides has no such
+ * closed form and could not be derived any other way, which is exactly
+ * why it alone needed new instrumentation.
+ */
+#define SPECASYNC_REPLAY_ORDER_RING_SLOTS_DEFAULT SPECASYNC_TRACE_RING_SLOTS_DEFAULT
+
+extern struct specasync_trace_ring g_replay_order_ring;
+extern int specasync_log_replay_order;
+
+static inline void specasync_replay_order_push(u64 va_addr)
+{
+	struct specasync_trace_ring *r = &g_replay_order_ring;
+	unsigned long flags;
+
+	if (!specasync_log_replay_order || !r->buf)
+		return;
+	spin_lock_irqsave(&r->lock, flags);
+	r->buf[r->head & r->mask] = va_addr;
+	r->head++;
+	spin_unlock_irqrestore(&r->lock, flags);
+}
+
 static inline void specasync_trace_push(u64 va_addr)
 {
 	struct specasync_trace_ring *r = &g_trace_ring;

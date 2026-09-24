@@ -34,6 +34,8 @@ struct specasync_batch_ring  g_batch_ring;
 struct specasync_work_ring   g_work_ring;
 struct specasync_trace_ring  g_trace_ring;
 struct specasync_decomp_ring g_decomp_ring;
+/* Gate E0.7 Check 1: diagnostic-only replay fault-order ring (see specasync_telemetry.h). */
+struct specasync_trace_ring  g_replay_order_ring;
 
 /* Module parameters — defined here, declared extern in specasync_telemetry.h */
 int   specasync_log_enabled       = 1;
@@ -52,6 +54,17 @@ char *specasync_oracle_trace_path = NULL;
  * worked changes behavior.
  */
 int   specasync_trace_ring_slots  = SPECASYNC_TRACE_RING_SLOTS_DEFAULT;
+/*
+ * Gate E0.7 Check 1: opt-in (default off) diagnostic logging of the actual
+ * fault address serviced on every specasync_oracle_next_addr_n() call
+ * during a replay run -- see specasync_telemetry.h's comment on
+ * g_replay_order_ring for why this needed new instrumentation rather than
+ * reusing any existing E0.5 counter. specasync_replay_order_ring_slots is
+ * independent of specasync_trace_ring_slots so this diagnostic run's sizing
+ * doesn't have to match the collection ring's.
+ */
+int   specasync_log_replay_order        = 0;
+int   specasync_replay_order_ring_slots = SPECASYNC_REPLAY_ORDER_RING_SLOTS_DEFAULT;
 
 module_param(specasync_log_enabled,       int,  0644);
 module_param(specasync_policy,            int,  0644);
@@ -59,6 +72,8 @@ module_param(specasync_offload_depth,     int,  0644);
 module_param(specasync_trace_faults,      int,  0644);
 module_param(specasync_oracle_trace_path, charp, 0444);
 module_param(specasync_trace_ring_slots,  int,  0444);
+module_param(specasync_log_replay_order,        int, 0644);
+module_param(specasync_replay_order_ring_slots, int, 0444);
 
 MODULE_PARM_DESC(specasync_log_enabled,
 	"Enable telemetry ring buffers (1=enabled [default], 0=disabled)");
@@ -70,6 +85,10 @@ MODULE_PARM_DESC(specasync_oracle_trace_path,
 	"Path to oracle trace file (u64 array of future fault addresses); policy=4 only");
 MODULE_PARM_DESC(specasync_trace_ring_slots,
 	"Fault-trace ring capacity in u64 entries, rounded up to a power of two (default 1048576)");
+MODULE_PARM_DESC(specasync_log_replay_order,
+	"Gate E0.7 diagnostic: log actual replay fault-address order (0=off [default], 1=on)");
+MODULE_PARM_DESC(specasync_replay_order_ring_slots,
+	"Gate E0.7 diagnostic replay-order ring capacity, rounded up to a power of two (default 1048576)");
 
 /* ── Gate E0.5 counters (defined here, declared extern in specasync_telemetry.h / specasync_internal.h) ── */
 atomic_t g_specasync_trace_pushes           = ATOMIC_INIT(0);
@@ -107,6 +126,7 @@ static struct dentry *dentry_worker_log;
 static struct dentry *dentry_clear;
 static struct dentry *dentry_fault_trace;
 static struct dentry *dentry_decomp_log;
+static struct dentry *dentry_replay_order;
 
 /* ── Ring-buffer read helper ─────────────────────────────────────────────── */
 
@@ -295,6 +315,13 @@ static ssize_t clear_write(struct file *filp, const char __user *ubuf,
 		g_oracle_last_pred_valid = 0;
 		spin_unlock_irqrestore(&g_oracle_score_lock, _flags);
 	}
+	/* Gate E0.7: reset the diagnostic replay-order ring too, same-run-clean-total reasoning. */
+	{
+		unsigned long _flags;
+		spin_lock_irqsave(&g_replay_order_ring.lock, _flags);
+		g_replay_order_ring.head = 0;
+		spin_unlock_irqrestore(&g_replay_order_ring.lock, _flags);
+	}
 
 	/*
 	 * Reset head/tail under the lock so the ring appears empty immediately.
@@ -449,6 +476,9 @@ u64 specasync_oracle_next_addr_n(u64 current_fault_addr, u32 consumed)
 
 	len = (int)g_oracle_trace_len;
 
+	/* Gate E0.7 Check 1: log the actual fault address in call order, opt-in. */
+	specasync_replay_order_push(current_fault_addr);
+
 	atomic_inc(&g_specasync_oracle_consumes);
 
 	spin_lock_irqsave(&g_oracle_score_lock, flags);
@@ -549,6 +579,28 @@ static int alloc_trace_ring(void)
 	return 0;
 }
 
+/* Gate E0.7 Check 1: mirrors alloc_trace_ring() for the diagnostic replay-order ring. */
+static int alloc_replay_order_ring(void)
+{
+	u32 slots = (u32)specasync_replay_order_ring_slots;
+
+	if (slots < 2)
+		slots = SPECASYNC_REPLAY_ORDER_RING_SLOTS_DEFAULT;
+	slots = roundup_pow_of_two(slots);
+
+	g_replay_order_ring.buf = kvmalloc_array(slots, sizeof(u64), GFP_KERNEL | __GFP_ZERO);
+	if (!g_replay_order_ring.buf)
+		return -ENOMEM;
+	g_replay_order_ring.mask = slots - 1;
+	g_replay_order_ring.head = 0;
+	spin_lock_init(&g_replay_order_ring.lock);
+	pr_info("specasync: replay-order ring allocated: %u slots (%zu bytes)%s\n",
+		slots, (size_t)slots * sizeof(u64),
+		(slots != (u32)specasync_replay_order_ring_slots) ?
+			" (rounded up to a power of two)" : "");
+	return 0;
+}
+
 /*
  * debugfs read for the fault-address trace ring (flat u64 array, no tail
  * pointer -- the whole ring is "valid" once head exceeds capacity).
@@ -563,10 +615,10 @@ static int alloc_trace_ring(void)
  * oversubscribed collection today), start_slot is 0 and behavior is
  * byte-for-byte unchanged from before.
  */
-static ssize_t trace_ring_read(struct file *filp, char __user *ubuf,
-			       size_t count, loff_t *ppos)
+static ssize_t generic_trace_ring_read(struct specasync_trace_ring *r,
+				       char __user *ubuf, size_t count,
+				       loff_t *ppos)
 {
-	struct specasync_trace_ring *r = &g_trace_ring;
 	u32 head, capacity, start_slot, avail_slots;
 	size_t bytes_avail, to_copy, pos;
 	unsigned long flags;
@@ -620,9 +672,32 @@ static ssize_t trace_ring_read(struct file *filp, char __user *ubuf,
 	return (ssize_t)to_copy;
 }
 
+static ssize_t trace_ring_read(struct file *filp, char __user *ubuf,
+			       size_t count, loff_t *ppos)
+{
+	return generic_trace_ring_read(&g_trace_ring, ubuf, count, ppos);
+}
+
 static const struct file_operations trace_ring_fops = {
 	.owner  = THIS_MODULE,
 	.read   = trace_ring_read,
+	.llseek = default_llseek,
+};
+
+/*
+ * Gate E0.7 Check 1: debugfs read for the diagnostic replay fault-order
+ * ring. Same chronological-on-wrap semantics as trace_ring_read(), via the
+ * shared helper above -- no separate rotation logic to get wrong twice.
+ */
+static ssize_t replay_order_ring_read(struct file *filp, char __user *ubuf,
+				      size_t count, loff_t *ppos)
+{
+	return generic_trace_ring_read(&g_replay_order_ring, ubuf, count, ppos);
+}
+
+static const struct file_operations replay_order_ring_fops = {
+	.owner  = THIS_MODULE,
+	.read   = replay_order_ring_read,
 	.llseek = default_llseek,
 };
 
@@ -657,6 +732,10 @@ int specasync_debugfs_init(struct dentry *parent_dentry)
 	if (ret)
 		goto err_decomp;
 
+	ret = alloc_replay_order_ring();
+	if (ret)
+		goto err_replay_order;
+
 	specasync_dir = debugfs_create_dir("specasync", parent_dentry);
 	if (IS_ERR_OR_NULL(specasync_dir)) {
 		ret = specasync_dir ? PTR_ERR(specasync_dir) : -ENOMEM;
@@ -678,12 +757,16 @@ int specasync_debugfs_init(struct dentry *parent_dentry)
 	dentry_decomp_log  = debugfs_create_file("specasync_decomp_log", 0444,
 						 specasync_dir, NULL,
 						 &decomp_log_fops);
+	dentry_replay_order = debugfs_create_file("specasync_replay_order", 0444,
+						  specasync_dir, NULL,
+						  &replay_order_ring_fops);
 
 	if (IS_ERR_OR_NULL(dentry_batch_log) ||
 	    IS_ERR_OR_NULL(dentry_worker_log) ||
 	    IS_ERR_OR_NULL(dentry_clear) ||
 	    IS_ERR_OR_NULL(dentry_fault_trace) ||
-	    IS_ERR_OR_NULL(dentry_decomp_log)) {
+	    IS_ERR_OR_NULL(dentry_decomp_log) ||
+	    IS_ERR_OR_NULL(dentry_replay_order)) {
 		ret = -EIO;
 		goto err_files;
 	}
@@ -763,6 +846,9 @@ int specasync_debugfs_init(struct dentry *parent_dentry)
 err_files:
 	debugfs_remove_recursive(specasync_dir);
 err_dir:
+	kvfree(g_replay_order_ring.buf);
+	g_replay_order_ring.buf = NULL;
+err_replay_order:
 	kvfree(g_decomp_ring.buf);
 	g_decomp_ring.buf = NULL;
 err_decomp:
@@ -795,6 +881,9 @@ void specasync_debugfs_exit(void)
 
 	kvfree(g_decomp_ring.buf);
 	g_decomp_ring.buf = NULL;
+
+	kvfree(g_replay_order_ring.buf);
+	g_replay_order_ring.buf = NULL;
 
 	if (g_oracle_trace) {
 		vfree(g_oracle_trace);
