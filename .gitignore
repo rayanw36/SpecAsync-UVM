@@ -186,3 +186,12 @@ results/analysis/gate_b10_replication/run.log
 # plus driver/build/595.91.07/*.ko (gitignored *.ko, rebuild from source).
 results/phaseB1/gate_e05_group_probe/*.bin
 results/phaseB1/gate_e05_realworkload/*.bin
+
+# Gate E0.7: Check 1 (trace + replay-order dumps, depth=0/1) and Check 2
+# (3x independent C1 traces per workload) raw data -- same convention,
+# reconstructible via GATE_E0_7_REPORT.md's commands plus
+# driver/build/595.91.07/nvidia-uvm-specasync-NEW-e0.7diag.ko (gitignored
+# *.ko, rebuild from source).
+results/phaseB1/gate_e07_check1/*.bin
+results/phaseB1/gate_e07_check1/*.txt
+results/phaseB1/gate_e07_check2/*.bin
