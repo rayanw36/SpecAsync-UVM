@@ -179,3 +179,10 @@ results/analysis/gate_b10_augmentation/run.log
 results/analysis/gate_b10_replication/telemetry_b10c/
 results/analysis/gate_b10_replication/*.bin
 results/analysis/gate_b10_replication/run.log
+
+# Gate E0.5 Step 5: group_probe + real-workload (Stencil-24K/GraphBFS-23)
+# raw traces and batch-record dumps, RTX 5070 Ti / driver 595.91.07 -- same
+# convention as above, reconstructible via GATE_E0_5_REPORT.md's commands
+# plus driver/build/595.91.07/*.ko (gitignored *.ko, rebuild from source).
+results/phaseB1/gate_e05_group_probe/*.bin
+results/phaseB1/gate_e05_realworkload/*.bin

@@ -584,3 +584,199 @@ Compiles clean, no warnings (checked by isolating `nvidia-uvm.o`'s rebuild
 and grepping for `warning|error` — none). Not yet run against real telemetry
 — that's the rest of Step 5, next.
 
+---
+
+## Step 5 — empirical validation, headless, both modules
+
+Dropped to `multi-user.target` (`sudo systemctl isolate multi-user.target`,
+confirmed via `systemctl is-active gdm` -> `inactive` and `nvidia-smi` still
+working with no display attached) after confirming §1's push was in
+(`ea72f33`, confirmed pushed before dropping). Restored `graphical.target`
+at the end of this section (confirmed `gdm`/`graphical.target` both `active`
+again). All module work used the passwordless `insmod`/`rmmod`/`tee`/`cat`
+sudo grants; only `nvidia_uvm.ko` was ever unloaded/reloaded, matching
+`GATE_B9_TASK2_REBUILD.md`'s established procedure — `nvidia`/`nvidia-drm`/
+`nvidia-modeset` were never touched, and my freshly-built `nvidia-uvm.ko`
+(built together with fresh copies of those three in the same `WORK` tree,
+for `conftest/` registration — see §2 above) loaded and worked against the
+*already-running*, unmodified `nvidia.ko`/`nvidia-modeset.ko` without any
+symbol-version conflict.
+
+`MemAvailable` logged at start (61,140,216 kB) and after the largest run
+(61,158,892 kB) — no meaningful drift across this session's ~10 reloads, no
+approach to the 6 GiB abort floor. `specasync_clear` written before every
+rep; single srcversion per module confirmed via `dmesg`'s `init OK` line on
+every reload.
+
+### `group_probe.cu` (N=8, `k` measured, not assumed)
+
+Collected fresh under **both** modules, `setarch -R` wrapping every
+collection and replay invocation (an initial pass without `setarch -R` was
+run first and correctly produced 0 hits/0 correct on both modules — the
+recorded trace's absolute VA never matched the replay process's freshly-
+randomized allocation base, exactly FIX-2's failure mode; re-run with
+`setarch -R` before drawing any conclusion from it).
+
+| module | trace entries (= measured *k*) | replay hit_rate | oracle_correct / predictions |
+|---|---:|---:|---:|
+| OLD (pre-Step-2, srcversion `A25B8956...`) | 1 | 1 / 8 = **12.5%** | n/a (no counter in this build) |
+| NEW (post-Step-2/3, srcversion `ACB91A66...`) | 8 | 8 / 8 = **100%** | 7 / 7 = **100%** |
+
+*k* = 8 exactly (not assumed — every one of the 8 coalesced faults collapsed
+into the single 2 MB block by construction, confirmed directly from the
+trace file's entry count on both modules' collection runs). **Old ≈ 1/k
+(12.5%, exact), new ≈ the serialized probe's ceiling (100%) — both
+predictions confirmed exactly, not approximately.** `oracle_predictions=7`
+(not 8) is expected and correct: the first of 8 calls has no prior
+prediction to score against (see the "one call in arrears" design in
+Step 3 above), so only 7 of 8 calls produce a scoreable comparison.
+
+**Dynamic enumeration-parity check** (same process, NEW module, `policy=4`
++ `specasync_trace_faults=1` together so both loops fire in one run):
+`trace_pushes = 8`, `oracle_consumes = 8` — **exact match.** Confirms the
+Gate 1 loop and the new recording loop enumerate identically, empirically,
+not just by the static code-inspection argument in §4.
+
+**Zero overwrites:** `specasync_trace_overwrites = 0` on every collection
+this session (group_probe and both real workloads, below) — the ring was
+never asked to hold more than it was sized for.
+
+**Replay-twice reproducibility** (NEW module, same trace, two independent
+module reloads): hit_rate 1.0 and 1.0 (8/8 both times), `oracle_correct/
+predictions` 7/7 both times. Exact agreement.
+
+### Real workloads — alignment and accuracy, NEW module only
+
+(Comparing OLD vs. NEW *on real workloads* is §6's job, using hit rate as
+the falsification-relevant statistic across a proper interleaved sweep;
+this section validates the fix itself using the counters Step 3 added,
+which only exist in the NEW build.)
+
+**Collection (fresh per workload, `specasync_log_enabled=0
+specasync_trace_faults=1 uvm_perf_prefetch_enable=0`, matching this
+project's standing collection protocol exactly):**
+
+| workload | coalesced faults (`specasync_demand_faults`) | trace entries | ratio | overwrites |
+|---|---:|---:|---:|---:|
+| Stencil-24K (size 24000) | 2,953,867 | 2,953,867 | **1.000000** | 0 |
+| GraphBFS-23 (size 23) | 483,896 | 483,896 | **1.000000** | 0 |
+
+**Exact 1:1 alignment on both real workloads** — recording and consumption
+now enumerate the same faults at the same rate, not just on the synthetic
+probe. (These absolute fault counts are this platform/GPU's own — RTX
+5070 Ti, 595.91.07 — not directly comparable to the T4's 3,237,375 /
+445,721 figures cited in `GATE_E0_REPORT.md` §2; different platform, not a
+discrepancy.)
+
+**Replay** (`setarch -R`, fresh module load per configuration, `specasync_
+clear` before the run):
+
+| workload | depth | demand faults | enqueued | spec_hits | hit_rate | spec_migrations | oracle_correct / predictions | overall accuracy |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| Stencil-24K | 0 | 2,899,860 | 2,899,860 | 5,323 | 0.1836% | 0 | 221 / 2,899,859 | 0.0076% |
+| Stencil-24K | 1 (= C3) | 2,910,050 | 2,910,011 | 17,278 | 0.5937% | 2,821,745 (96.97% of enqueued) | 162 / 2,910,049 | 0.0056% |
+| GraphBFS-23 | 1 (= C3) | 480,176 | 471,103 | 5,764 | 1.2235% | 459,280 (97.49% of enqueued) | 7,261 / 480,175 | 1.5122% |
+
+`hit_rate` is `spec_hits ÷ enqueued` throughout, stated explicitly per your
+instruction, next to every figure, so it is never read against a per-fault
+denominator again. **All three hit rates are higher than the corresponding
+published T1 figures** (Stencil-24K 0.0132%, GraphBFS-23 0.2357%) — roughly
+14-45x higher, though still small in absolute terms and not a claim about
+what the *wall-clock* comparison will show (that's §6). No wraps occurred on
+either replay (`oracle_wraps = 0` both times) — each replay's demand-fault
+count stayed under its trace's length, consistent with §1's finding that
+Step 2 removed the workload-scale wraparound Gate E0 §7 found.
+
+**The decile breakdown is the most informative single result this gate has
+produced, and it was not anticipated in this specific form:**
+
+| workload (depth) | decile 0 accuracy | deciles 1-9 combined |
+|---|---:|---:|
+| Stencil-24K (depth=0, no migration at all) | 221/295,386 = **0.0748%** | 0 / 2,604,473 = **0%**, exactly |
+| Stencil-24K (depth=1, real migration) | 162/295,386 = **0.0548%** | 0 / 2,614,663 = **0%**, exactly |
+| GraphBFS-23 (depth=1, real migration) | 7,243/48,389 = **14.97%** | 18 / 431,786 = **0.0042%** |
+
+**Prediction accuracy is concentrated almost entirely in the first tenth of
+each run and collapses to (Stencil: exactly, GraphBFS: nearly) zero for the
+remaining nine tenths — on both workloads, and, critically, *at
+`offload_depth=0` as well as `depth=1`*.** The `depth=0` Stencil row has
+**zero real speculative migrations** (`spec_migrations` is not shown for it
+above but was confirmed 0 in the raw run) — nothing in that run could have
+disturbed page residency relative to the collection run. Its decile decay
+is therefore not explained by the mechanism the original gate plan's Step 5
+brief anticipated ("once speculation changes residency the real fault
+stream diverges from the recorded one") — it happens with **zero**
+speculative interference. The two runs that separate collection from
+replay by nothing but a second, independent process launch of the identical
+benchmark already diverge almost completely after the first ~10% of the
+run. The most plausible explanation, stated as a hypothesis and not chased
+further in this gate: ordinary run-to-run non-determinism in real GPU
+execution (warp/thread scheduling, fault-buffer drain timing, page-table
+walk ordering) is enough on its own to decorrelate a recorded fault order
+from a fresh run's actual fault order well before speculation ever gets a
+chance to compound it. GraphBFS-23's much higher decile-0 figure (14.97%
+vs. Stencil's 0.07%) and its small but non-zero tail (unlike Stencil's exact
+zero) are consistent with GraphBFS's more repetitive, revisit-heavy access
+pattern giving isolated addresses a nonzero chance of recurring by chance
+later in the trace, not with the underlying mechanism differing between the
+two workloads.
+
+**This is exactly the kind of finding the original gate plan asked Step 4 to
+produce** ("Accuracy decaying across the run is the direct measurement of
+[the oracle's residency-divergence] limitation, and it belongs in the
+paper's limitations section whatever the headline result turns out to be")
+— except the cause found here is broader than residency divergence alone:
+it reproduces without any speculative migration at all. Recorded as a
+finding with the numbers shown; not investigated further past this point,
+per this gate's discipline against opening new investigations mid-gate.
+
+### System restored
+
+Stock `nvidia_uvm` reloaded (`insmod /lib/modules/7.0.0-31-generic/updates/
+dkms/nvidia-uvm.ko.zst` — `modprobe` is not in the passwordless sudo grant,
+and bare `insmod nvidia_uvm` doesn't resolve a module name to a path the way
+`modprobe` does, so the full path was needed) before returning to
+`graphical.target`. Both confirmed: `lsmod` shows the stock module loaded
+with 0 dependents-of-concern, `systemctl is-active gdm`/`graphical.target`
+both `active`.
+
+---
+
+## Summary before §6
+
+- **Step 2's fix works, confirmed three independent ways**: a probe built
+  specifically to force dispatch-group collapsing (old 12.5% = exactly 1/k,
+  new 100% = ceiling), a same-process dynamic enumeration check
+  (trace_pushes = oracle_consumes = 8, exact), and two real workloads
+  (trace entries = demand faults, 1.000000, on both).
+- **Hit rate rises substantially post-fix on both real workloads** (14-45x
+  the published T1 figures) but remains small in absolute terms (<1.3%
+  even at its highest, GraphBFS-23 depth=1) — this by itself does not yet
+  say anything about wall-clock; that is §6's question, not this one's.
+- **New, load-bearing finding for the paper's limitations section**: oracle
+  prediction accuracy collapses after the first ~10% of a real run,
+  independent of whether real speculative migration occurs at all. A
+  trace-replay oracle validated only on a short, fully-deterministic
+  synthetic probe (as `coalesce_probe.cu` was, and as `group_probe.cu` also
+  is) cannot be assumed to generalize its accuracy to a full real-workload
+  run — the two are shown here to behave completely differently past the
+  first tenth of the run.
+- Every number in this section is 5070 Ti / driver 595.91.07 / kernel
+  7.0.0-31-generic. No 595.84 data is compared against it above.
+
+**Acceptance-gate reading, per the original gate's own criterion** ("if
+measured accuracy is materially low — say below roughly 90% — then the
+oracle is still not an oracle... report the number and stop"): overall
+measured accuracy on real workloads is 0.0056%-1.51%, far below 90%. On the
+strict reading of that criterion, E0.6 (or this session's replacement for
+it, the old-vs-new comparison) should not proceed. But the criterion was
+written before this session found *why* — the collapse is not a residual
+alignment defect (group_probe's 100%/8-of-8 dynamic check rules that out
+directly) but appears to be real-workload non-determinism swamping a
+single fixed reference trace within the first tenth of a run. Whether that
+distinction is enough to justify proceeding to §6 anyway is a judgment call
+stated here, not made unilaterally: **not proceeding to §6 without your
+read on this**, per the hard stop already in place.
+
+**HARD STOP. Report above; §6 not started.**
+
