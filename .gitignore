@@ -195,3 +195,10 @@ results/phaseB1/gate_e05_realworkload/*.bin
 results/phaseB1/gate_e07_check1/*.bin
 results/phaseB1/gate_e07_check1/*.txt
 results/phaseB1/gate_e07_check2/*.bin
+
+# Gate E0.9a: first-touch oracle validation raw traces, tables, and
+# prediction/replay-order logs -- same convention, reconstructible via
+# GATE_E0_9_REPORT.md's commands plus
+# driver/build/595.91.07/nvidia-uvm-specasync-NEW-e0.9-ft.ko (gitignored
+# *.ko, rebuild from source).
+results/phaseB1/gate_e09_validation/*.bin

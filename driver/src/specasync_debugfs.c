@@ -750,6 +750,16 @@ u64 specasync_ft_predict(u64 fault_addr)
 	if (!g_ft_table || g_ft_table_len == 0)
 		return 0;
 
+	/*
+	 * Gate E0.9a validation ("usefulness"): reuses the E0.7 diagnostic
+	 * ring, now policy-agnostic (also pushed from
+	 * specasync_oracle_next_addr_n() for policy 4) -- logs this run's own
+	 * actual fault order, needed to check whether a predicted page is
+	 * later first-touched in the SAME replay after the prediction that
+	 * named it. No-ops unless specasync_log_replay_order=1.
+	 */
+	specasync_replay_order_push(fault_addr);
+
 	my_seq = (u32)atomic_fetch_inc(&g_ft_seq);
 
 	found = bsearch(&page, g_ft_sorted, g_ft_table_len,
