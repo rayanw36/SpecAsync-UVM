@@ -33,3 +33,9 @@ nonzero identity differences: 0
 ## Step 2 — Pre-registration
 - `E4_PREREGISTRATION.md` committed before any sweep run. It fixes 10 arms × 2 workloads × n = 10 = 200 runs; the order (seed 202609264, sha256 6f42b480…); 18 comparisons in one Holm family (F1 6, F2 4, F3 6, F4 2); the F1 falsification trigger; mechanism metrics; identities; limitations; and the stop conditions verbatim.
 - `tests/e4_analyze.py` was committed with it. It refuses fewer than 200 rows, and was smoke-tested on synthetic data in the scratchpad only.
+- Commit `aed1f7f` (local; headless).
+
+## Step 3 — Sweep
+- Tables: stencil 1,125,000 (trace 2,947,275, 0 overwrites); graphbfs 287,956 (trace 482,045, 0 overwrites). Assertions PASS.
+- Sweep launched 2026-09-26T00:28:01+0300.
+- Before the first sweep run: `tests/e4_runner.py` gained `--commit-every N` (it runs the unchanged E3b loop in N-row chunks using the existing `--through`; E3b commits the CSV at each chunk end). This implements the pre-registered "commit every 10 runs"; run behaviour is unchanged.

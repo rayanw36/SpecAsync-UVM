@@ -22,5 +22,29 @@ def load(row, table, out_dir, label):
 
 E.load = load
 
+def main():
+    """--commit-every N: run the unchanged E3b main loop in chunks of N rows
+    (its --through option); it commits the CSV at the end of every chunk, so
+    rows are committed every N runs. Returns E3b's exit code (3 = stop)."""
+    argv = sys.argv[1:]
+    every = 0
+    if "--commit-every" in argv:
+        k = argv.index("--commit-every")
+        every = int(argv[k + 1])
+        del argv[k:k + 2]
+    if not every:
+        sys.argv = [sys.argv[0]] + argv
+        return E.main()
+    import csv
+    order = argv[argv.index("--order") + 1]
+    n = len(list(csv.DictReader(open(order))))
+    for through in range(every, n + every, every):
+        sys.argv = [sys.argv[0]] + argv + ["--through", str(min(through, n))]
+        rc = E.main()
+        if rc != 0:
+            return rc
+    return 0
+
+
 if __name__ == "__main__":
-    sys.exit(E.main())
+    sys.exit(main())
