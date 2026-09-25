@@ -28,7 +28,9 @@ import time
 
 sys.path.insert(0, os.path.dirname(__file__))
 import e09b_runner as R  # noqa: E402
+import e3b_dmesg  # noqa: E402
 
+R.check_after = e3b_dmesg.check_after   # timestamp-based diff (log buffer rotates)
 R.BAD = re.compile(r"BUG|Oops|WARNING|general protection|NULL pointer|exited with irqs disabled|"
                    r"soft lockup|hung_task|RCU stall")
 MOD = {

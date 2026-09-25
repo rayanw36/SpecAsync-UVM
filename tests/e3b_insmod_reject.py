@@ -16,6 +16,7 @@ import time
 
 sys.path.insert(0, os.path.dirname(__file__))
 import e09b_runner as R  # noqa: E402
+from e3b_dmesg import new_since  # noqa: E402
 
 BAD = re.compile(r"BUG|Oops|WARNING|general protection|NULL pointer|exited with irqs disabled|"
                  r"soft lockup|hung_task|RCU stall")
@@ -43,7 +44,7 @@ def main():
         row["insmod_rc"] = r.returncode
         row["insmod_stderr"] = r.stderr.strip().replace("\n", " ")
         row["left_loaded"] = int(os.path.exists("/sys/module/nvidia_uvm"))
-        new = R.dmesg_lines()[len(before):]
+        new = new_since(before)
         errline = [l for l in new if "specasync" in l and "rejected" in l]
         row["pr_err_line"] = errline[0].split("] ", 1)[-1] if errline else ""
         row["kernel_line"] = next((l.split("] ", 1)[-1] for l in new if "invalid for parameter" in l), "")
@@ -57,7 +58,7 @@ def main():
                    "specasync_log_enabled=0", "uvm_perf_prefetch_enable=1"])
         row["verified_reload_rc"] = r2.returncode
         row["verified_srcversion"] = R.read_sys("/sys/module/nvidia_uvm/srcversion")
-        bad = [l for l in R.dmesg_lines()[len(before):] if BAD.search(l)]
+        bad = [l for l in new_since(before) if BAD.search(l)]
         rows.append(row)
         print(row, flush=True)
         if r2.returncode != 0 or row["verified_srcversion"] != VER_SRCV or bad:
