@@ -14,3 +14,10 @@
 ## Part B — E1b
 - Source check done (see `E1B_HANDOFF_COST.md` §1). `enqueue_overhead_ns` covers kzalloc, INIT_WORK, uvm_gpu_retain and queue_work, but **not** `specasync_ft_predict` (bsearch + global irqsave spinlock, run for every coalesced fault). Batch-ring `t1 − t0` brackets the whole pre-lock segment and is used as the complete measure.
 - Order: 16 runs, seed 202609262, committed before the first run. Runner: `tests/e1b_runner.py`.
+- Commit `82b15b9`; push exit 0.
+- 2026-09-25T22:36:28+0300 isolated to multi-user.target.
+- Tables (prefetch off): stencil 1,125,000 (trace 2,944,267, 0 overwrites); graphbfs 287,956 (trace 480,974, 0 overwrites). Assertions PASS. (Same informational daemon-reload warning at isolate.)
+- Runs launched 2026-09-25T22:37:11+0300
+- 16/16 runs, **no stop condition**, 0 new dmesg lines. Both rings at 100% coverage (≤ 74,896 records); every batch↔decomp pair aligned; ring sums equal the global counters.
+- Result: the pre-lock segment = 99.9–100% of the outside-lock increase, so the location is **confirmed**. Enqueue overhead = only 12.7% (Stencil prefetch off) / 31.0% (on) / 9.8% (GraphBFS) of it, at 54–75 ns per prediction. The rest is prediction-side per-fault work (≈139–167 ns per demand fault), not attributed further. Flag: the E3a enqueue-skip premise is weakened.
+- Doc: `E1B_HANDOFF_COST.md`; data `e1b/e1b_runs.csv`, `e1b/e1b_per_run.csv`, `e1b/e1b_summary.md`; script `tests/e1b_analyze.py`.
