@@ -20,3 +20,13 @@
 - Q2: prefetched pages are migrated AND mapped in the same `service_finish` call — the prefetcher can prevent faults; speculation cannot.
 - Q3: no aggregate servicing-time timer exists. Only drop-on-full rings (131,072 slots). Decomp ring coverage is 100% iff a run records < 131,071 entries — Step 2 measures it.
 - Outcome: answered from source, no code changes.
+- Commit `b655a62`; push exit 0
+
+## Step 2 — Pilot ceiling
+- Start 2026-09-25T17:41 (pilot table collection); pilot runs 17:43–17:46; end 2026-09-25T17:5x
+- Tables: stencil 1,125,000 / graphbfs 287,956 asserted, trace overwrites 0.
+- 10/10 pilot runs, no stop condition, 0 new dmesg lines, MemAvailable ≥ 60.9 GB. `ft_predictions = enqueued + drops` exact on all 5 C6 runs.
+- Decomp ring: 23,534–75,199 records per run (< 131,071) → 100% coverage → ceiling computed (branch 2, prefix-based, scale 1.0).
+- Ceiling (servicing window, C1 − C6-L4096): Stencil 0.198 s [0.170, 0.217], 216 ns per pre-staged fault; GraphBFS ≈ 0 [−0.0165, +0.0165].
+- Disclosure: the pilot runner printed per-run wall-clock to stdout; no arm comparison was made. The runner now writes wall-clock to the CSV only.
+- Addendum: `E09B_PREREG_ADDENDUM_PILOT.md`.

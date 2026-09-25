@@ -236,7 +236,8 @@ def main():
         out.update(ctr)
         with open(args.csv, "a", newline="") as f:
             csv.writer(f).writerow([out[k] for k in fields])
-        print(f"done {label} wall={out['wall_s']} mem_after={mem_after}", flush=True)
+        # wall-clock goes only to the CSV, never to stdout (E0.9b "no interim peeking")
+        print(f"done {label} mem_after={mem_after} dmesg_new={nnew}", flush=True)
         since_commit += 1
         if args.commit_every and since_commit >= args.commit_every:
             h = git_commit([args.csv], f"Gate E0.9b {args.label}: rows through idx {idx}")
