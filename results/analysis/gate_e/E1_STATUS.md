@@ -11,3 +11,14 @@
 - dmesg since boot: no BUG/Oops/WARNING/general protection/NULL pointer/irqs-disabled line from any source.
 - MemAvailable 57,636,188 kB (desktop still up); `/` 40 GiB free of 98 G.
 - Outcome: **PASS**.
+- Commit `53f147e`; push exit 0.
+
+## Part B — Ceiling reconciliation (analysis only)
+- Start 2026-09-25T21:17; end 2026-09-25T21:18+0300
+- **Verdict: Scope mismatch.**
+  - Pre-staging cut D5 (dispatch under the VA-space lock) by 0.681 s on Stencil. D1+D2 changed by +0.003 s.
+  - The net 0.198 s window reduction is D5's saving minus +0.477 s of speculation enqueue work, which runs in `service_fault_batch()` outside the lock.
+  - The pipelining ceiling bounds D1+D2 hiding only. It is measured prefetch-on, with no Stencil-24K point on the 5070 Ti (Sweep-24K 7.25% at 595.84 is the nearest).
+  - Not compared with 5.65%: different baseline, different phases, different instrument.
+  - The "any such scheme" wording was not found in the manuscript files. The overreach is CLAIM_SCOPE claim 15's "structural upper limit on what's even offloadable" (flagged, not edited).
+- Doc: `E1_PARTB_CEILING_RECONCILIATION.md`.
