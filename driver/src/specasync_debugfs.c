@@ -134,6 +134,9 @@ atomic_t g_specasync_ft_unknown_page  = ATOMIC_INIT(0);
 atomic_t g_specasync_ft_exhausted     = ATOMIC_INIT(0);
 struct specasync_trace_ring g_ft_log_ring;
 
+/* Gate E0.9a-2: see specasync_internal.h for placement/rationale. */
+atomic_t g_specasync_fault_already_resident = ATOMIC_INIT(0);
+
 /*
  * Gate E0.5 accuracy instrumentation: state for scoring each oracle
  * prediction against the fault it was made for, one call in arrears (see
@@ -396,6 +399,7 @@ static ssize_t clear_write(struct file *filp, const char __user *ubuf,
 	atomic_set(&g_specasync_ft_held, 0);
 	atomic_set(&g_specasync_ft_unknown_page, 0);
 	atomic_set(&g_specasync_ft_exhausted, 0);
+	atomic_set(&g_specasync_fault_already_resident, 0);
 	{
 		unsigned long _flags;
 		spin_lock_irqsave(&g_ft_cursor_lock, _flags);
@@ -1176,6 +1180,8 @@ int specasync_debugfs_init(struct dentry *parent_dentry)
 				&g_specasync_ft_unknown_page);
 	debugfs_create_atomic_t("specasync_ft_exhausted", 0444, specasync_dir,
 				&g_specasync_ft_exhausted);
+	debugfs_create_atomic_t("specasync_fault_already_resident", 0444, specasync_dir,
+				&g_specasync_fault_already_resident);
 
 	if (specasync_policy == 4)
 		specasync_load_oracle_trace();

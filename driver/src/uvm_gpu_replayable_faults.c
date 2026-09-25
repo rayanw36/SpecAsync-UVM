@@ -1896,6 +1896,19 @@ static NV_STATUS service_fault_batch_block_locked(uvm_gpu_t *gpu,
                                                 uvm_fault_access_type_to_prot(service_access_type)))
             continue;
 
+        /*
+         * Gate E0.9a-2: this fault is definitely going to be serviced (the
+         * check above just ruled out "already mapped with sufficient
+         * permission"). If the page's data is nonetheless already resident
+         * on THIS GPU, the fault is being serviced purely to install a
+         * mapping -- no data copy needed -- which is exactly the H-map
+         * mechanism (specasync_worker_fn()'s uvm_va_block_make_resident()
+         * call never installs a mapping; see GATE_E0_9A2_REPORT.md Check A).
+         * Read-only; does not alter servicing.
+         */
+        if (uvm_page_mask_test(uvm_va_block_resident_mask_get(va_block, gpu->id, NUMA_NO_NODE), page_index))
+            atomic_inc(&g_specasync_fault_already_resident);
+
         thrashing_hint = uvm_perf_thrashing_get_hint(va_block,
                                                      block_context->block_context,
                                                      current_entry->fault_address,

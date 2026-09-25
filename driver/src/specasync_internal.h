@@ -53,6 +53,23 @@ extern atomic_t                 g_specasync_spec_hits;
 extern atomic_t                 g_specasync_spec_migrations;
 
 /*
+ * Gate E0.9a-2: demand faults on a page already resident on the FAULTING
+ * GPU at the time the fault is serviced. Placed in the demand-fault path
+ * (uvm_gpu_replayable_faults.c's per-fault service loop), immediately after
+ * the existing uvm_va_block_page_is_gpu_authorized() check has already
+ * determined the fault is NOT already satisfied by an existing mapping --
+ * so a true increment here means: data is on this GPU, but the mapping the
+ * demand fault needs does not exist yet. This is exactly the mechanism
+ * H-map (GATE_E0_9A2_REPORT.md) predicts from source: the speculative
+ * worker's uvm_va_block_make_resident() (uvm_gpu_replayable_faults.c,
+ * specasync_worker_fn) never calls the mapping step
+ * (block_service_finish_map(), only reachable via uvm_va_block_service_
+ * finish() on the demand path) -- so a successful speculative migration can
+ * make this counter's condition true, never prevent it from firing at all.
+ */
+extern atomic_t                 g_specasync_fault_already_resident;
+
+/*
  * Gate E0.5 (Step 3): oracle-replay-consumption-side counters, defined
  * alongside g_oracle_idx/g_oracle_trace in specasync_debugfs.c.
  *
