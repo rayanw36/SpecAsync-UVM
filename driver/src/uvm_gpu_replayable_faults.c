@@ -1905,8 +1905,26 @@ static NV_STATUS service_fault_batch_block_locked(uvm_gpu_t *gpu,
          * mechanism (specasync_worker_fn()'s uvm_va_block_make_resident()
          * call never installs a mapping; see GATE_E0_9A2_REPORT.md Check A).
          * Read-only; does not alter servicing.
+         *
+         * CRASH FIX (found the hard way, first run of this code -- see
+         * GATE_E0_9A2_REPORT.md's incident section): uvm_va_block_
+         * resident_mask_get() derefs the block's per-GPU state
+         * unconditionally and only UVM_ASSERT()s it exists -- a soft,
+         * non-fatal check in a production build. If this GPU has never had
+         * any page of this block resident before, that state is NULL, and
+         * because `resident` is the first member of uvm_va_block_gpu_
+         * state_t, `&gpu_state->resident` evaluates to NULL too -- so the
+         * assert is silently survived and the caller (this code) got a NULL
+         * mask pointer back, which uvm_page_mask_test() then dereferenced.
+         * This produced a real kernel NULL-pointer oops on first exercise
+         * (UVM GPU1 BH thread killed, module left with a stuck refcount,
+         * host required attention). Guard with uvm_va_block_gpu_state_get()
+         * first -- a plain array lookup with no assert, see uvm_va_block.h
+         * -- and treat "no GPU state yet" as "not resident", which is also
+         * the semantically correct answer, not just the safe one.
          */
-        if (uvm_page_mask_test(uvm_va_block_resident_mask_get(va_block, gpu->id, NUMA_NO_NODE), page_index))
+        if (uvm_va_block_gpu_state_get(va_block, gpu->id) &&
+            uvm_page_mask_test(uvm_va_block_resident_mask_get(va_block, gpu->id, NUMA_NO_NODE), page_index))
             atomic_inc(&g_specasync_fault_already_resident);
 
         thrashing_hint = uvm_perf_thrashing_get_hint(va_block,
