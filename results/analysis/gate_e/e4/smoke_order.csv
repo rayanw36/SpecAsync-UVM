@@ -1,0 +1,8 @@
+idx,label,workload,module,policy,depth,prefetch,L,W,fast,trace_faults,dump_rings
+1,SMOKE stencil pf0 W64 f1,stencil,new,6,1,0,4096,64,1,0,1
+2,SMOKE stencil pf0 W512 f1,stencil,new,6,1,0,4096,512,1,0,1
+3,SMOKE stencil pf1 W512 f1,stencil,new,6,1,1,4096,512,1,0,1
+4,SMOKE graphbfs pf0 W64 f1,graphbfs,new,6,1,0,4096,64,1,0,1
+5,SMOKE graphbfs pf0 W512 f1,graphbfs,new,6,1,0,4096,512,1,0,1
+6,SMOKE graphbfs pf1 W64 f1,graphbfs,new,6,1,1,4096,64,1,0,1
+7,SMOKE graphbfs pf1 W512 f1,graphbfs,new,6,1,1,4096,512,1,0,1

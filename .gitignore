@@ -223,3 +223,6 @@ results/phaseB1/gate_e1b/
 
 # Gate E3b: raw ring dumps, tables, STOP markers
 results/phaseB1/gate_e3b/
+
+# Gate E4: raw ring dumps, tables, STOP markers
+results/phaseB1/gate_e4/
