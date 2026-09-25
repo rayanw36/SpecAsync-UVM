@@ -3,7 +3,7 @@
 **COMPLETE — HARD STOP (2026-09-25): no stop condition.**
 - **E1b:** the handoff location is confirmed by measurement (the pre-lock segment is 99.9–100% of the outside-lock increase), but the enqueue itself is only 10–31% of it. Most of the cost is per-fault prediction work.
 - **E3a:** compiled cleanly (srcversion 91F634807244D31148A8597) and **NOT loaded**, awaiting review of `E3A_WIDTH_REVIEW.md`.
-- The last 4 commits are unpushed (headless); run `git push`.
+- Every commit after `82b15b9` (the last one pushed) is unpushed (headless); run `git push`.
 
 ## Part A — Push and preflight
 - Start 2026-09-25T22:33+03:00
