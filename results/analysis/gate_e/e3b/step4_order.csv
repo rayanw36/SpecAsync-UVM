@@ -1,0 +1,25 @@
+idx,label,workload,module,policy,depth,prefetch,L,W,fast,trace_faults,dump_rings
+1,S4 stencil C0,stencil,new,0,0,1,,1,0,0,1
+2,S4 stencil C1,stencil,new,0,0,0,,1,0,0,1
+3,S4 stencil C1,stencil,new,0,0,0,,1,0,0,1
+4,S4 stencil C7f0,stencil,new,6,1,1,4096,1,0,0,1
+5,S4 stencil C6f0,stencil,new,6,1,0,4096,1,0,0,1
+6,S4 stencil C7f0,stencil,new,6,1,1,4096,1,0,0,1
+7,S4 graphbfs C6f0,graphbfs,new,6,1,0,4096,1,0,0,1
+8,S4 graphbfs C6f1,graphbfs,new,6,1,0,4096,1,1,0,1
+9,S4 graphbfs C1,graphbfs,new,0,0,0,,1,0,0,1
+10,S4 stencil C7f1,stencil,new,6,1,1,4096,1,1,0,1
+11,S4 stencil C6f1,stencil,new,6,1,0,4096,1,1,0,1
+12,S4 stencil C7f1,stencil,new,6,1,1,4096,1,1,0,1
+13,S4 stencil C1,stencil,new,0,0,0,,1,0,0,1
+14,S4 stencil C7f1,stencil,new,6,1,1,4096,1,1,0,1
+15,S4 stencil C6f0,stencil,new,6,1,0,4096,1,0,0,1
+16,S4 graphbfs C1,graphbfs,new,0,0,0,,1,0,0,1
+17,S4 stencil C7f0,stencil,new,6,1,1,4096,1,0,0,1
+18,S4 stencil C0,stencil,new,0,0,1,,1,0,0,1
+19,S4 graphbfs C6f1,graphbfs,new,6,1,0,4096,1,1,0,1
+20,S4 graphbfs C6f0,graphbfs,new,6,1,0,4096,1,0,0,1
+21,S4 stencil C6f1,stencil,new,6,1,0,4096,1,1,0,1
+22,S4 stencil C6f1,stencil,new,6,1,0,4096,1,1,0,1
+23,S4 stencil C6f0,stencil,new,6,1,0,4096,1,0,0,1
+24,S4 stencil C0,stencil,new,0,0,1,,1,0,0,1

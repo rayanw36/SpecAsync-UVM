@@ -220,3 +220,6 @@ results/phaseB1/gate_e1/
 
 # Gate E1b: raw batch/decomp ring dumps, tables, STOP, runner log
 results/phaseB1/gate_e1b/
+
+# Gate E3b: raw ring dumps, tables, STOP markers
+results/phaseB1/gate_e3b/

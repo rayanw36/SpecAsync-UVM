@@ -1,0 +1,7 @@
+idx,label,workload,module,policy,depth,prefetch,L,W,fast,trace_faults,dump_rings
+1,S2a verified,group_probe,verified,6,1,0,4096,,,1,0
+2,S2b new W1 f0,group_probe,new,6,1,0,4096,1,0,1,0
+3,S2c new W1 f1,group_probe,new,6,1,0,4096,1,1,1,0
+4,S2d new W16 f0,group_probe,new,6,1,0,4096,16,0,1,0
+5,S2e new W64 f0,group_probe,new,6,1,0,4096,64,0,1,0
+6,S2f new W512 f0,group_probe,new,6,1,0,4096,512,0,1,0

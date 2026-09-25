@@ -1,0 +1,7 @@
+idx,label,workload,module,policy,depth,prefetch,L,W,fast,trace_faults,dump_rings
+1,S3a C6 W1 f1,stencil,new,6,1,0,4096,1,1,1,1
+2,S3b C7 W1 f1,stencil,new,6,1,1,4096,1,1,1,1
+3,S3c C6 W16 f0,stencil,new,6,1,0,4096,16,0,1,1
+4,S3d C6 W64 f0,stencil,new,6,1,0,4096,64,0,1,1
+5,S3e C6 W512 f0,stencil,new,6,1,0,4096,512,0,1,1
+6,S3f C7 W64 f1,stencil,new,6,1,1,4096,64,1,1,1
