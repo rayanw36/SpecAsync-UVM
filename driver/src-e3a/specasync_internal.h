@@ -143,25 +143,48 @@ extern int specasync_ft_lookahead;
  * guarded by specasync_spec_width > 1.
  *
  * specasync_spec_width_shift            log2(W), set by the same param setter
- * g_specasync_last_region               region ID (va >> (PAGE_SHIFT + shift))
- *                                       of the last enqueued policy-6
- *                                       prediction; SPECASYNC_NO_REGION = none.
- *                                       Written/read only by the fault-servicing
- *                                       thread (READ_ONCE/WRITE_ONCE) and reset
- *                                       by specasync_clear.
+ * g_specasync_last_regions[8]           region IDs (va >> (PAGE_SHIFT + shift))
+ * g_specasync_last_region_idx           of the last 8 ENQUEUED policy-6
+ *                                       predictions, round-robin insertion
+ *                                       (E3a-2 B2: the single last region
+ *                                       captured < 80% of an 8-region history
+ *                                       on Stencil at W = 64).
+ *                                       SPECASYNC_NO_REGION = empty slot.
+ *                                       Plain u64/u32 globals, written/read
+ *                                       only by the fault-servicing thread
+ *                                       (READ_ONCE/WRITE_ONCE), reset by
+ *                                       specasync_clear; no UVM state.
  * g_specasync_ft_same_region            predictions not enqueued: same region
  * g_specasync_spec_region_invalid       worker items skipped because the region
  *                                       failed an explicit bounds/block check
  * g_specasync_spec_pages_requested      sum of region sizes (pages) passed to
  *                                       uvm_va_block_make_resident by the worker
  */
-#define SPECASYNC_SPEC_WIDTH_MAX 512
-#define SPECASYNC_NO_REGION      (~0ULL)
+#define SPECASYNC_SPEC_WIDTH_MAX  512
+#define SPECASYNC_NO_REGION       (~0ULL)
+#define SPECASYNC_REGION_HISTORY  8     /* must be a power of two (index is masked) */
 extern int        specasync_spec_width;
 extern int        specasync_spec_width_shift;
-extern u64        g_specasync_last_region;
+extern u64        g_specasync_last_regions[SPECASYNC_REGION_HISTORY];
+extern u32        g_specasync_last_region_idx;
 extern atomic_t   g_specasync_ft_same_region;
 extern atomic_t   g_specasync_spec_region_invalid;
 extern atomic64_t g_specasync_spec_pages_requested;
+
+/*
+ * Gate E3a-2: cheap first-touch oracle (specasync_ft_fast, 0444, 0|1,
+ * default 0). At 1, specasync_load_ft_table() builds a range index over the
+ * page-sorted table (maximal runs of consecutive pages: base pfn, length,
+ * offset into a u32 rank array), then looks up EVERY table page with both
+ * the range index and the existing bsearch; any single rank difference
+ * logs the first mismatch with pr_err, frees the index, and leaves the
+ * fast path disabled for this load. specasync_ft_predict() takes the fast
+ * path only when that check passed; at 0 (or on failure) it takes exactly
+ * the pre-E3a-2 path. The fast path takes no lock: the table and index are
+ * read-only after load, and the cursor (g_ft_next_to_predict) is advanced
+ * with a bounded atomic_try_cmpxchg loop that reproduces the slow path's
+ * skip / predict / held / exhausted rule and counter updates exactly.
+ */
+extern int specasync_ft_fast;
 
 #endif /* SPECASYNC_INTERNAL_H */

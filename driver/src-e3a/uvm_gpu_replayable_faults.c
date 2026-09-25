@@ -508,6 +508,10 @@ static_assert(SPECASYNC_SPEC_WIDTH_MAX <= PAGES_PER_UVM_VA_BLOCK,
 	      "spec width must not exceed a VA block");
 static_assert(PAGES_PER_UVM_VA_BLOCK % SPECASYNC_SPEC_WIDTH_MAX == 0,
 	      "spec width max must divide the VA block page count");
+/* Gate E3a-2: the region-history slot index is masked, so it must be 2^k. */
+static_assert(SPECASYNC_REGION_HISTORY > 0 &&
+	      (SPECASYNC_REGION_HISTORY & (SPECASYNC_REGION_HISTORY - 1)) == 0,
+	      "region history size must be a power of two");
 
 /* ---- Compile-time ABI sanity checks -------------------------------- */
 static_assert(sizeof(struct specasync_batch_record) == 72,
@@ -2767,23 +2771,41 @@ static NV_STATUS service_fault_batch(uvm_parent_gpu_t *parent_gpu,
                     (_fe->va_space->specasync_pred) ?
                     _fe->va_space->specasync_pred->hit_table : NULL;
                 /*
-                 * Gate E3a: at W > 1, policy 6 does not enqueue a prediction
-                 * whose W-page region equals the last ENQUEUED prediction's.
-                 * Touches no UVM state: a local, two specasync globals, one
-                 * counter. At W = 1 this branch is never taken and the call
-                 * below is exactly the pre-E3a call.
+                 * Gate E3a / E3a-2: at W > 1, policy 6 does not enqueue a
+                 * prediction whose W-page region equals any of the last
+                 * SPECASYNC_REGION_HISTORY ENQUEUED predictions' regions.
+                 * Touches no UVM state: locals, specasync globals, one
+                 * counter. The match is recorded in _seen and the `continue`
+                 * sits OUTSIDE the inner _k loop, so it targets this _fi loop
+                 * (a `continue` inside the _k loop would only advance _k).
+                 * At W = 1 this branch is never taken and the call below is
+                 * exactly the pre-E3a call.
                  */
                 if (specasync_spec_width > 1 &&
                     specasync_policy == SPECASYNC_POLICY_FIRST_TOUCH &&
                     _spec_addr != 0) {
                     u64 _rid = _spec_addr >> (PAGE_SHIFT + specasync_spec_width_shift);
+                    bool _seen = false;
+                    u32 _k;
 
-                    if (_rid == READ_ONCE(g_specasync_last_region)) {
+                    for (_k = 0; _k < SPECASYNC_REGION_HISTORY; _k++) {
+                        if (READ_ONCE(g_specasync_last_regions[_k]) == _rid) {
+                            _seen = true;
+                            break;
+                        }
+                    }
+                    if (_seen) {
                         atomic_inc(&g_specasync_ft_same_region);
                         continue;
                     }
-                    if (specasync_enqueue(_fe->va_space, _spec_addr, _ht, &_sa_rec, _fe->gpu))
-                        WRITE_ONCE(g_specasync_last_region, _rid);
+                    if (specasync_enqueue(_fe->va_space, _spec_addr, _ht, &_sa_rec, _fe->gpu)) {
+                        u32 _slot = READ_ONCE(g_specasync_last_region_idx) &
+                                    (SPECASYNC_REGION_HISTORY - 1);
+
+                        WRITE_ONCE(g_specasync_last_regions[_slot], _rid);
+                        WRITE_ONCE(g_specasync_last_region_idx,
+                                   (_slot + 1) & (SPECASYNC_REGION_HISTORY - 1));
+                    }
                 } else {
                     specasync_enqueue(_fe->va_space, _spec_addr, _ht, &_sa_rec, _fe->gpu);
                 }

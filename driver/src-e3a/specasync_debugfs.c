@@ -154,7 +154,9 @@ module_param_cb(specasync_spec_width, &specasync_spec_width_ops, &specasync_spec
 MODULE_PARM_DESC(specasync_spec_width,
 	"Gate E3a: speculative width in pages, power of two in [1, 512] (default 1 = pre-E3a behaviour)");
 
-u64        g_specasync_last_region          = SPECASYNC_NO_REGION;
+u64        g_specasync_last_regions[SPECASYNC_REGION_HISTORY] = {
+	[0 ... SPECASYNC_REGION_HISTORY - 1] = SPECASYNC_NO_REGION };
+u32        g_specasync_last_region_idx      = 0;
 atomic_t   g_specasync_ft_same_region       = ATOMIC_INIT(0);
 atomic_t   g_specasync_spec_region_invalid  = ATOMIC_INIT(0);
 atomic64_t g_specasync_spec_pages_requested = ATOMIC64_INIT(0);
@@ -165,6 +167,43 @@ static int spec_pages_requested_get(void *data, u64 *val)
 	return 0;
 }
 DEFINE_DEBUGFS_ATTRIBUTE(spec_pages_requested_fops, spec_pages_requested_get, NULL, "%llu\n");
+
+/*
+ * Gate E3a-2: cheap first-touch oracle switch (see specasync_internal.h).
+ * Same validation pattern as specasync_spec_width: anything but 0 or 1 makes
+ * insmod fail. 0444: fixed for the module's life.
+ */
+int specasync_ft_fast = 0;
+
+static int specasync_ft_fast_set(const char *val, const struct kernel_param *kp)
+{
+	int v;
+
+	if (kstrtoint(val, 0, &v)) {
+		pr_err("specasync: specasync_ft_fast='%s' rejected: not an integer\n", val);
+		return -EINVAL;
+	}
+	if (v != 0 && v != 1) {
+		pr_err("specasync: specasync_ft_fast=%d rejected: must be 0 or 1\n", v);
+		return -EINVAL;
+	}
+	specasync_ft_fast = v;
+	return 0;
+}
+
+static const struct kernel_param_ops specasync_ft_fast_ops = {
+	.set = specasync_ft_fast_set,
+	.get = param_get_int,
+};
+module_param_cb(specasync_ft_fast, &specasync_ft_fast_ops, &specasync_ft_fast, 0444);
+MODULE_PARM_DESC(specasync_ft_fast,
+	"Gate E3a-2: 1 = constant-time lock-free first-touch lookup (verified at load), 0 = original bsearch path [default]");
+
+/* Gate E3a-2 fast-path outcome and safety counters (debugfs, read-only). */
+atomic_t   g_specasync_ft_fast_verified   = ATOMIC_INIT(0); /* 1 = equivalence check passed */
+u64        g_specasync_ft_fast_verify_ns  = 0;              /* check duration, written once at load */
+u32        g_specasync_ft_fast_nranges    = 0;              /* ranges in the index (0 = none) */
+atomic_t   g_specasync_ft_fast_cas_giveup = ATOMIC_INIT(0); /* cmpxchg retry bound hit */
 
 /* ── Gate E0.5 counters (defined here, declared extern in specasync_telemetry.h / specasync_internal.h) ── */
 atomic_t g_specasync_trace_pushes           = ATOMIC_INIT(0);
@@ -231,6 +270,27 @@ static struct specasync_ft_sorted_entry *g_ft_sorted  = NULL;  /* page-sorted, v
 static atomic_t                      g_ft_next_to_predict = ATOMIC_INIT(0);
 static atomic_t                      g_ft_seq             = ATOMIC_INIT(0);
 static DEFINE_SPINLOCK(g_ft_cursor_lock);
+
+/*
+ * Gate E3a-2: range index over g_ft_sorted (page-sorted). One entry per
+ * maximal run of consecutive pages: pages [base_pfn, base_pfn + len) have
+ * ranks g_ft_range_ranks[off .. off + len). off is the run's start index in
+ * g_ft_sorted, so g_ft_range_ranks[i] == g_ft_sorted[i].rank. Built and
+ * verified at load (process context), read-only afterwards. g_ft_fast_active
+ * is set true only after the equivalence check passes, before any fault can
+ * reach specasync_ft_predict() (the table and index are loaded in module
+ * init), and cleared before anything is freed.
+ */
+struct specasync_ft_range {
+	u64 base_pfn;
+	u32 len;
+	u32 off;
+};
+static struct specasync_ft_range *g_ft_ranges       = NULL;  /* vmalloc'd */
+static u32                       *g_ft_range_ranks  = NULL;  /* vmalloc'd, g_ft_table_len entries */
+static bool                       g_ft_fast_active  = false;
+#define SPECASYNC_FT_FAST_LINEAR_MAX   16   /* <= this many ranges: linear scan */
+#define SPECASYNC_FT_FAST_MAX_TRIES    64   /* cmpxchg retry bound (bottom half never spins unbounded) */
 
 /* ── Static debugfs dentries ─────────────────────────────────────────────── */
 
@@ -454,7 +514,14 @@ static ssize_t clear_write(struct file *filp, const char __user *ubuf,
 	atomic_set(&g_specasync_ft_same_region, 0);
 	atomic_set(&g_specasync_spec_region_invalid, 0);
 	atomic64_set(&g_specasync_spec_pages_requested, 0);
-	WRITE_ONCE(g_specasync_last_region, SPECASYNC_NO_REGION);
+	{
+		int _r;
+
+		for (_r = 0; _r < SPECASYNC_REGION_HISTORY; _r++)
+			WRITE_ONCE(g_specasync_last_regions[_r], SPECASYNC_NO_REGION);
+		WRITE_ONCE(g_specasync_last_region_idx, 0);
+	}
+	atomic_set(&g_specasync_ft_fast_cas_giveup, 0);
 	{
 		unsigned long _flags;
 		spin_lock_irqsave(&g_ft_cursor_lock, _flags);
@@ -689,6 +756,183 @@ static int cmp_ft_bsearch_key(const void *key, const void *elt)
 	return 0;
 }
 
+/* Gate E3a-2: free the range index (safe to call when nothing is allocated). */
+static void specasync_ft_fast_free(void)
+{
+	WRITE_ONCE(g_ft_fast_active, false);
+	if (g_ft_ranges) {
+		vfree(g_ft_ranges);
+		g_ft_ranges = NULL;
+	}
+	if (g_ft_range_ranks) {
+		vfree(g_ft_range_ranks);
+		g_ft_range_ranks = NULL;
+	}
+	g_specasync_ft_fast_nranges = 0;
+}
+
+/*
+ * Gate E3a-2: constant-time rank lookup via the range index. Returns false
+ * ("unknown page") if the index is absent or the page is in no range. Every
+ * array access is bounds-checked explicitly.
+ */
+static bool specasync_ft_fast_rank(u64 page, u32 *rank_out)
+{
+	const struct specasync_ft_range *rg = g_ft_ranges;
+	const u32 *ranks = g_ft_range_ranks;
+	u32 n = g_specasync_ft_fast_nranges;
+	u64 pfn = page >> PAGE_SHIFT;
+	u64 idx;
+	u32 j, lo, hi, rank;
+
+	if (!rg || !ranks || n == 0 || g_ft_table_len == 0 || !rank_out)
+		return false;
+
+	if (n <= SPECASYNC_FT_FAST_LINEAR_MAX) {
+		for (j = 0; j < n; j++)
+			if (pfn >= rg[j].base_pfn && pfn - rg[j].base_pfn < (u64)rg[j].len)
+				goto found;
+		return false;
+	}
+	/* Binary search: lo = number of ranges with base_pfn <= pfn. */
+	lo = 0;
+	hi = n;
+	while (lo < hi) {
+		u32 mid = lo + (hi - lo) / 2;
+
+		if (rg[mid].base_pfn <= pfn)
+			lo = mid + 1;
+		else
+			hi = mid;
+	}
+	if (lo == 0)
+		return false;
+	j = lo - 1;
+	if (pfn - rg[j].base_pfn >= (u64)rg[j].len)
+		return false;
+found:
+	idx = (u64)rg[j].off + (pfn - rg[j].base_pfn);
+	if (idx >= (u64)g_ft_table_len)
+		return false;
+	rank = ranks[idx];
+	if (rank >= g_ft_table_len)
+		return false;
+	*rank_out = rank;
+	return true;
+}
+
+/*
+ * Gate E3a-2: build the range index from g_ft_sorted and verify it against
+ * the existing bsearch for every table page (plus the page just below and
+ * just above every range, which must be unknown to both). Process context,
+ * module init. On any failure the index is freed and the fast path stays
+ * off; the slow path is unaffected either way.
+ */
+static void specasync_ft_fast_build_and_verify(void)
+{
+	u32 i, n, r, k;
+	u64 t0;
+
+	specasync_ft_fast_free();            /* no stale index from any earlier load */
+	atomic_set(&g_specasync_ft_fast_verified, 0);
+	g_specasync_ft_fast_verify_ns = 0;
+	if (!g_ft_table || !g_ft_sorted || g_ft_table_len == 0)
+		return;
+
+	/* Count maximal runs; refuse unaligned or duplicate pages outright. */
+	n = 0;
+	for (i = 0; i < g_ft_table_len; i++) {
+		if (g_ft_sorted[i].page & (PAGE_SIZE - 1)) {
+			pr_err("specasync: ft_fast: table page %llx not page-aligned; fast path disabled\n",
+			       (unsigned long long)g_ft_sorted[i].page);
+			return;
+		}
+		if (i > 0 && g_ft_sorted[i].page == g_ft_sorted[i - 1].page) {
+			pr_err("specasync: ft_fast: duplicate table page %llx; fast path disabled\n",
+			       (unsigned long long)g_ft_sorted[i].page);
+			return;
+		}
+		if (i == 0 || g_ft_sorted[i].page != g_ft_sorted[i - 1].page + PAGE_SIZE)
+			n++;
+	}
+
+	g_ft_ranges = vmalloc((size_t)n * sizeof(*g_ft_ranges));
+	g_ft_range_ranks = vmalloc((size_t)g_ft_table_len * sizeof(*g_ft_range_ranks));
+	if (!g_ft_ranges || !g_ft_range_ranks) {
+		pr_err("specasync: ft_fast: index allocation failed; fast path disabled\n");
+		specasync_ft_fast_free();
+		return;
+	}
+	k = 0;
+	for (i = 0; i < g_ft_table_len; i++) {
+		if (i == 0 || g_ft_sorted[i].page != g_ft_sorted[i - 1].page + PAGE_SIZE) {
+			if (k >= n) {            /* cannot happen: n counted identically above */
+				pr_err("specasync: ft_fast: range count overflow; fast path disabled\n");
+				specasync_ft_fast_free();
+				return;
+			}
+			g_ft_ranges[k].base_pfn = g_ft_sorted[i].page >> PAGE_SHIFT;
+			g_ft_ranges[k].len = 0;
+			g_ft_ranges[k].off = i;
+			k++;
+		}
+		g_ft_ranges[k - 1].len++;
+		g_ft_range_ranks[i] = g_ft_sorted[i].rank;
+	}
+	g_specasync_ft_fast_nranges = n;
+
+	/* Equivalence check: every table page, both lookups, identical rank. */
+	t0 = ktime_get_ns();
+	for (i = 0; i < g_ft_table_len; i++) {
+		u64 page = g_ft_table[i];
+		struct specasync_ft_sorted_entry *found =
+			bsearch(&page, g_ft_sorted, g_ft_table_len,
+				sizeof(struct specasync_ft_sorted_entry), cmp_ft_bsearch_key);
+		bool fast_ok = specasync_ft_fast_rank(page, &r);
+
+		if (!found || !fast_ok || found->rank != r) {
+			pr_err("specasync: ft_fast: equivalence FAILED at table index %u page %llx: bsearch %s rank %u, range index %s rank %u; fast path disabled\n",
+			       i, (unsigned long long)page,
+			       found ? "found" : "missing", found ? found->rank : 0,
+			       fast_ok ? "found" : "missing", fast_ok ? r : 0);
+			specasync_ft_fast_free();
+			return;
+		}
+	}
+	/* Negative side: the page just outside each range is unknown to both. */
+	for (k = 0; k < n; k++) {
+		u64 probes[2];
+		int p;
+
+		probes[0] = (g_ft_ranges[k].base_pfn - 1) << PAGE_SHIFT;
+		probes[1] = (g_ft_ranges[k].base_pfn + g_ft_ranges[k].len) << PAGE_SHIFT;
+		for (p = 0; p < 2; p++) {
+			bool in_bs, in_fast;
+
+			if (p == 0 && g_ft_ranges[k].base_pfn == 0)
+				continue;        /* no page below pfn 0 */
+			in_bs = bsearch(&probes[p], g_ft_sorted, g_ft_table_len,
+					sizeof(struct specasync_ft_sorted_entry),
+					cmp_ft_bsearch_key) != NULL;
+			in_fast = specasync_ft_fast_rank(probes[p], &r);
+
+			if (in_bs != in_fast) {
+				pr_err("specasync: ft_fast: equivalence FAILED on absent-page probe %llx (bsearch %d, range index %d); fast path disabled\n",
+				       (unsigned long long)probes[p], in_bs, in_fast);
+				specasync_ft_fast_free();
+				return;
+			}
+		}
+	}
+	g_specasync_ft_fast_verify_ns = ktime_get_ns() - t0;
+	atomic_set(&g_specasync_ft_fast_verified, 1);
+	smp_store_release(&g_ft_fast_active, true);   /* index stores visible before the flag */
+	pr_info("specasync: ft_fast: range index verified: %u pages, %u ranges, index %zu bytes, check %llu ns\n",
+		g_ft_table_len, n,
+		(size_t)n * sizeof(*g_ft_ranges) + (size_t)g_ft_table_len * sizeof(*g_ft_range_ranks),
+		(unsigned long long)g_specasync_ft_fast_verify_ns);
+}
+
 /*
  * Load a first-touch table built by tests/prepare_first_touch_table.py:
  *   u64 magic, u64 count, u64 first_touch[count]   (rank -> page)
@@ -786,6 +1030,9 @@ static int specasync_load_ft_table(void)
 	atomic_set(&g_ft_next_to_predict, 0);
 	pr_info("specasync: first-touch table loaded: %u distinct pages, lookahead=%d\n",
 		g_ft_table_len, specasync_ft_lookahead);
+	/* Gate E3a-2: build + verify the range index only when asked to. */
+	if (specasync_ft_fast == 1)
+		specasync_ft_fast_build_and_verify();
 	return 0;
 }
 
@@ -797,6 +1044,106 @@ static int specasync_load_ft_table(void)
  * again here anyway, defensively, since a wrong page lookup here would
  * silently mispredict rather than fail loudly.
  */
+/*
+ * Gate E3a-2: the fast path. Same observable behaviour as the slow path
+ * below -- same early return, same replay-order push, same g_ft_seq
+ * increment, same counter updates, same prediction, same ft-log push -- with
+ * the bsearch replaced by specasync_ft_fast_rank() and the cursor lock
+ * replaced by a bounded atomic_try_cmpxchg loop on the same atomic_t cursor.
+ *
+ * Each loop iteration computes, from the cursor value n it observed, exactly
+ * what the slow path computes under its lock:
+ *   skip:  if n <= r:  skipped = r + 1 - n,  n' = r + 1      (else n' = n)
+ *   then:  n' >= len        -> exhausted,  new cursor n'
+ *          n' <= r + L      -> predict table[n'],  new cursor n' + 1
+ *          otherwise        -> held,       new cursor n'
+ * and commits the new cursor with one cmpxchg(n -> new), even when
+ * new == n, so every decision is made against a cursor value that was
+ * current at the commit. Counters are updated only after a successful
+ * commit, so each is updated exactly once per call, exactly as the slow
+ * path updates it. On contention the cmpxchg reloads n and the decision is
+ * recomputed. The loop is bounded: after SPECASYNC_FT_FAST_MAX_TRIES
+ * failed commits the call returns 0 (no prediction, no cursor change) and
+ * counts g_specasync_ft_fast_cas_giveup. That can only happen under a
+ * concurrent cursor writer, which the single fault-servicing thread per
+ * GPU does not provide (see the g_ft_next_to_predict comment above).
+ *
+ * Touches only: the read-only table and range index, the cursor atomic,
+ * g_ft_seq, specasync counters, and the two existing diagnostic ring
+ * pushes the slow path also makes. No UVM state, no allocation, no lock.
+ */
+static u64 specasync_ft_predict_fast(u64 fault_addr)
+{
+	u64 page = fault_addr & ~((u64)PAGE_SIZE - 1);
+	u32 r, my_seq, n2 = 0, skipped = 0;
+	int old, newv = 0, tries;
+	bool did_skip = false;
+	enum { FT_EXHAUSTED, FT_PREDICT, FT_HELD } outcome = FT_HELD;
+	u64 result = 0;
+
+	if (!g_ft_table || g_ft_table_len == 0)
+		return 0;
+
+	specasync_replay_order_push(fault_addr);
+
+	my_seq = (u32)atomic_fetch_inc(&g_ft_seq);
+
+	if (!specasync_ft_fast_rank(page, &r)) {
+		atomic_inc(&g_specasync_ft_unknown_page);
+		return 0;
+	}
+
+	old = atomic_read(&g_ft_next_to_predict);
+	for (tries = 0; tries < SPECASYNC_FT_FAST_MAX_TRIES; tries++) {
+		n2 = (u32)old;
+		did_skip = false;
+		skipped = 0;
+		if (n2 <= r) {
+			skipped = r + 1 - n2;
+			n2 = r + 1;
+			did_skip = true;
+		}
+		if (n2 >= g_ft_table_len) {
+			outcome = FT_EXHAUSTED;
+			newv = (int)n2;
+		} else if (n2 <= r + (u32)specasync_ft_lookahead) {
+			outcome = FT_PREDICT;
+			newv = (int)(n2 + 1);
+		} else {
+			outcome = FT_HELD;
+			newv = (int)n2;
+		}
+		if (atomic_try_cmpxchg(&g_ft_next_to_predict, &old, newv))
+			break;
+		/* old now holds the current cursor; recompute from it. */
+	}
+	if (tries >= SPECASYNC_FT_FAST_MAX_TRIES) {
+		atomic_inc(&g_specasync_ft_fast_cas_giveup);
+		return 0;
+	}
+
+	if (did_skip)
+		atomic_add((int)skipped, &g_specasync_ft_skipped);
+
+	switch (outcome) {
+	case FT_EXHAUSTED:
+		atomic_inc(&g_specasync_ft_exhausted);
+		break;
+	case FT_PREDICT:
+		result = g_ft_table[n2];          /* n2 < g_ft_table_len by the branch above */
+		atomic_inc(&g_specasync_ft_predictions);
+		break;
+	case FT_HELD:
+		atomic_inc(&g_specasync_ft_held);
+		break;
+	}
+
+	if (outcome == FT_PREDICT)
+		specasync_ft_log_push(my_seq, n2);
+
+	return result;
+}
+
 u64 specasync_ft_predict(u64 fault_addr)
 {
 	u64 page = fault_addr & ~((u64)PAGE_SIZE - 1);
@@ -805,6 +1152,10 @@ u64 specasync_ft_predict(u64 fault_addr)
 	u32 r, old_next, my_seq;
 	u64 result = 0;
 	bool did_predict = false;
+
+	/* Gate E3a-2: verified fast path; otherwise exactly the original path below. */
+	if (smp_load_acquire(&g_ft_fast_active))
+		return specasync_ft_predict_fast(fault_addr);
 
 	if (!g_ft_table || g_ft_table_len == 0)
 		return 0;
@@ -1246,14 +1597,25 @@ int specasync_debugfs_init(struct dentry *parent_dentry)
 	debugfs_create_file_unsafe("specasync_spec_pages_requested", 0444, specasync_dir,
 				   NULL, &spec_pages_requested_fops);
 
+	/* Gate E3a-2: cheap-oracle outcome (see specasync_internal.h). */
+	debugfs_create_atomic_t("specasync_ft_fast_verified", 0444, specasync_dir,
+				&g_specasync_ft_fast_verified);
+	debugfs_create_u64("specasync_ft_fast_verify_ns", 0444, specasync_dir,
+			   &g_specasync_ft_fast_verify_ns);
+	debugfs_create_u32("specasync_ft_fast_nranges", 0444, specasync_dir,
+			   &g_specasync_ft_fast_nranges);
+	debugfs_create_atomic_t("specasync_ft_fast_cas_giveup", 0444, specasync_dir,
+				&g_specasync_ft_fast_cas_giveup);
+
 	if (specasync_policy == 4)
 		specasync_load_oracle_trace();
 	if (specasync_policy == SPECASYNC_POLICY_FIRST_TOUCH)
 		specasync_load_ft_table();
 
-	pr_info("specasync: init OK  log_enabled=%d policy=%d offload_depth=%d decomp=%d spec_width=%d\n",
+	pr_info("specasync: init OK  log_enabled=%d policy=%d offload_depth=%d decomp=%d spec_width=%d ft_fast=%d(active=%d)\n",
 		specasync_log_enabled, specasync_policy, specasync_offload_depth,
-		SPECASYNC_DECOMP, specasync_spec_width);
+		SPECASYNC_DECOMP, specasync_spec_width, specasync_ft_fast,
+		(int)READ_ONCE(g_ft_fast_active));
 	return 0;
 
 err_files:
@@ -1309,6 +1671,8 @@ void specasync_debugfs_exit(void)
 		g_oracle_trace = NULL;
 	}
 
+	/* Gate E3a-2: disable and free the range index before the table. */
+	specasync_ft_fast_free();
 	if (g_ft_table) {
 		vfree(g_ft_table);
 		g_ft_table = NULL;
