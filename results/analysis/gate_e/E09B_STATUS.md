@@ -37,3 +37,4 @@
 - `E09B_PREREGISTRATION.md` written before any sweep run. Arms, 120-run order (seed 20260925, sha256 45241ae6…), statistics, falsification trigger, mechanism metrics, limitations, stop rules verbatim.
 - Analysis code `tests/e09b_analyze.py` committed with it. It refuses to run until all 120 rows exist, and was smoke-tested on synthetic data only (scratchpad, not committed).
 - Sweep timeouts: Stencil 22 s, GraphBFS 168 s (5× the pooled pilot maximum).
+- Commit `a3942b9`; push exit 128 (failed, keyring/credentials unavailable headless; recorded, not worked around).
