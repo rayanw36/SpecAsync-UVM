@@ -21,3 +21,12 @@
 - 16/16 runs, **no stop condition**, 0 new dmesg lines. Both rings at 100% coverage (≤ 74,896 records); every batch↔decomp pair aligned; ring sums equal the global counters.
 - Result: the pre-lock segment = 99.9–100% of the outside-lock increase, so the location is **confirmed**. Enqueue overhead = only 12.7% (Stencil prefetch off) / 31.0% (on) / 9.8% (GraphBFS) of it, at 54–75 ns per prediction. The rest is prediction-side per-fault work (≈139–167 ns per demand fault), not attributed further. Flag: the E3a enqueue-skip premise is weakened.
 - Doc: `E1B_HANDOFF_COST.md`; data `e1b/e1b_runs.csv`, `e1b/e1b_per_run.csv`, `e1b/e1b_summary.md`; script `tests/e1b_analyze.py`.
+- Commit `d00c0a9` (local; headless, so the push is deferred to the close).
+- 22:46 Part C: sources in driver/src-e3a/ (driver/src untouched). Building in a new work tree ~/specasync-work/nvidia-595.91.07-specasync-e3a.
+
+## Part C — E3a (compile only)
+- Sources are in `driver/src-e3a/`; the patch is `driver/patches/e3a_spec_width.patch` (342 lines). `driver/src/` is untouched.
+- Built in a new tree with the verified build script. It first reproduced srcversion 5997D238EF080B77DBD2AAF from the unmodified sources, confirming the tree, before the overlay was applied.
+- Final build: 0 warnings, 0 errors. `nvidia-uvm-specasync-NEW-e3a-width-UNREVIEWED.ko`, srcversion **91F634807244D31148A8597**, vermagic 7.0.0-34-generic. **Not loaded.** The verified module (5997D238…) remains loaded and unchanged.
+- One safety tightening came from self-review: at W > 1, block liveness (`uvm_va_block_is_dead`) is re-checked under the block lock.
+- Review packet: `E3A_WIDTH_REVIEW.md`. It contains the full diff, the function/precondition table, the pointer list, the W=1 identity argument, the risk assessment, the test plan, and the E1b flag (the enqueue skip can save at most the enqueue share).
