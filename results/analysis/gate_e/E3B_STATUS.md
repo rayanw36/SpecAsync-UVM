@@ -106,3 +106,12 @@
 - `spec_region_invalid = 0` and `cas_giveup = 0` on all runs. `ft_same_region > 0` on every W > 1 run (103,364 / 670,632 / 1,122,789 / 185,398).
 - **fast = 1 loads:** `verified = 1`, `nranges = 2`, and a load-time check of **143–182 ms** in-kernel (54 ms in userspace).
 - **Step 3 PASS.**
+
+## Step 4 — Oracle cost
+- Fresh tables (tables_s4): stencil 1,125,000 (trace 2,948,948, 0 overwrites); graphbfs 287,956 (trace 491,910, 0 overwrites). PASS.
+- Expectation and order committed in `c6d9e81`, before any load. Runs start 2026-09-26T00:05:22+0300.
+- 24/24 runs, **no stop condition**. Rings 100% covered. Identity 2 exact on every run. cas_giveup 0, region_invalid 0, fast loads verified. One non-stop dmesg line on run 10 (drm_fb_helper workqueue, framebuffer console).
+- **Verdict: lookup was the cost.** The per-fault residual is removed by 86.6% (Stencil C6), 77.6% (Stencil C7) and 87.8% (GraphBFS C6): 139.8 → 18.7, 162.9 → 35.0 and 167.0 → 20.1 ns per fault. The fast-0 residuals reproduce E1b.
+- **D5 did change on Stencil C6** (under-lock saving −0.672 → −0.515 s), coinciding with queue-full drops +51% (215k → 326k): a faster predictor overruns the worker queue. Reported, not explained away.
+- Caveat flagged: E0.9b/E1 conclusions were reached with the expensive oracle and need re-testing at fast = 1.
+- Doc: `E3B_ORACLE_COST.md`.
