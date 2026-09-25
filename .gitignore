@@ -213,3 +213,7 @@ results/phaseB1/gate_e09a2_validation/*.bin
 # Gate E0.9b: raw traces, first-touch tables, decomp-ring dumps, STOP markers
 # (derived CSVs under results/analysis/gate_e/e09b/ are committed).
 results/phaseB1/gate_e09b/
+
+# Gate E1: raw traces, first-touch tables, STOP markers, runner log
+# (derived CSVs under results/analysis/gate_e/e1/ are committed).
+results/phaseB1/gate_e1/

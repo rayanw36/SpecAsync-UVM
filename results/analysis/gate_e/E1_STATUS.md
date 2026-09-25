@@ -22,3 +22,10 @@
   - Not compared with 5.65%: different baseline, different phases, different instrument.
   - The "any such scheme" wording was not found in the manuscript files. The overreach is CLAIM_SCOPE claim 15's "structural upper limit on what's even offloadable" (flagged, not edited).
 - Doc: `E1_PARTB_CEILING_RECONCILIATION.md`.
+- Commit `61980f1`; push exit 0.
+
+## Part C — Pre-registration
+- `E1_PREREGISTRATION.md` written before any E1 run. It fixes arms C0/C7-L, prefetch-off tables, the 100-run order (seed 202609261, sha256 d17cd7de…), 8 comparisons, the trigger, metrics, limitations and verbatim stop conditions.
+- Code: `tests/e1_runner.py` (a wrapper over the E0.9b runner, logic unchanged), `tests/e1_make_order.py`, `tests/e1_analyze.py` (smoke-tested on synthetic data in the scratchpad only).
+- Timeouts: Stencil 22 s, GraphBFS 168 s (the floors; 5× the E0.9b C0 median is lower).
+- Risk noted: this is the first-ever run of policy 6 with prefetch on. It is a new parameter combination, not new code.
