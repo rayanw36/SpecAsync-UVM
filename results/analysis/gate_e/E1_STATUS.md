@@ -29,3 +29,20 @@
 - Code: `tests/e1_runner.py` (a wrapper over the E0.9b runner, logic unchanged), `tests/e1_make_order.py`, `tests/e1_analyze.py` (smoke-tested on synthetic data in the scratchpad only).
 - Timeouts: Stencil 22 s, GraphBFS 168 s (the floors; 5× the E0.9b C0 median is lower).
 - Risk noted: this is the first-ever run of policy 6 with prefetch on. It is a new parameter combination, not new code.
+- Commit `9ac42ab`; push exit 0.
+
+## Part C — Tables and sweep
+- 2026-09-25T21:20:38+0300 isolated to multi-user.target.
+- systemctl printed "The unit file ... of multi-user.target changed on disk. Run 'systemctl daemon-reload'". Informational, not a stop condition. daemon-reload was not run (outside the allowed commands). Isolate exit 0; gdm and graphical.target inactive; MemAvailable 61,336,648 kB.
+- Tables (prefetch off): stencil 1,125,000 (trace 2,948,005, overwrites 0); graphbfs 287,956 (trace 481,067, overwrites 0). Assertions **PASS**.
+- Sweep launched 2026-09-25T21:21:24+0300
+- Sweep end 2026-09-25T18:51:02Z. **100/100 runs, no stop condition**, no interruption, no re-run. Commits every 10 runs: `635c463` … `9813a9f`.
+- srcversion constant; exit codes all 0; MemAvailable ≥ 60.8 GB; disk ≥ 39.8 GB. dmesg: 1 line on run 92 (`drm_fb_helper_damage_work hogged CPU`, framebuffer console, not nvidia); nothing else. Identity held on 80/80.
+
+## Part C — Analysis
+- `tests/e1_analyze.py` run unchanged from `9ac42ab`.
+- Falsification trigger **not fired**. Stencil: every C7-L is Holm-significantly slower than C0 (+3.9% to +8.4%). GraphBFS: no significant difference at any L (MDE ≈ 0.5%).
+- C0 `fault_already_resident` = 0 in all 20 C0 runs, so the counter is attributable to speculation.
+
+## Close
+- `GATE_E1_REPORT.md` written.

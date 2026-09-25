@@ -1,0 +1,8 @@
+rows 100 / 100
+order adherence: 100 / 100 match in sequence; mismatches: []
+srcversions: ['5997D238EF080B77DBD2AAF']
+exit codes: ['0']
+dmesg new lines: total 1; runs with any: [('92', '1')]
+MemAvailable kB: before 61050316-61438084; after 60823884-61181644; first 61245108 last 61024580
+disk free GB: min 39.8
+identity ft_predictions = enqueued + drops: holds on 80 / 80 C7 runs; fails on []
