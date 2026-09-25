@@ -23,10 +23,17 @@
 - Commit `b655a62`; push exit 0
 
 ## Step 2 — Pilot ceiling
-- Start 2026-09-25T17:41 (pilot table collection); pilot runs 17:43–17:46; end 2026-09-25T17:5x
+- Start 2026-09-25T17:41 (pilot table collection); pilot runs 17:43–17:46; end 2026-09-25T17:49
 - Tables: stencil 1,125,000 / graphbfs 287,956 asserted, trace overwrites 0.
 - 10/10 pilot runs, no stop condition, 0 new dmesg lines, MemAvailable ≥ 60.9 GB. `ft_predictions = enqueued + drops` exact on all 5 C6 runs.
 - Decomp ring: 23,534–75,199 records per run (< 131,071) → 100% coverage → ceiling computed (branch 2, prefix-based, scale 1.0).
 - Ceiling (servicing window, C1 − C6-L4096): Stencil 0.198 s [0.170, 0.217], 216 ns per pre-staged fault; GraphBFS ≈ 0 [−0.0165, +0.0165].
 - Disclosure: the pilot runner printed per-run wall-clock to stdout; no arm comparison was made. The runner now writes wall-clock to the CSV only.
 - Addendum: `E09B_PREREG_ADDENDUM_PILOT.md`.
+- Commit `46761ec`; push **failed** (exit 128, `could not read Username for 'https://github.com'` — no credential helper with the desktop isolated). Recorded, not worked around; later steps commit locally.
+
+## Step 3 — Pre-registration
+- Start 2026-09-25T17:52; end 2026-09-25T17:51:55+0300
+- `E09B_PREREGISTRATION.md` written before any sweep run. Arms, 120-run order (seed 20260925, sha256 45241ae6…), statistics, falsification trigger, mechanism metrics, limitations, stop rules verbatim.
+- Analysis code `tests/e09b_analyze.py` committed with it. It refuses to run until all 120 rows exist, and was smoke-tested on synthetic data only (scratchpad, not committed).
+- Sweep timeouts: Stencil 22 s, GraphBFS 168 s (5× the pooled pilot maximum).
