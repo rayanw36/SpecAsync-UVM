@@ -1,5 +1,7 @@
 # Gate E0.9b — unattended session status
 
+**COMPLETE (2026-09-25): all steps 0–6 done, 120/120 sweep runs, no stop condition fired. Falsification trigger not fired (C6 loses to C0 at every L). Stencil C6-L4096 is 5.65% faster than C1, above the pre-registered ceiling, so the ceiling was wrong. Local commits are unpushed (keyring); the user needs to run `git push`.**
+
 ## Step 0 — Preflight
 - Start: 2026-09-25T17:38:11+03:00
 - HEAD: `5bda4d2` (`manuscript-prep...origin/manuscript-prep [ahead 1]` — 5bda4d2 not yet pushed from the previous session)
@@ -55,3 +57,6 @@
 
 ## Step 6 — Close
 - Report `GATE_E0_9B_REPORT.md` finalized.
+- Report commit `48dc61a`; push **failed** (exit 128, no credentials headless). Recorded, not worked around.
+- No stop condition occurred, so the system was restored. The verified module (`5997D238EF080B77DBD2AAF`) was reloaded in the C0 configuration (policy 0, depth 0, prefetch on, log off), so the desktop is not left on policy 6. `systemctl isolate graphical.target`: exit 0; graphical.target and gdm active. `nvidia-smi` works (RTX 5070 Ti, 595.91.07). The stock DKMS `nvidia_uvm` returns on the next reboot.
+- Session ended. E1/E2/E3 not started.
