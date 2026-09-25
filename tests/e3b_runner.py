@@ -102,6 +102,7 @@ def main():
     ap.add_argument("--out-dir", required=True)
     ap.add_argument("--tables", required=True)
     ap.add_argument("--commit-msg", default="Gate E3b")
+    ap.add_argument("--through", type=int, default=0, help="process only rows with idx <= N (0 = all)")
     args = ap.parse_args()
     os.makedirs(args.out_dir, exist_ok=True)
     stop_file = os.path.join(args.out_dir, "STOP")
@@ -121,6 +122,8 @@ def main():
     for row in order:
         if row["idx"] in done:
             continue
+        if args.through and int(row["idx"]) > args.through:
+            break
         wl = row["workload"]
         table = os.path.join(args.tables, f"{wl}_ft_table.bin")
         label = f"idx={row['idx']} {row['label']}"

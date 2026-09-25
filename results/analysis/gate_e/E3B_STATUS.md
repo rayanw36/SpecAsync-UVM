@@ -66,3 +66,43 @@
   - **`group_probe` did not exercise the widened migration path at all.**
   - Why is not measured: the work ring was not dumped in Step 2. Source suggests the worker's block `trylock` fails while the demand path services the same 8 faults in one batch, giving THROTTLED; no counter separates that.
   - **Step 3 is therefore the first run in which a multi-page region reaches `make_resident`.**
+
+## Step 3 — Stencil-24K smoke tests (policy 6, depth 1, L=4096, trace_faults=1, rings dumped)
+- Fresh prefetch-off tables: stencil 1,125,000 (trace 2,942,674, 0 overwrites); graphbfs 287,956 (trace 485,300, 0 overwrites). Assertions PASS.
+- 6/6 runs in order a→f, with (e) run alone and inspected before (f). **No stop condition**, 0 new dmesg lines in every run, MemAvailable 59.9–60.3 GB, rings 100% covered (4,417–73,299 records).
+
+| label | W | fast | ft_fast_verified | ft_fast_nranges | ft_fast_verify_ns | demand_faults | trace_pushes | ft_predictions | ft_held | ft_unknown_page | ft_exhausted | ft_skipped | ft_same_region | enqueued | drops | processed | spec_migrations | spec_pages_requested | spec_region_invalid | ft_fast_cas_giveup | fault_already_resident | dmesg_new_lines |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| S3a C6 W1 f1 | 1 | 1 | 1 | 2 | 181689607 | 2978630 | 2978630 | 1124990 | 1842420 | 0 | 11220 | 10 | 0 | 819964 | 305026 | 819964 | 819184 | 819184 | 0 | 0 | 818858 | 0 |
+| S3b C7 W1 f1 | 1 | 1 | 1 | 2 | 142791733 | 332195 | 332195 | 332195 | 0 | 0 | 0 | 792233 | 0 | 332195 | 0 | 332195 | 236393 | 236393 | 0 | 0 | 23080 | 0 |
+| S3c C6 W16 f0 | 16 | 0 | 0 | 0 | 0 | 2986226 | 2986226 | 1124989 | 1850372 | 0 | 10865 | 11 | 103364 | 1021625 | 0 | 1021625 | 1021461 | 16343316 | 0 | 0 | 1124959 | 0 |
+| S3d C6 W64 f0 | 64 | 0 | 0 | 0 | 0 | 2984251 | 2984251 | 1124988 | 1848390 | 0 | 10873 | 12 | 670632 | 454356 | 0 | 454356 | 454276 | 29073424 | 0 | 0 | 1124970 | 0 |
+| S3e C6 W512 f0 | 512 | 0 | 0 | 0 | 0 | 2967734 | 2967734 | 1124988 | 1831352 | 0 | 11394 | 12 | 1122789 | 2199 | 0 | 2199 | 2199 | 1125512 | 0 | 0 | 1125000 | 0 |
+| S3f C7 W64 f1 | 64 | 1 | 1 | 2 | 179608536 | 308886 | 308886 | 308886 | 0 | 0 | 0 | 815607 | 185398 | 123488 | 0 | 123488 | 91700 | 5868800 | 0 | 0 | 44232 | 0 |
+
+| run | I1 left: trace_pushes | I1 right: pred+held+unk+exh+giveup | I1 diff | I2 left: ft_predictions | I2 right: same_region+enqueued+drops | I2 diff |
+|---|---|---|---|---|---|---|
+| S3a C6 W1 f1 | 2978630 | 2978630 | 0 | 1124990 | 1124990 | 0 |
+| S3b C7 W1 f1 | 332195 | 332195 | 0 | 332195 | 332195 | 0 |
+| S3c C6 W16 f0 | 2986226 | 2986226 | 0 | 1124989 | 1124989 | 0 |
+| S3d C6 W64 f0 | 2984251 | 2984251 | 0 | 1124988 | 1124988 | 0 |
+| S3e C6 W512 f0 | 2967734 | 2967734 | 0 | 1124988 | 1124988 | 0 |
+| S3f C7 W64 f1 | 308886 | 308886 | 0 | 308886 | 308886 | 0 |
+
+| run | pages requested ÷ spec_migrations | wall (s; timeout 22) | stress indicators (servicing window / D5 / longest batch) |
+|---|---|---|---|
+| a C6 W1 f1 | 1.00 | 4.01 | 1.869 s / 1.075 s / 0.27 ms |
+| b C7 W1 f1 | 1.00 | 1.23 | 0.254 s / 0.130 s / 0.29 ms |
+| c C6 W16 f0 | **16.00** | 3.80 | 1.754 s / 0.501 s / 0.28 ms |
+| d C6 W64 f0 | **64.00** | 3.77 | 1.697 s / 0.497 s / 0.28 ms |
+| e C6 W512 f0 | **511.83** (clipping at block ends) | 3.78 | 1.589 s / 0.495 s / 0.31 ms (p99 0.05 ms) |
+| f C7 W64 f1 (both features) | **64.00** | 1.17 | — |
+
+(Wall-clock and servicing times were read only as stress indicators, as the brief requires for (e). No arm comparisons are made in this step.)
+
+- **(c) is the first multi-page `make_resident`** in this project: 1,021,461 calls at 16 pages each. (d) makes 454,276 calls at 64 pages; (e) makes 2,199 calls at 512 pages.
+- **W = 512 showed no stress:** no dmesg output, wall-clock ≈ 17% of the timeout, and the longest batch 0.31 ms against 0.27–0.29 ms in (a)–(d).
+- **Both identities hold exactly** (difference 0) on all 6 runs.
+- `spec_region_invalid = 0` and `cas_giveup = 0` on all runs. `ft_same_region > 0` on every W > 1 run (103,364 / 670,632 / 1,122,789 / 185,398).
+- **fast = 1 loads:** `verified = 1`, `nranges = 2`, and a load-time check of **143–182 ms** in-kernel (54 ms in userspace).
+- **Step 3 PASS.**
