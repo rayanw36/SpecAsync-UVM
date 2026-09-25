@@ -29,3 +29,7 @@ nonzero identity differences: 0
 - Every combination runs clean. Both identities are exact, and pages per migration match W (64.00; 511.6–511.9 at W = 512, clipped at block ends).
 - Disclosure: my check script printed the smoke wall-clock values to confirm the timeout margin (every run is far below 22 s / 168 s). They stay in `e4/smoke_runs.csv`, are **excluded from all analysis**, and no arm comparison was made.
 - **Step 1 PASS.**
+
+## Step 2 — Pre-registration
+- `E4_PREREGISTRATION.md` committed before any sweep run. It fixes 10 arms × 2 workloads × n = 10 = 200 runs; the order (seed 202609264, sha256 6f42b480…); 18 comparisons in one Holm family (F1 6, F2 4, F3 6, F4 2); the F1 falsification trigger; mechanism metrics; identities; limitations; and the stop conditions verbatim.
+- `tests/e4_analyze.py` was committed with it. It refuses fewer than 200 rows, and was smoke-tested on synthetic data in the scratchpad only.
