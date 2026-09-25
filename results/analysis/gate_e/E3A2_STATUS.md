@@ -1,5 +1,7 @@
 # Gate E3a-2 — status
 
+**COMPLETE — HARD STOP (2026-09-25).** B1 correct as written. B2 replaced the single region with an 8-slot history (K1/K8 = 0.667 at Stencil W64). B3 identity written. The cheap oracle is built with a load-time equivalence check; in userspace it is identical to the slow path on real traces. Module 33FD42E6E16B0A6658E2BEB compiled cleanly and is **NOT loaded**. Everything is pushed.
+
 ## Part A — Push and preflight
 - Start 2026-09-25T23:00+03:00
 - Push first: `82b15b9..bb74711 manuscript-prep -> manuscript-prep`, exit 0; after fetch, level with origin.
@@ -20,3 +22,8 @@
 - **D:** no new UVM calls. The unchanged `driver/src` re-confirmed srcversion **5997D238EF080B77DBD2AAF**. E3a-2 build: 0 warnings/errors, srcversion **33FD42E6E16B0A6658E2BEB**, vermagic 7.0.0-34-generic, saved as `nvidia-uvm-specasync-NEW-e3a2-width-ftfast-UNREVIEWED.ko`. **Not loaded.** The verified module is still loaded.
 - Patches: `driver/patches/e3a_spec_width.patch` (regenerated, cumulative, 793 lines) and the new `driver/patches/e3a2_region_history_ft_fast.delta.patch` (this session's delta, 580 lines).
 - Review packet: `E3A2_REVIEW.md`.
+- Commit `88fbbfc`; push exit 0.
+
+## Close
+- graphical.target and gdm active throughout (the desktop was never isolated: no module load in this gate). `nvidia-smi` works. The loaded module is the verified `5997D238EF080B77DBD2AAF`. dmesg clean.
+- **HARD STOP.** Neither the E3a (91F63480…) nor the E3a-2 (33FD42E6…) module has ever been loaded. Nothing loads until `E3A2_REVIEW.md` is reviewed.
