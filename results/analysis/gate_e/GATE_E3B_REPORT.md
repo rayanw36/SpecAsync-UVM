@@ -4,11 +4,12 @@
 new kernel code since the E0.9a-2 crash. The module
 `nvidia-uvm-specasync-NEW-e3a2-width-ftfast.ko` (srcversion
 `33FD42E6E16B0A6658E2BEB`; renamed from `…-UNREVIEWED.ko` after Step 1)
-ran **42 GPU workloads**:
-- 6 `group_probe`;
-- 6 Stencil smoke tests, including W = 512 and the combined features;
-- 24 Step 4 measurement runs;
-- the remaining GPU runs are 3 table collections on the verified module.
+ran **35 GPU workload runs**:
+- 5 `group_probe` runs (Step 2 b–f);
+- 6 Stencil smoke tests (Step 3), including W = 512 and the combined features;
+- 24 Step 4 measurement runs.
+
+The verified module separately ran the Step 2 reference run and 5 table-collection runs.
 
 There were no stop-pattern dmesg lines, no timeouts, no memory drift, and
 no non-zero `cas_giveup` or `spec_region_invalid`.

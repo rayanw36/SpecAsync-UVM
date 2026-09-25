@@ -1,5 +1,11 @@
 # Gate E3b — status (attended)
 
+**COMPLETE — HARD STOP (2026-09-26): no stop condition in any load or run.**
+- Steps 1–3: the new module passes (rejection, group_probe regression, Stencil up to W = 512, combined features). Both identities are exact on every policy-6 run.
+- Step 4: **the lookup was the oracle's cost**; fast = 1 removes 77.6–87.8% of the per-fault residual. It also exposes queue-full drops (Stencil C6 +51%) that shrink the D5 saving.
+- E0.9b/E1 carry an expensive-oracle caveat.
+- Local commits after `c6d9e81` are unpushed (headless); run `git push`.
+
 ## Step 0 — Push and preflight
 - Start 2026-09-25T23:57+03:00.
 - Push while the desktop was up: "Everything up-to-date", exit 0. Level with origin (`42044a3`).
@@ -115,3 +121,9 @@
 - **D5 did change on Stencil C6** (under-lock saving −0.672 → −0.515 s), coinciding with queue-full drops +51% (215k → 326k): a faster predictor overruns the worker queue. Reported, not explained away.
 - Caveat flagged: E0.9b/E1 conclusions were reached with the expensive oracle and need re-testing at fast = 1.
 - Doc: `E3B_ORACLE_COST.md`.
+
+## Close
+- Final report `GATE_E3B_REPORT.md`, commit `8dc5c29`. The single push attempt **failed** (exit 128, headless: `could not read Username`). Recorded, not worked around.
+- A run-count wording fix to the report was committed afterwards.
+- No stop condition occurred, so the system was restored. The **verified** module was reloaded with speculation off and prefetch on (policy 0, depth 0, prefetch 1, log 0; srcversion 5997D238EF080B77DBD2AAF; no `spec_width`/`ft_fast` parameters present). graphical.target and gdm active; `nvidia-smi` works; dmesg clean for the extended pattern.
+- **HARD STOP after Step 4.** The pre-registered sweep is designed after this report is reviewed.
