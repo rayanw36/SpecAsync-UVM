@@ -1,5 +1,7 @@
 # Gate E1 — status
 
+**COMPLETE (2026-09-25): Parts A–C done, 100/100 runs, no stop condition. Falsification trigger NOT fired: with the prefetcher on, C7 is slower than C0 on Stencil at every L (+3.9% to +8.4%) and shows no significant difference on GraphBFS. Part B verdict: scope mismatch. The last 12 commits are unpushed (headless keyring); run `git push`.**
+
 ## Part A — Push and preflight
 - Start 2026-09-25T21:14+03:00
 - Push **before** isolating the desktop: `b655a62..a6d3f93 manuscript-prep -> manuscript-prep`, exit 0. After `git fetch`, `git status -sb` shows `## manuscript-prep...origin/manuscript-prep` (level).
@@ -46,3 +48,6 @@
 
 ## Close
 - `GATE_E1_REPORT.md` written.
+- Report commit `83cde61`; push **failed** (exit 128, `could not read Username` headless). Recorded, not worked around.
+- No stop condition, so the system was restored. The verified module was reloaded with speculation off and prefetch on (policy 0, depth 0, prefetch 1, log 0; srcversion `5997D238EF080B77DBD2AAF`). `systemctl isolate graphical.target`: exit 0 (same informational daemon-reload warning); graphical.target and gdm active. `nvidia-smi` works (RTX 5070 Ti, 595.91.07). The stock DKMS module returns on reboot.
+- Session ended. E3 and all other gates not started.
