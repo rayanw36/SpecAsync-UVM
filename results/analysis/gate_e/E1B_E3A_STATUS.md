@@ -1,5 +1,10 @@
 # Gate E1b + E3a — status
 
+**COMPLETE — HARD STOP (2026-09-25): no stop condition.**
+- **E1b:** the handoff location is confirmed by measurement (the pre-lock segment is 99.9–100% of the outside-lock increase), but the enqueue itself is only 10–31% of it. Most of the cost is per-fault prediction work.
+- **E3a:** compiled cleanly (srcversion 91F634807244D31148A8597) and **NOT loaded**, awaiting review of `E3A_WIDTH_REVIEW.md`.
+- The last 4 commits are unpushed (headless); run `git push`.
+
 ## Part A — Push and preflight
 - Start 2026-09-25T22:33+03:00
 - Push before isolating: `9ac42ab..22638b0 manuscript-prep -> manuscript-prep`, exit 0. After fetch, `git status -sb` is level with origin.
@@ -30,3 +35,9 @@
 - Final build: 0 warnings, 0 errors. `nvidia-uvm-specasync-NEW-e3a-width-UNREVIEWED.ko`, srcversion **91F634807244D31148A8597**, vermagic 7.0.0-34-generic. **Not loaded.** The verified module (5997D238…) remains loaded and unchanged.
 - One safety tightening came from self-review: at W > 1, block liveness (`uvm_va_block_is_dead`) is re-checked under the block lock.
 - Review packet: `E3A_WIDTH_REVIEW.md`. It contains the full diff, the function/precondition table, the pointer list, the W=1 identity argument, the risk assessment, the test plan, and the E1b flag (the enqueue skip can save at most the enqueue share).
+- Commit `031aaae`; push **failed** (exit 128, headless; recorded, not worked around).
+- Preflight note for the next session: `git diff ea1a262 HEAD -- driver/` is no longer empty, because `driver/src-e3a/` and `driver/patches/e3a_spec_width.patch` were added. The verified module's inputs (`driver/src`, `driver/scripts`, `driver/stock_backup`) are still identical to ea1a262. Use `-- driver/src` or the srcversion check.
+
+## Close
+- No stop condition occurred. The **verified** module was reloaded with speculation off and prefetch on (policy 0, depth 0, prefetch 1, log 0; srcversion 5997D238EF080B77DBD2AAF; no `specasync_spec_width` parameter present, so it is confirmed not to be the new module). graphical.target and gdm are active (same informational daemon-reload warning); `nvidia-smi` works; dmesg is clean.
+- **HARD STOP.** The E3a module (91F634807244D31148A8597) has never been loaded and must not be until `E3A_WIDTH_REVIEW.md` is reviewed.
