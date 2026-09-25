@@ -12,3 +12,11 @@
 - `dmesg` since boot: no `nvidia_uvm` BUG/Oops/WARNING/GPF/NULL/irqs-disabled lines.
 - `MemAvailable` 56,695,104 kB; `/` free 41 GiB (98 G total).
 - Outcome: **PASS**.
+- End: 2026-09-25T17:39 — commit `0919c58`; push **succeeded** (`ea1a262..0919c58`, which also carried the previously-unpushed `5bda4d2`).
+
+## Step 1 — Source checks
+- Start 2026-09-25T17:40; end 2026-09-25T17:40:38+03:00
+- Q1: `ft_predictions = enqueued + drops` exactly (drop counter `specasync_drops`: queue-full at 1,024 or kzalloc failure). Already-resident items ARE counted in `spec_migrations` (no-op `make_resident` returns NV_OK) — so pre-staged coverage is an upper bound.
+- Q2: prefetched pages are migrated AND mapped in the same `service_finish` call — the prefetcher can prevent faults; speculation cannot.
+- Q3: no aggregate servicing-time timer exists. Only drop-on-full rings (131,072 slots). Decomp ring coverage is 100% iff a run records < 131,071 entries — Step 2 measures it.
+- Outcome: answered from source, no code changes.
