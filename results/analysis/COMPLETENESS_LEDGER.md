@@ -362,3 +362,11 @@ concrete argument for pinning driver versions explicitly (not just recording src
 after the fact) in any artifact meant to be re-run later on the same physical machine.
 Also: the manuscript's platform table states 595.84 for this host, which is now stale
 (currently 595.91.07) -- flagged for correction, manuscript not edited here.
+
+## Platform drift, second instance (Gate E0.9b preflight, 2026-09-25)
+
+This host's kernel is now **`7.0.0-34-generic`** — previously recorded as `7.0.0-28-generic`
+(B-series), then `7.0.0-31-generic` (Gate E0.5-E0.9a), changed by routine OS updates between
+sessions. The driver is **595.91.07** (previously 595.84; see the entry above). Every E0.9a-2 and
+E0.9b result is kernel `7.0.0-34-generic` / driver 595.91.07. The manuscript's platform table is
+stale on both kernel and driver — flagged for correction, manuscript not edited.
