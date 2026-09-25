@@ -209,3 +209,7 @@ results/phaseB1/gate_e09_validation/*.bin
 # driver/build/595.91.07/nvidia-uvm-specasync-NEW-e0.9a2-fixed.ko
 # (gitignored *.ko, rebuild from source).
 results/phaseB1/gate_e09a2_validation/*.bin
+
+# Gate E0.9b: raw traces, first-touch tables, decomp-ring dumps, STOP markers
+# (derived CSVs under results/analysis/gate_e/e09b/ are committed).
+results/phaseB1/gate_e09b/
