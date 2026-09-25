@@ -1,0 +1,7 @@
+idx,label,ts_utc,workload,module,policy,depth,prefetch,L,W,fast,trace_faults,wall_s,exit_code,srcversion,mem_before_kb,mem_after_kb,disk_free_gb,dmesg_new_lines,batch_records,decomp_records,ft_fast_verified,ft_fast_nranges,ft_fast_verify_ns,demand_faults,enqueued,processed,drops,spec_hits,spec_migrations,ft_predictions,ft_skipped,ft_held,ft_unknown_page,ft_exhausted,fault_already_resident,trace_pushes,trace_overwrites,ft_same_region,spec_region_invalid,spec_pages_requested,ft_fast_cas_giveup
+1,S2a verified,2026-09-25T21:01:47Z,group_probe,verified,6,1,0,4096,,,1,0.298457,0,5997D238EF080B77DBD2AAF,60300568,60048368,39.2,0,,,,,,8,7,7,0,0,0,7,1,0,0,1,0,8,0,,,,
+2,S2b new W1 f0,2026-09-25T21:01:49Z,group_probe,new,6,1,0,4096,1,0,1,0.227686,0,33FD42E6E16B0A6658E2BEB,60308932,60052548,39.2,0,,,0,0,0,8,7,7,0,0,0,7,1,0,0,1,0,8,0,0,0,0,0
+3,S2c new W1 f1,2026-09-25T21:01:50Z,group_probe,new,6,1,0,4096,1,1,1,0.240049,0,33FD42E6E16B0A6658E2BEB,60281340,60040812,39.2,0,,,1,1,611,8,7,7,0,0,0,7,1,0,0,1,0,8,0,0,0,0,0
+4,S2d new W16 f0,2026-09-25T21:01:52Z,group_probe,new,6,1,0,4096,16,0,1,0.234689,0,33FD42E6E16B0A6658E2BEB,60269692,60047572,39.2,0,,,0,0,0,8,1,1,0,0,0,7,1,0,0,1,0,8,0,6,0,0,0
+5,S2e new W64 f0,2026-09-25T21:01:53Z,group_probe,new,6,1,0,4096,64,0,1,0.223867,0,33FD42E6E16B0A6658E2BEB,60295428,60052836,39.2,0,,,0,0,0,8,1,1,0,0,0,7,1,0,0,1,0,8,0,6,0,0,0
+6,S2f new W512 f0,2026-09-25T21:01:55Z,group_probe,new,6,1,0,4096,512,0,1,0.225177,0,33FD42E6E16B0A6658E2BEB,60296796,60047204,39.2,0,,,0,0,0,8,1,1,0,0,0,7,1,0,0,1,0,8,0,6,0,0,0
