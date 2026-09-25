@@ -1,0 +1,17 @@
+idx,workload,arm,L
+1,stencil,C7,4096
+2,stencil,C0,
+3,graphbfs,C6,4096
+4,stencil,C6,4096
+5,stencil,C1,
+6,graphbfs,C1,
+7,stencil,C0,
+8,stencil,C6,4096
+9,stencil,C6,4096
+10,graphbfs,C6,4096
+11,stencil,C1,
+12,stencil,C0,
+13,stencil,C7,4096
+14,stencil,C1,
+15,stencil,C7,4096
+16,graphbfs,C1,

@@ -217,3 +217,6 @@ results/phaseB1/gate_e09b/
 # Gate E1: raw traces, first-touch tables, STOP markers, runner log
 # (derived CSVs under results/analysis/gate_e/e1/ are committed).
 results/phaseB1/gate_e1/
+
+# Gate E1b: raw batch/decomp ring dumps, tables, STOP, runner log
+results/phaseB1/gate_e1b/

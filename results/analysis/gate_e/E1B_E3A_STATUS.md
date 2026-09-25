@@ -9,3 +9,8 @@
 - dmesg since boot: no BUG/Oops/WARNING/GPF/NULL/irqs-disabled line.
 - MemAvailable 56,096,504 kB (desktop up); `/` 40 GiB free.
 - Outcome: **PASS**.
+- Commit `f2e4591`; push exit 0.
+
+## Part B — E1b
+- Source check done (see `E1B_HANDOFF_COST.md` §1). `enqueue_overhead_ns` covers kzalloc, INIT_WORK, uvm_gpu_retain and queue_work, but **not** `specasync_ft_predict` (bsearch + global irqsave spinlock, run for every coalesced fault). Batch-ring `t1 − t0` brackets the whole pre-lock segment and is used as the complete measure.
+- Order: 16 runs, seed 202609262, committed before the first run. Runner: `tests/e1b_runner.py`.
