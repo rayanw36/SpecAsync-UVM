@@ -38,3 +38,20 @@
 - Analysis code `tests/e09b_analyze.py` committed with it. It refuses to run until all 120 rows exist, and was smoke-tested on synthetic data only (scratchpad, not committed).
 - Sweep timeouts: Stencil 22 s, GraphBFS 168 s (5× the pooled pilot maximum).
 - Commit `a3942b9`; push exit 128 (failed, keyring/credentials unavailable headless; recorded, not worked around).
+
+## Step 4 — Sweep
+- Start 2026-09-25T17:51:59+0300 (table collection)
+- Tables: stencil 1,125,000 (trace 2,940,203, overwrites 0); graphbfs 287,956 (trace 490,948, overwrites 0). Assertions PASS.
+- Sweep launched 2026-09-25T17:52:43+0300
+- Sweep end 2026-09-25T15:32:14Z (18:32 local). **120/120 runs, no stop condition**, no interruption, no re-run. Commits every 10 runs: `a7c997e` … `f459f05`.
+- srcversion constant; all exit codes 0; MemAvailable ≥ 60.8 GB; disk ≥ 39.9 GB. dmesg: 8 non-nvidia Wi-Fi reassociation lines during run 13, nothing else. Identity held on 80/80 C6 runs.
+
+## Step 5 — Analysis
+- Start/end 2026-09-25T18:33–18:45 local. `tests/e09b_analyze.py` run unchanged from `a3942b9`.
+- Falsification trigger: **not fired**. Every C6-L is Holm-significantly slower than C0 (Stencil +258–308%, GraphBFS +5.0–5.4%).
+- vs C1: Stencil L4096 **−5.65% (faster, Holm-sig)**; L1/L16 +7.5% slower; L256 n.s. GraphBFS: L256 +0.54% slower, the rest n.s.
+- Prediction test: Stencil **ABOVE** the ceiling (0.244 s vs [0.170, 0.217]), so the ceiling was wrong. GraphBFS BELOW.
+- Outputs: `e09b/primary_comparisons.csv`, `mechanism_by_L.csv`, `integrity.txt`, `prediction_test.txt`, `e09b_wallclock_vs_L.{png,pdf}`.
+
+## Step 6 — Close
+- Report `GATE_E0_9B_REPORT.md` finalized.

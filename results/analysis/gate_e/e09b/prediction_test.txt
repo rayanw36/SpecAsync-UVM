@@ -1,0 +1,2 @@
+stencil: measured C6-L4096 saving vs C1 = +0.2437 s; ceiling +0.198 s, interval [+0.1700, +0.2170] s -> ABOVE
+graphbfs: measured C6-L4096 saving vs C1 = -0.0917 s; ceiling +0.000 s, interval [-0.0165, +0.0165] s -> BELOW

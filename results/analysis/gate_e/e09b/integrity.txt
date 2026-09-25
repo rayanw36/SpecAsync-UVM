@@ -1,0 +1,8 @@
+rows 120 / 120
+order adherence: 120 / 120 rows match committed order in sequence; mismatches: []
+srcversions: ['5997D238EF080B77DBD2AAF']
+exit codes: ['0']
+dmesg new lines per run: total 8, max 8
+MemAvailable kB: before min 61095576 max 61433776; after min 60835652 max 61174916; first 61299740 last 61046540
+disk free GB: min 39.9
+identity ft_predictions = enqueued + drops: holds on 80 / 80 C6 runs; fails on []
