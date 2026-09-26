@@ -1,5 +1,10 @@
 # Gate E5 — status
 
+**COMPLETE (2026-09-26): H-feed SUPPORTED.** The 40% fault reduction needs the prefetcher's density rule: D(51) = +0.401, D(T_off) = −0.022.
+- The wall-clock gain persists at T_off (−21%) via D5 copy offload, so the secondary prediction failed; reported plainly.
+- 60/60 runs, no stop condition.
+- Commits after `9834517` are unpushed (headless); run `git push`.
+
 ## Step 0 — Push and preflight
 - Start 2026-09-26T10:53+03:00. Push: already level with origin ("Everything up-to-date", `5717bfb`).
 - Tracked clean (untracked `tests/group_probe`). tmux `%0` on `/dev/pts/0`, `DISPLAY` unset. Upgrade units inactive. Kernel 7.0.0-34-generic; driver 595.91.07. `git diff ea1a262 HEAD -- driver/src` empty. dmesg clean for the extended pattern. MemAvailable 57,700,596 kB; 38 GiB free.
@@ -31,3 +36,6 @@
 - **The secondary wall-clock prediction failed:** C7W512 is faster at every threshold (−5.3 / −10.1 / −21.0%). At T_off the gain tracks D5 (copy offload), not fault prevention. Reported plainly.
 - E4's trigger result replicates at t51 (−5.26%, Holm-sig).
 - Report: `GATE_E5_REPORT.md`.
+- Report commit `318ec9d`. The single push attempt **failed** (exit 128, headless). Recorded, not worked around.
+- No stop condition occurred, so the system was restored. The **verified** module was reloaded with speculation off, prefetch on and the **default threshold** (read back as `uvm_perf_prefetch_threshold=51`; srcversion 5997D238EF080B77DBD2AAF). graphical.target and gdm active; `nvidia-smi` works; dmesg clean.
+- **STOP.**
