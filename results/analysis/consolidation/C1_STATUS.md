@@ -1,5 +1,7 @@
 # Gate C1 — Consolidate the claims before writing — status
 
+**COMPLETE — HARD STOP (2026-09-26).** Seven proposal files are written; nothing is applied. See `C1_REVIEW.md`.
+
 Documentation only: no module loads, no runs, no desktop isolation. **No canonical file is edited.** Everything here is a proposal for review.
 
 ## Step 0 — Push and preflight
@@ -27,3 +29,6 @@ Documentation only: no module loads, no runs, no desktop isolation. **No canonic
 
 ## Step 7 — Review packet
 - `C1_REVIEW.md`: a one-page summary, counts, every PROSE-ONLY and UNCHECKED number, and file pointers.
+- Commit `db708d4`; push exit 0; level with origin.
+- Confirmed unedited: `CLAIM_SCOPE.md`, `ARTIFACT_CATALOG.md`, `PREREGISTRATION.md`, `COMPLETENESS_LEDGER.md`, `paper/`, and all reports (`git diff c266e74 HEAD --stat` touches only `results/analysis/consolidation/` and `tests/c1_evidence.py`).
+- **HARD STOP.** Proposals are applied only after review.
