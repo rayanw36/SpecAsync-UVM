@@ -2,7 +2,7 @@
 
 **COMPLETE (2026-09-26) — ⚠️ FALSIFICATION TRIGGER FIRED:** on Stencil-24K, C7-W512 (cheap oracle, whole-block width, prefetch on) beats C0 by 4.93% (p = 1.08e-5, Holm-sig, 3.9× MDE). GraphBFS shows no F1 difference. Nothing further was run.
 - 200/200 runs, no stop condition. There was one user-initiated shutdown during run 63, and the sweep resumed per the rule after table validation.
-- Commits after `8fdf3ba`'s push are unpushed (headless); run `git push`.
+- Commits after `ca19a68` (the last pushed commit) are unpushed (headless); run `git push`.
 
 ## Step 0 — Push and preflight
 - Start 2026-09-26T00:20+03:00. Push while the desktop was up: `c6d9e81..4050287`, exit 0; level with origin.
