@@ -1,0 +1,8 @@
+rows 60 / 60
+order adherence: 60 / 60 in sequence; mismatches []
+srcversions ['33FD42E6E16B0A6658E2BEB']; exit codes ['0']
+dmesg new lines total 0; runs with any []
+MemAvailable kB before 61231176-61474896 after 61029180-61230656
+ring coverage 100% on 60 / 60; max records 74963
+Identity 1 holds 30 / 30 (fails []); Identity 2 holds 30 / 30 (fails [])
+ft_fast_verified = 1 on 30 / 30; cas_giveup max 0; region_invalid max 0
