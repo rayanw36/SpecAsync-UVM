@@ -39,3 +39,11 @@ nonzero identity differences: 0
 - Tables: stencil 1,125,000 (trace 2,947,275, 0 overwrites); graphbfs 287,956 (trace 482,045, 0 overwrites). Assertions PASS.
 - Sweep launched 2026-09-26T00:28:01+0300.
 - Before the first sweep run: `tests/e4_runner.py` gained `--commit-every N` (it runs the unchanged E3b loop in N-row chunks using the existing `--through`; E3b commits the CSV at each chunk end). This implements the pre-registered "commit every 10 runs"; run behaviour is unchanged.
+- Sweep launched 2026-09-26T00:3x+03:00. Runs 1–62 completed, with no stop condition and chunk commits at 10…60 (`6c0b652` covers through run 60). Rows 61–62 are in the CSV and committed below.
+
+### Interruption (not a stop condition) — evidence
+- Run 62 completed at 00:47:53. **Run 63** (`graphbfs C7-W512`) loaded, verified and started at 00:47:53. The journal shows the module load (`ft_fast: range index verified: 287956 pages, 19 ranges … check 56089293 ns`; `init OK … spec_width=512 ft_fast=1(active=1)`) and the `specasync_clear` write at 00:47:53.
+- At 00:48:26 the user logged in on **tty1**. At 00:48:38 they ran `sudo shutdown not` (typo), and at 00:48:41 `sudo /usr/sbin/shutdown now`. logind: "The system will power off now!" The shutdown was orderly (`systemd-poweroff.service`), and the machine was powered back on at 09:35:50.
+- **No crash.** In the previous boot's kernel log from 00:00 to the power-off there is no BUG / Oops / WARNING / GPF / NULL pointer / irqs-disabled / soft lockup / hung_task / RCU stall line, and no NVRM or Xid line.
+- Run 63 read no counters before the shutdown, 48 s after it started (timeout 168 s; the same configuration took 31.6 s in the Step 1 smoke test). The journal cannot tell whether the benchmark was still executing or the runner had already been terminated when the previous Claude Code session ended. **Not determined.**
+- Run 63 has **no CSV row**. Per the pre-registration ("after any interruption that is not a stop condition, the run resumes at the next index not in the CSV; … never restarted, no cell ever re-run"), the sweep resumes at idx 63. That run produced no result, so this is not a re-run of a completed cell.
