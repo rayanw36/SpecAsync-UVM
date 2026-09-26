@@ -1,0 +1,6 @@
+F4 stencil: C6-W512 staged 0.9995 of distinct pages ahead of their fault (fault_already_resident 1124488 / 1125000); demand faults 2960758 (C0 339251); wall-clock ratio C6-W512 / C0 = 2.919
+F4 graphbfs: C6-W512 staged 0.8057 of distinct pages ahead of their fault (fault_already_resident 231996 / 287956); demand faults 485603 (C0 44290); wall-clock ratio C6-W512 / C0 = 1.039
+F2 stencil C7: wall-clock cost of the slow oracle's overhead = median(C7-slow-W1) - median(C7-W1) = +0.0247 s; E3b Stencil servicing-time estimate of the removed residual 0.041 s (cross-session comparison, not a test)
+F2 stencil C6: wall-clock cost of the slow oracle's overhead = median(C6-slow-W1) - median(C6-W1) = +0.2216 s; E3b Stencil servicing-time estimate of the removed residual 0.362 s (cross-session comparison, not a test)
+F2 graphbfs C7: wall-clock cost of the slow oracle's overhead = median(C7-slow-W1) - median(C7-W1) = +0.0392 s
+F2 graphbfs C6: wall-clock cost of the slow oracle's overhead = median(C6-slow-W1) - median(C6-W1) = +0.0645 s

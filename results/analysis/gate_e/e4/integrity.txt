@@ -1,0 +1,10 @@
+rows 200 / 200
+order adherence: 200 / 200 in sequence; mismatches []
+srcversions ['33FD42E6E16B0A6658E2BEB']; exit codes ['0']
+dmesg new lines: total 0; runs with any: []
+MemAvailable kB before 59984124-61574028 after 59755476-61315340; first 60256940 last 61130168
+disk free GB min 37.8
+ring coverage 100% on 200 / 200 runs; max records 75194
+Identity 1 (demand_faults = pred+held+unk+exh+giveup) holds on 160 / 160; fails []
+Identity 2 (pred = same_region+enqueued+drops) holds on 160 / 160; fails []
+ft_fast_verified = 1 on 120 / 120 fast loads; cas_giveup max 0; region_invalid max 0

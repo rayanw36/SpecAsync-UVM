@@ -65,3 +65,15 @@ nonzero identity differences: 0
 
   The address layout under `setarch -R` is identical across the reboot, and the order drift is within the same-session run-to-run range. **The sweep continues with the committed tables, unchanged.** The check trace is not sweep data and is not used.
 - Resumed at idx 63 per the pre-registered resume rule.
+- Sweep complete: 200/200 rows, idx 1–200 in sequence, last run 2026-09-26T07:25:11Z, no stop condition, final commit `be9778e`.
+
+## Step 4 — Analysis (as pre-registered)
+- `tests/e4_analyze.py` run unchanged from `aed1f7f`. Integrity is clean: 200/200 runs in order, one srcversion, 0 dmesg lines, 100% ring coverage, both identities 160/160, fast verified 120/120, giveup/invalid 0.
+- **FALSIFICATION TRIGGER FIRED:** Stencil C7-W512 vs C0 is −0.0557 s (−4.93%), p = 1.08e-5 (complete separation), Holm-sig, 3.9× MDE. GraphBFS F1 shows no difference. **Per the pre-registration, nothing further is run.**
+- F2: the slow oracle costs 0.222 s of wall-clock (Stencil C6, Holm-sig); C7 0.025 s n.s.
+- F3: width with prefetch off gives −9.7 / −21.6 / −23.3% (Stencil).
+- F4: C6-W512 staged 99.95% of pages, yet demand faults stay 2.96M; wall-clock ratio to C0 is 2.92 (Stencil) and 1.04 (GraphBFS).
+- Exploratory: the result is not a boot artifact (it holds within each boot).
+
+## Step 5 — Report and close
+- `GATE_E4_REPORT.md` has the trigger at the top, unsoftened.
