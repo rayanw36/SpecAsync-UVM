@@ -1,5 +1,9 @@
 # Gate E4 — status
 
+**COMPLETE (2026-09-26) — ⚠️ FALSIFICATION TRIGGER FIRED:** on Stencil-24K, C7-W512 (cheap oracle, whole-block width, prefetch on) beats C0 by 4.93% (p = 1.08e-5, Holm-sig, 3.9× MDE). GraphBFS shows no F1 difference. Nothing further was run.
+- 200/200 runs, no stop condition. There was one user-initiated shutdown during run 63, and the sweep resumed per the rule after table validation.
+- Commits after `8fdf3ba`'s push are unpushed (headless); run `git push`.
+
 ## Step 0 — Push and preflight
 - Start 2026-09-26T00:20+03:00. Push while the desktop was up: `c6d9e81..4050287`, exit 0; level with origin.
 - HEAD `4050287`; tracked clean (untracked `tests/group_probe`). tmux `%0` on `/dev/pts/0`, `DISPLAY` unset. Upgrade units inactive. Kernel 7.0.0-34-generic; driver 595.91.07. `git diff ea1a262 HEAD -- driver/src` empty. dmesg clean for the extended pattern. MemAvailable 57,754,152 kB; 39 GiB free.
@@ -77,3 +81,6 @@ nonzero identity differences: 0
 
 ## Step 5 — Report and close
 - `GATE_E4_REPORT.md` has the trigger at the top, unsoftened.
+- Report commit `af6255f`. The single push attempt **failed** (exit 128, headless). Recorded, not worked around.
+- No stop condition occurred (the trigger is a result, not a stop condition), so the system was restored. The **verified** module was reloaded with speculation off and prefetch on (policy 0, depth 0, prefetch 1, log 0; srcversion 5997D238EF080B77DBD2AAF; no E3a-2 parameters present). graphical.target and gdm active; `nvidia-smi` works; dmesg clean.
+- **STOP. This was the last experimental gate before the paper.**
