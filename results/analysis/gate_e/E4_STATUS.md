@@ -47,3 +47,21 @@ nonzero identity differences: 0
 - **No crash.** In the previous boot's kernel log from 00:00 to the power-off there is no BUG / Oops / WARNING / GPF / NULL pointer / irqs-disabled / soft lockup / hung_task / RCU stall line, and no NVRM or Xid line.
 - Run 63 read no counters before the shutdown, 48 s after it started (timeout 168 s; the same configuration took 31.6 s in the Step 1 smoke test). The journal cannot tell whether the benchmark was still executing or the runner had already been terminated when the previous Claude Code session ended. **Not determined.**
 - Run 63 has **no CSV row**. Per the pre-registration ("after any interruption that is not a stop condition, the run resumes at the next index not in the CSV; … never restarted, no cell ever re-run"), the sweep resumes at idx 63. That run produced no result, so this is not a re-run of a completed cell.
+
+### Resume after reboot (2026-09-26 09:40)
+- Post-reboot preflight **PASS**:
+  - kernel 7.0.0-34-generic, driver 595.91.07, tmux `%0` on `/dev/pts/0` (`DISPLAY` unset), upgrade units inactive;
+  - both module files unchanged (srcversion and sha256);
+  - `git diff ea1a262 HEAD -- driver/src` empty, dmesg clean for the extended pattern;
+  - MemAvailable 60.5 GB, 39 GiB free;
+  - the stock DKMS `nvidia_uvm` (`6284DA42…`) was loaded after boot, refcnt 0.
+- The push before isolating succeeded (`ca19a68`, level with origin). Isolated to multi-user.target again.
+- **Table-validity check.** The tables hold absolute VAs, and no earlier gate used tables across a reboot. A check trace was collected into a *separate* directory (`postreboot_check/`, verified module, the same procedure) and compared with the committed sweep tables:
+
+| workload | same page set | max first-touch rank displacement, post-reboot vs sweep tables | the same, two **pre-reboot** collections (smoke_tables vs sweep tables) |
+|---|---|---|---|
+| Stencil-24K | **yes** (1,125,000; same first page 0x7ffd3e017000) | 98 | 96 |
+| GraphBFS-23 | **yes** (287,956; same first page 0x7ffff0000000) | 35,823 | 37,992 |
+
+  The address layout under `setarch -R` is identical across the reboot, and the order drift is within the same-session run-to-run range. **The sweep continues with the committed tables, unchanged.** The check trace is not sweep data and is not used.
+- Resumed at idx 63 per the pre-registered resume rule.
