@@ -210,6 +210,6 @@ def analyze(data_dir, fig):
 if __name__ == "__main__":
     if "--control" in sys.argv:
         sys.exit(control())
-    dd = sys.argv[1] if len(sys.argv) > 1 else D
+    dd = sys.argv[1] if len(sys.argv) > 1 else OUTDIR
     ff = sys.argv[2] if len(sys.argv) > 2 else FIG
     sys.exit(analyze(dd, ff))

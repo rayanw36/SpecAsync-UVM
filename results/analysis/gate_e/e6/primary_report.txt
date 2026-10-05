@@ -1,0 +1,33 @@
+VERDICT: V-B: tuning matches or beats speculation (FALSIFICATION TRIGGER for 'the Stencil gain requires speculation'): C0-t0, C0-t10, C0-t25 not Holm-significantly slower
+
+Family 1 (Stencil, C7W512-t51 vs C0-t; Holm 4):
+  C0-t0    med 1.0262  C7W512-t51 med 1.0918  delta +6.39%  p 1.08e-05  Holm-thr 0.0125  sig True  d +3.18  MDE 0.0231  noout +0.0675/2.2e-05
+  C0-t10   med 1.0426  C7W512-t51 med 1.0918  delta +4.72%  p 2.06e-04  Holm-thr 0.0167  sig True  d +2.09  MDE 0.0238  noout +0.0492/2.1e-04
+  C0-t25   med 1.0692  C7W512-t51 med 1.0918  delta +2.11%  p 2.80e-01  Holm-thr 0.0500  sig False  d +0.69  MDE 0.0247  noout +0.0226/2.8e-01
+  C0-t51   med 1.1298  C7W512-t51 med 1.0918  delta -3.36%  p 3.25e-04  Holm-thr 0.0250  sig True  d -2.34  MDE 0.0236  noout -0.0380/3.2e-04
+
+D(t) (demand-fault reduction, E5 definition):
+  t0: D = +0.0532
+  t10: D = +0.0845
+  t25: D = +0.2213
+  t51: D = +0.4017
+
+Secondary wall-clock (within-threshold, Holm 3):
+  C0-t0 vs C7W512-t0: delta -0.85%  p 3.15e-01  Holm-thr 0.0250  sig False
+  C0-t10 vs C7W512-t10: delta -0.28%  p 5.29e-01  Holm-thr 0.0500  sig False
+  C0-t25 vs C7W512-t25: delta -2.76%  p 1.30e-04  Holm-thr 0.0167  sig True
+
+Secondary demand faults (Holm 3):
+  C0-t0 vs C7W512-t0: delta -5.32%  p 1.08e-05  sig True
+  C0-t10 vs C7W512-t10: delta -8.45%  p 1.08e-05  sig True
+  C0-t25 vs C7W512-t25: delta -22.13%  p 1.08e-05  sig True
+
+Family 2 (GraphBFS, Holm 2): arm vs C0-t51
+  C0-t0 vs C0-t51: delta -0.06%  p 9.71e-01  Holm-thr 0.0500  sig False
+  C0-t25 vs C0-t51: delta +0.12%  p 4.36e-01  Holm-thr 0.0250  sig False
+
+Expectations (descriptive, not part of the verdict):
+  X1 C0 demand faults fall monotonically with t: HELD  ({'t0': 134993.0, 't10': 171871.5, 't25': 222142.0, 't51': 338837.5})
+  X2 C0's fastest threshold is below 51: HELD  (fastest = t0; {'t0': 1.026216, 't10': 1.0425765, 't25': 1.0692385, 't51': 1.129815})
+  X3 not scored (expectation 'about even' has no direction); verdict recorded: V-B
+  X4 within-threshold D(0) <= 0.20 AND wall-clock gain at t0 Holm-significant: FAILED  (D(0) = +0.0532; delta -0.85%, sig False)

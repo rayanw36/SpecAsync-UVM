@@ -26,3 +26,30 @@ Phase 0 started: 2026-10-05T17:38:51+0300 (3 h wall-time cap from this moment; F
 - Pre-registration `E6_PREREGISTRATION.md` written; X3 unscored (DOC-class, see Open for review); X1/X2/X4 operational definitions fixed in the analyzer before the run.
 - OPEN FOR REVIEW (DOC-CLASS): X3 ('about even') has no direction; it is recorded as NOT SCORED rather than held/failed. Conservative choice: do not score it.
 - 17:47:52 **INCIDENT (self-caught, pre-run, no data):** a synthetic analyzer test (scratchpad data, not real) wrote its outputs to the fixed `results/analysis/gate_e/e6/` directory, and six synthetic files were committed with `413d750`. None were run data. **Fix:** analyzer outputs now follow the data directory (`tests/e6_analyze.py`, one assignment; no statistical code changed); the six files were removed in the next commit. The positive control output is unchanged and remains committed. The analyzer change is a change to pre-registered code made before any run; it is disclosed here and in SESSION_SUMMARY.
+17:48:07 Phase 3 DONE. Positive control PASS (exit 0). Phase 3 pushed (413d750; incident fix 4995606). Phase 4 starts.
+17:48:16 Phase 4: isolated; platform re-checked (7.0.0-34, 595.91.07; stock nvidia_uvm loaded refcnt 0 before collection, expected).
+19:36:53 Phase 4: isolated to multi-user.target (exit 0). Platform re-checked: 7.0.0-34-generic, 595.91.07, loaded stock 6284DA42 (refcnt 0), timers inactive, MemAvailable 61.4 GB, dmesg clean, 38 GB free. Collecting tables.
+19:37:32 tables exit 0
+19:38:55 smoke exit 0
+19:39:17 Phase 5 starts: Family 1 in 10-row chunks (orchestrator scratchpad/run_e6.sh); Family 2 gated by the skip rule.
+19:39:28 TIME NOTE: Phase 0 began 17:38:51. Family 2 deadline (Phase 0 + 2h15m) = 19:53:51 has passed; Family 2 will be SKIPPED under the skip rule when Family 1 ends. Session cap (3 h) = 20:38:51: if Family 1 is incomplete at the cap, the orchestrator is stopped at a chunk boundary (rows are resumable; not a stop condition; recorded as incomplete).
+19:39:43 family1 chunk through idx 10: runner exit 0
+19:40:08 family1 chunk through idx 20: runner exit 0
+19:40:34 family1 chunk through idx 30: runner exit 0
+19:40:59 family1 chunk through idx 40: runner exit 0
+19:41:25 family1 chunk through idx 50: runner exit 0
+19:41:48 observation: idx 20 and 22 each counted 1 new dmesg line; matched by timing to 'workqueue: drm_fb_helper_damage_work hogged CPU' (uptime 7936 s, 7941 s). Not in the stop pattern; not a stop. Recorded, not a departure.
+19:41:50 family1 chunk through idx 60: runner exit 0
+19:42:16 family1 chunk through idx 70: runner exit 0
+19:42:41 family1 chunk through idx 80: runner exit 0
+19:42:41 FAMILY 2 SKIPPED (skip rule): Family 1 ended after the deadline
+19:45:30 INCIDENT (orchestrator): the run script wrote family2_skipped.txt at 19:42:41. Cause: script referenced an unset shell variable, so the deadline parsed as midnight. Correct check: Family 1 ended 19:42:41, deadline 19:53:51, so Family 2 is IN-WINDOW and runs. Skip record removed in a new commit (git rm); nothing else changed. Family 2 started by hand via tests/e6_runner.py chunks 90/100/110.
+19:50:59 family2 chunk through 90: runner exit 0
+19:56:27 family2 chunk through 100: runner exit 0
+20:01:56 family2 chunk through 110: runner exit 0
+20:02:04 Phase 5 DONE: 110 rows (80 F1 + 30 F2), all exit 0, no STOP. Phase 6: analyzer.
+20:02:10 ANALYZER FIX before first analysis run: __main__ default referenced undefined name D (renamed to OUTDIR in Phase 3 but not here); changed default to OUTDIR. Analysis functions unchanged. Positive control re-run below.
+20:05 Phase 6 analysis run. Output: primary_report.txt, family1_primary.csv, secondary_wall.csv, secondary_demand.csv, family2_graphbfs.csv, mechanism.csv; figure results/analysis/gate_e/e6_threshold.{png,pdf}.
+20:05 RESULT: V-B FIRED (falsification trigger). C0-t0 and C0-t10 are Holm-significantly FASTER than C7W512-t51; C0-t25 not significant. Nothing further is run.
+20:05 Four runs logged one new kernel line each (idx 20, 22, 79, 97), all matching the 'drm_fb_helper_damage_work hogged CPU' workqueue notice by uptime offset (16:40:08 = 7936 s; 79 at 8087 s, 97 at 8816 s). Not in the stop pattern; not a stop.
+20:05 X3 not scored (pre-registered); the brief asked for held/failed on X1-X4; X3 cannot be marked without inventing a criterion, so it is recorded as not scored.

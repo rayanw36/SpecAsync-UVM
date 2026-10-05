@@ -5,3 +5,4 @@ delta = -0.0592 s = -5.26%  (E5 reported -5.26%)
 MWU two-sided p = 1.08e-05  (E5 reported 1.08e-05)
 D(51) = 1 - median demand faults C7W512 / C0 = +0.4009  (E5 reported +0.4009; medians 203,331 / 339,386)
 CONTROL: PASS — reproduces E5
+
