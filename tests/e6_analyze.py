@@ -76,6 +76,7 @@ def control():
 
 def analyze(data_dir, fig):
     global OUTDIR
+    OUTDIR = data_dir   # analysis outputs go next to the runs, never to the fixed control directory
     order = list(csv.DictReader(open(f"{data_dir}/e6_order.csv")))
     rows = load(f"{data_dir}/e6_runs.csv")
     skipped = os.path.exists(f"{data_dir}/family2_skipped.txt")
