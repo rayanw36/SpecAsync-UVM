@@ -1,69 +1,396 @@
-# Claim scope: driver-architectural vs platform-specific-cost-ratio (Task D)
+# Claim scope — v2 (applied 2026-10-05, Gate C1-APPLY)
 
-Every substantive claim currently supported by on-disk evidence, classified by whether it
-is a structural property of the UVM driver / SpecAsync design (expected to hold on any
-GPU/platform running this driver code) or a cost ratio whose *magnitude* is specific to
-the hardware/platform this project measured on.
+This document **replaces v1** (the 17-row table, last committed at `c266e74`; recoverable
+from git history). Every claim in v1 is carried here as a block, with its status. The
+new claims N1–N7 and N9 and the retired explanations R1–R2 come from the Gate E series
+and the flag ledger (`results/analysis/consolidation/FLAG_LEDGER.md`).
 
-**Corrected platform attribution (previously inverted in this file):** Gate 3, Phase B,
-Phase B.1, Phase B.2, Phase C, and Tasks T1-T4 **all ran on the Tesla T4** (AWS
-g4dn.xlarge, driver 595.71.05). The **RTX 5070 Ti** (driver 580.95.05) was the *original
-course-paper platform* -- its data (`robust_results_baseline.csv` /
-`robust_results_specasync{1,2,3}.csv`) traces to commit `ded7672` (2026-03-26), predating
-the T4 port (`phaseB-v595-port`, first commit 2026-06-13) by over two months, and is used
-by exactly one claim below (11, the legacy cuFFT figure) plus the null-result claim (12).
-Every other cost-ratio claim in this table is Tesla-T4-specific, not RTX-5070-Ti-specific.
-This distinction matters directly for how each claim should be hedged in the manuscript:
-architectural claims can be stated with confidence; cost-ratio claims need a platform
-qualifier and, ideally, the cross-platform confirmation this project has not yet obtained
-(see `COMPLETENESS_LEDGER.md`, Task G, for what's still blocked on that). **This
-cross-platform replication is no longer pending** -- Gates B5-B7 (2026-08-12/13) reran the
-relevant protocols on a *second, separate* RTX 5070 Ti configuration: same physical GPU as
-claim 12's legacy data, but **driver 595.84**, not 580.95.05, and run 4+ months later, under
-this project's current interleaved/median/Holm-Bonferroni protocol rather than the original
-course-paper's. **Two non-comparable "RTX 5070 Ti" data sets now exist in this project** --
-every bare "RTX 5070 Ti" below is disambiguated with its driver version at first use in each
-claim to avoid conflating them: **RTX 5070 Ti (580.95.05)** is the legacy course-paper
-platform (claim 12 only); **RTX 5070 Ti (595.84)** is the Blackwell cross-platform
-replication platform (claims 1, 3, 7, 8, 9, 15, 16).
+Two standing rules apply throughout: every number cites an evidence id from
+`results/analysis/consolidation/EVIDENCE_EXTRACT.md`, or is marked PROSE-ONLY or
+UNCHECKED (see the convention below); and every comparison names its baseline.
 
-| # | Claim | Classification | Why | Evidence file |
-|---|---|---|---|---|
-| 1 | D4/D5 (GPU fault service, held under the va_space lock) is the dominant sub-phase of the dispatch window across all 7 Phase C workloads: **63-74%** under ratio-of-medians (the statistic of record, `STATISTIC_OF_RECORD.md`), **60.75-86.00%** under median-of-ratios (batch-to-batch dispersion figure, appendix use) | **Driver-architectural, now cross-platform confirmed** | The *structural reason* -- GPU must be informed of every mapping change while the lock is held, and D5 is a synchronous-from-the-driver's-perspective dispatch call -- is a property of the UVM fault-service code path itself, not of GPU speed. The *exact* numbers will shift with GPU compute/memory speed on a different platform, but the qualitative dominance is architectural. Two statistics diverge because D4 and total dispatch time are not perfectly correlated batch-by-batch; ratio-of-medians is declared the statistic of record for the headline sentence (less sensitive to individual extreme batches), median-of-ratios is reported for dispersion. **Cross-platform confirmation, RTX 5070 Ti (595.84, Blackwell):** `GATE_B7_5070TI_PHASEC.md` reruns Phase C's full 7-workload sweep and finds **52.1-76.9%** (ratio-of-medians) / **50.38-84.56%** (median-of-ratios) -- reproduces both the magnitude and which workload (GraphBFS-23) sits at the maximum on both platforms. That same report also finds the dispatch-window's own speedup (2.35x, same N=24000 workload) lags well behind both this platform's overall kernel-loop speedup (4.45x) and the ~8x PCIe gen3x8→gen5x16 bandwidth improvement between the two platforms -- evidence D4/D5's cost has a floor independent of transfer bandwidth, not just a structural-dominance argument from source code alone | `results/phaseC/PHASEC_REPORT.md`, `results/analysis/D5_CHARACTERIZATION.md`, `results/analysis/STATISTIC_OF_RECORD.md`, `results/analysis/GATE_B7_5070TI_PHASEC.md` (cross-platform confirmation) |
-| 2 | D5's measured CPU time is CPU-side orchestration + an async GPU push (`uvm_push_end`), not a blocking wait on GPU completion | **Driver-architectural** | Established purely from source-code control flow (which functions are called, whether they block) -- independent of any specific GPU's speed | `results/analysis/D5_CHARACTERIZATION.md` |
-| 3 | D3 (lock wait) is <0.2% of the dispatch window in the typical batch across all workloads -- no lock contention | **Driver-architectural**, with a platform-specific caveat, now cross-platform confirmed | The *absence of contention* is architectural (this driver never had more than one thread contending for the va_space lock in these single-stream benchmarks), but the specific %/µs values scale with GPU service speed. **Cross-platform confirmation, RTX 5070 Ti (595.84, Blackwell):** `GATE_B7_5070TI_PHASEC.md` finds D3 at **0.05-0.14%** across all 7 workloads -- reproduces the near-zero finding closely | `results/phaseC/PHASEC_REPORT.md`, `results/analysis/STATISTICS.md`, `results/analysis/GATE_B7_5070TI_PHASEC.md` (cross-platform confirmation) |
-| 4 | Same-block trylock throttle rate of 76.1% under cross-block speculative probing | **Driver-architectural** | A structural consequence of block-granularity locking + `uvm_mutex_trylock` semantics + the fact that predicted addresses are almost always in the same 2MB VA block as the faulting page for stride-1/irregular access patterns -- not a GPU-speed-dependent number | `results/phaseB2/GATE2_report.md` (Gate 2 cross-block probe, cited in `GATE3_report.md`) |
-| 5 | Hit batches are ~5% *slower* than miss batches (no per-hit wall-time saving) | **Platform-specific-cost-ratio** | The *direction* (a successful 4KB speculative migration doesn't offset fault-batch CPU overhead) plausibly generalizes, but "5%" is a measured ratio on this specific CPU/GPU pairing's per-batch overhead structure, not derived from source alone | `results/phaseB2/GATE3_report.md` ("Why oracle+depth=1 doesn't help", point 2) |
-| 6 | Oracle mechanism ceiling: one-prediction-per-batch design caps achievable hit rate at ~1/coalesce_factor | **Driver-architectural** | Follows directly from the fixed (post-FIX-1) design -- one oracle consultation per batch regardless of how many faults coalesce into it -- a structural ceiling independent of platform | `driver/PIPELINE_FIXES.md` (FIX-1), `results/phaseB1/GATE_B_diagnosis.md` |
-| 7 | C3 (oracle+depth=1, the absolute upper bound of SpecAsync) loses to C0 (stock prefetcher) on both Stencil-24K (process wall-clock) and GraphBFS-23 | **Platform-specific-cost-ratio; magnitude updated by T1; qualitative result confirmed cross-platform** | Both percentages are measured wall-clock ratios on a T4/v595.71.05 combination; a GPU with a different prefetcher implementation or PCIe/memory bandwidth balance could show different magnitudes, though see claim 8 for why the *qualitative* result is expected to generalize. **Superseded magnitude**: Gate 3's original blocked-protocol figures (+268.9% Stencil-24K, +5.7% GraphBFS-23) are superseded by Task T1's strictly-interleaved rerun (`GATE_T1_REPORT.md`, `exclusion_manifest.csv`): **+278.5% Stencil-24K, +7.34% GraphBFS-23** (C3 vs C0 medians, n=20/cell, both Holm-significant) — same qualitative conclusion, corrected numbers. All figures here use the **process-wall-clock** convention (`lib_specasync_harness.sh`/`time_run()`), the same convention as claim 9 and unrelated to Phase C's G3 kernel-loop-time figure (see `STENCIL_LABEL_COLLISION.md`). **Cross-platform confirmation (RTX 5070 Ti, Blackwell, driver 595.84):** `GATE_B5_5070TI_REPLICATION.md` reruns T1's exact protocol on a second, architecturally-different GPU and finds the same qualitative result at similar magnitude: **+302.3% Stencil-24K, +4.83% GraphBFS-23** (both Holm-significant) — C3 loses to C0 on both platforms | `results/analysis/GATE_T1_REPORT.md` (authoritative, T4); `results/analysis/GATE_B5_5070TI_REPLICATION.md` (cross-platform confirmation, RTX 5070 Ti); `results/phaseB2/GATE3_report.md` (superseded, provenance only) |
-| 8 | Turning off the stock UVM prefetcher to enable SpecAsync costs more than SpecAsync's oracle-upper-bound can recover, on both tested benchmarks | **Hybrid -- mechanism is architectural, magnitude is platform-specific but reproduces in order of magnitude cross-platform** | The mechanism (single-page-at-a-time workqueue-driven migration vs the stock prefetcher's multi-page-per-batch migration in the fault-service hot path) is a structural asymmetry in SpecAsync's design vs the stock driver's, expected to hold on any platform; the specific 3.6x/1.06x cost ratios are **Tesla-T4-specific** measurements (corrected header above -- `GATE3_report.md` is T4 data, not RTX 5070 Ti (595.84) as this row previously implied). **Cross-platform check:** on RTX 5070 Ti (595.84, Blackwell), the prefetch-on benefit on Stencil-24K is **3.88x** (C1/C0 median ratio, T1 protocol) vs T4's **3.55x** — same order of magnitude, supporting the claim that this is a structural (not T4-specific) cost, even though the exact ratio is platform-specific (`GATE_B5_5070TI_REPLICATION.md`) | `results/phaseB2/GATE3_report.md` ("Why oracle+depth=1 doesn't help", point 3); `results/analysis/GATE_B5_5070TI_REPLICATION.md` (cross-platform check) |
-| 9 | C3 vs C1 is statistically indistinguishable (per the pre-correction abstract claim) | **Not supported as a blanket claim, confirmed again and more decisively by T1's interleaved rerun** -- see `STATISTICS.md`/`OUTLIER_FORENSICS.md`/`MULTIPLE_COMPARISONS.md` for the original (superseded) analysis, `GATE_T1_REPORT.md` for the authoritative one. **GraphBFS-23**: confirmed indistinguishable (p=0.776, Cohen's d=0.103, MDE tightened to 0.16%) -- platform-specific-cost-ratio, a measured equivalence at this config/hardware. **Does NOT reproduce on RTX 5070 Ti (595.84)**: `GATE_B5_5070TI_REPLICATION.md` reran the identical T1 protocol and found a Holm-significant, opposite-sign, small-effect difference instead (p=0.025, Cohen's d=-0.534, delta=-0.39%, near this platform's own 0.36% MDE) -- a genuine platform divergence, not smoothed into agreement; T4's null does not generalize. **Stencil-24K (process wall-clock)**: C3 is significantly slower than C1 (p=9.69e-07, Cohen's d=1.749, ~6.7%), Holm-significant -- *more* decisive under the clean interleaved protocol than the original blocked-protocol data (p=0.036, itself Holm-nonsignificant), the opposite of what a contamination hypothesis would predict. Also platform-specific-cost-ratio. **Reproduces on RTX 5070 Ti (595.84)**: same direction and Holm-significance (p=5.91e-08, d=8.275, +3.60%) -- the larger effect size there is attributable to the 5070 Ti's much tighter measurement variance, not a different underlying effect. The Stencil-24K/C3 **bimodal pattern** T1 found on T4 (8/20 high cluster, position-independent) also does **not** reproduce on the 5070 Ti (595.84) (smooth 0.07s spread, no cluster gap; instead a small but significant run-order drift, rho=0.548 p=0.012, that T4 did not show). Per-workload (and now per-platform) split is the authoritative statement, not a blanket sentence either way | `results/analysis/GATE_T1_REPORT.md` (authoritative, T4); `results/analysis/GATE_B5_5070TI_REPLICATION.md` (cross-platform replication, RTX 5070 Ti 595.84); `results/analysis/STATISTICS.md`, `results/analysis/MULTIPLE_COMPARISONS.md`, `results/analysis/OUTLIER_FORENSICS.md` (superseded, provenance only) |
-| 10 | Rate mismatch (real-workload demand-fault rate outruns the speculative worker's dispatch latency) explains SpecAsync's near-zero hit rate on real benchmarks with the prefetcher off | **Established for both benchmarks, corrected twice -- see `GATE_T4_REPORT.md`/`GATE_A1_REPORT.md`, supersedes `RATE_MISMATCH_VERIFICATION.md`** | `GATE_T4_REPORT.md` originally stated this as an established, workload-general mechanism ("0.4-4.7 million faults/second... essentially never wins the race"), but that rate had a ~15x aggregation error (fault total summed across 15 reps divided by one rep's duration). ~~Corrected: 0.296M faults/s (Stencil-24K), 0.029M faults/s (GraphBFS-23).~~ **That "corrected" figure was itself still wrong** -- a second, independent error (`specasync_log`'s ring saturates and duplicates readings partway through rep 2 of 15 for Stencil / rep 5 of 15 for GraphBFS, not caught until a later pass) inflated its numerator too. Dispatch is confirmed per-fault (not per-batch) both from source and empirically. **Doubly-corrected rate, from only the pre-saturation reps: 0.188M faults/s (Stencil-24K, n=1 clean rep), 0.00765M faults/s (GraphBFS-23, n=4 clean, tightly-consistent reps).** Compared against `GATE_A1_REPORT.md`'s directly **measured** contended dispatch-latency medians (not the idealized uncontended probe RATE_MISMATCH_VERIFICATION.md had to substitute): dispatch is **~1,774x** the Stencil-24K inter-arrival gap and **~81x** the GraphBFS-23 gap -- both decisively in favor of the worker losing the race. **The mechanism is established for both benchmarks**, reversing the earlier "narrowed to Stencil-24K only, does not explain GraphBFS" conclusion, which was an artifact of comparing a still-inflated budget against the wrong (uncontended) latency figure. Classify as platform-specific-cost-ratio, general mechanism (both tested benchmarks), no longer order-of-magnitude-pending since the contended latency measurement now exists. **Cross-platform check, RTX 5070 Ti (595.84, Blackwell):** `GATE_B6_TASK2_A1_REPLICATION.md` reruns Gate A1's exact protocol and finds the dispatch-latency blowup **reproduces but at smaller, load-dependent magnitude**: full-run (the load regime the published benchmark sizes actually run at) ~432-438x this platform's own uncontended baseline vs ~1,685-1,894x on the T4 (~4x smaller); short-run (low-contention) ~4.9-11.5x here vs ~460.6-571.1x on the T4 (~50-100x smaller, a qualitatively different, near-uncontended regime). Backlog is ruled out identically on both platforms (processed==enqueued exactly, 1.000000, all reps). This is evidence (not proof, no controlled core-count sweep exists) that the mechanism has a real CPU-contention component -- this platform's 6x core count partially, not fully, absorbs the blowup -- rather than being a purely architectural/algorithmic property independent of host resources | `results/analysis/GATE_T4_REPORT.md` (current Section 2, authoritative); `results/analysis/GATE_A1_REPORT.md` (current Result 2, contended dispatch-latency measurement); `results/analysis/GATE_B6_TASK2_A1_REPLICATION.md` (cross-platform check, RTX 5070 Ti); `results/analysis/RATE_MISMATCH_VERIFICATION.md` (superseded intermediate correction, retained for provenance) |
-| 11 | GraphBFS C2 (stride) measures significantly faster than C1 (no speculation) | **Not a claim** -- investigated and attributed to C1's own outlier runs plus an effect size below this design's minimum detectable effect; explicitly not interpreted as evidence speculation helps GraphBFS | `results/analysis/GRAPHBFS_C2_ANOMALY.md` |
-| 12 | cuFFT gains up to 4.4% (mean, n=50) at small-to-medium FFT sizes on RTX 5070 Ti (580.95.05) | **Superseded legacy claim, retained for provenance only** | This is a v580.95.05/RTX-5070-Ti(580.95.05)-only measurement (commit `ded7672`, 2026-03-26, over two months before any T4 work existed) with **no T4 counterpart under any protocol** (`CUFFT_PROVENANCE.md` Q3/Q6: cuFFT never appears in Gate C, Gate D, Gate 3, or Phase C). Separately, Task T2's attempted T4 reproduction at the closest available matching configuration found the associated hit-rate figure does **not** reproduce (25.47% → 4.07%, no wall-clock effect at any size) -- the T4 cuFFT data that exists (Phase B, non-interleaved) shows deltas within noise (-1.6% to +1.3%). **Same-hardware, different-driver rerun (RTX 5070 Ti, 595.84):** `GATE_B6_TASK4_CUFFT_REPLICATION.md` reruns the exact matching configuration (policy=2, depth=0) on the *same physical GPU* the 4.4% figure was originally measured on, under 595.84 instead of 580.95.05 -- hit rate at the matching size is 13.80%, still short of 25.47% but notably higher than the T4's 4.07%; no wall-clock effect at any size (a stronger null than the T4's, since it holds despite the higher hit rate). This is not a T4 counterpart (still none exists) but it is the first same-hardware revisit of this claim under any controlled protocol. The 4.4% figure is not refuted on its original driver/protocol, but it must not be described as confirmed, generalizable, or reproducing under either a different driver on the same GPU or on the T4; already correctly hedged in `paper/abstract_v2.md` as "(mean, n=50, Exp1)" | `results/figures/CUFFT_PROVENANCE.md`, `paper/abstract_v2.md`; `results/analysis/GATE_T2_REPORT.md` (T4 non-reproduction); `results/analysis/GATE_B6_TASK4_CUFFT_REPLICATION.md` (same-hardware, different-driver rerun) |
-| 13 | SGEMM, STREAM, Stencil (Phase 1 microbenchmarks) show results within ±1-2% of baseline, consistent with measurement noise | **Platform-specific-cost-ratio** | A null result at a specific working-set-size/GPU/driver combination; the paper itself already attributes it partly to platform conditions (working sets well below VRAM capacity) rather than claiming it as an architectural null result | `paper/abstract_v2.md`, `paper/intro_revisions.md` |
-| 14 | STREAM's originally-reported -8.8% "speedup" does not survive interleaved measurement; the true effect is a ~1.5-2% worker-presence slowdown that tracks p5 (null) not prediction quality | **Hybrid** | The *mechanism* (enqueue + workqueue wakeup + worker's VA-space read-lock acquisition raising `lock_acq` cost, independent of prediction hits) is architectural; the exact 1.5-2% magnitude is a platform-specific measurement | `results/phaseB1/GATE_C_report.md` (C2) |
-| 15 | Phase B's async-offload hypothesis (that offloading D1+D2 would yield net system-level throughput gain) does not materialize | **Hybrid, mostly platform-specific-cost-ratio, ceiling magnitude now cross-platform checked and corrected** | The 9-30% D1+D2 window-share bound is architectural-ish (structural upper limit on what's even offloadable), but "does not materialize at the system level" is an empirical Phase B result on this hardware. ~~`GATE_T3_REPORT.md` computed a T4 end-to-end pipelining-ceiling range of 0.20-19.06%~~ and ~~`GATE_B7_5070TI_PHASEC.md` found **0.13-29.02%**~~ on RTX 5070 Ti (595.84, Blackwell) -- **both SUPERSEDED as of `CEILING_BASIS_VERIFICATION.md` (2026-08-13)**: the shared ceiling formula summed its numerator across 5 trials while dividing by a single trial's median wall-clock, inflating every figure ~5x, proven wrong (not just suspected) by span-based fractions exceeding 100% on the T4's own data. **Corrected: T4 0.13-7.94%, RTX 5070 Ti 0.08-7.25%.** The originally-reported "this platform runs notably higher at the largest sizes" divergence does not survive the correction either -- under the corrected convention the **T4 runs higher than the 5070 Ti at 5 of 6 workloads**, the reverse of what was reported. The qualitative "does not materialize" conclusion still holds and is if anything strengthened (a sub-8% ceiling on both platforms is more consistent with zero measured system-level gain than the superseded up-to-19-29% figures were) | `results/phaseC/PHASEC_REPORT.md` ("Decision"), `results/analysis/PIPELINING_CEILING.md`, `results/analysis/GATE_T3_REPORT.md`, `results/analysis/GATE_B7_5070TI_PHASEC.md`, `results/analysis/CEILING_BASIS_VERIFICATION.md` (correction, authoritative for the ceiling figures) |
-| 16 | Instrumentation overhead of Phase C's decomposition telemetry is +0.64% (Stencil-24K, kernel-loop time) | **Platform-specific-cost-ratio, now cross-platform checked with an open tension** | A measured overhead specific to this CPU's `ktime_get_ns()` cost and memory-copy speed; validated for Stencil-24K only, assumed (not demonstrated) to generalize to the other 6 workloads (see `PIPELINING_CEILING.md` section 3). Both DECOMP=0 (1635.1ms) and DECOMP=1 (1645.6ms) medians are from the same G3 harness convention (`run_robust.py`'s kernel-loop-time regex, per `STENCIL_LABEL_COLLISION.md`), so the ratio itself is self-consistent even though this convention differs from the process-wall-clock convention used everywhere else in this table (claims 7, 9) -- **not** to be used as a wall-clock denominator against any Gate 3/T1 figure. **Cross-platform check, RTX 5070 Ti (595.84, Blackwell):** `GATE_B7_5070TI_PHASEC.md`, n=10/arm strictly interleaved (not blocked, per standing policy), finds **+0.331%** (MWU p=0.096, n.s.; MDE at this n is 0.626%) -- passes the same <2% threshold, but **the direction of the discrepancy is a flagged, unresolved tension**: this platform's kernel-loop denominator is ~4.45x smaller than the T4's, so a fixed absolute instrumentation cost should mechanically appear *larger* as a percentage here, not smaller/absent. It does not. Reported as an open question (possibly architecture-dependent absolute instrumentation cost, not just a scaled fixed cost), not resolved by assertion | `results/phaseC/PHASEC_REPORT.md` (G3), `results/analysis/PIPELINING_CEILING.md`, `results/analysis/STENCIL_LABEL_COLLISION.md`, `results/analysis/GATE_B7_5070TI_PHASEC.md` (cross-platform check) |
-| 17 | SpecAsync infrastructure itself (producer-consumer ring, policy dispatch layer, debugfs telemetry interface) is a clean, minimal (<400 net new lines), safety-invariant-preserving addition to the stock driver | **Driver-architectural** | A property of the code as written, not of any measurement run | `paper/intro_revisions.md` (Replacement 1), driver source under `driver/src/specasync_*` |
+## Evidence convention (the rule this document is written under)
 
-## Summary
+Every number in a proposed claim carries one of three markers:
+- **an evidence id** (`like.this`) pointing to a row of `EVIDENCE_EXTRACT.md`. That
+  file was generated by `tests/c1_evidence.py` from **committed derived files only**
+  (CSV / analysis output), and each row records the file and field.
+- **PROSE-ONLY**: the number exists only in report prose. The committed derived data
+  does not contain it, usually because its raw data is gitignored and only the
+  producing script is committed. It is flagged, not silently accepted.
+- **UNCHECKED**: the claim is carried unchanged from the current `CLAIM_SCOPE.md`,
+  and C1 did not re-derive it because it lies outside Gate E's scope.
 
-Of the 17 claims catalogued (renumbered sequentially; updated with T1/T4 findings and the
-platform-attribution correction above): **6 are driver-architectural** (1, 2, 3-partial, 4,
-6, 17), **5 are platform-specific-cost-ratio** (5, 13, 16, and the magnitude components of
-7/9), **5 are hybrid or explicitly not-a-claim** (8, 10, 11, 14, 15 -- note claim 10 is now
-established as a general mechanism across both tested benchmarks, not merely a narrow
-cost-ratio, per its 2026-08-13 correction), and
-**1 is a superseded legacy claim retained for provenance only** (12, cuFFT -- RTX 5070 Ti
-(580.95.05) only, no T4 counterpart, though a same-hardware-different-driver rerun on
-RTX 5070 Ti (595.84) now exists, see claim 12). The manuscript's strongest, least-hedged claims should be the
-architectural ones (D4/D5 dominance and its async-not-sync-wait mechanism, the trylock
-throttle structure, the oracle's one-prediction-per-batch ceiling); every cost-ratio claim
-should carry an explicit single-platform qualifier (**Tesla T4** for all of 1-10 and 13-17;
-**RTX 5070 Ti (580.95.05)** only for 12, and partially for 13). Claims 7, 9, and 10 now have T4
-(second-platform relative to the original course-paper RTX 5070 Ti (580.95.05)) confirmation, with 7
-and 9's magnitudes corrected by T1's interleaved rerun and 10's mechanism narrowed by Part
-2's verification pass; the remaining cost-ratio claims (5, 16) still have no
-second-platform confirmation on disk, and claim 12 (cuFFT) has an attempted T4
-reproduction that did *not* confirm it, per `COMPLETENESS_LEDGER.md`.
+Every PROSE-ONLY and UNCHECKED number is listed in `C1_REVIEW.md`.
+
+## Header (applied)
+
+Gate E data were collected on **RTX 5070 Ti, driver 595.91.07**, with the kernel changing
+between gates through routine OS updates (not by project action; AC-23). The kernel per
+gate, each read from that gate's own report (C1-APPLY item 1, 2026-10-05):
+
+| gate | kernel | driver | where the statement is |
+|---|---|---|---|
+| E0 | not recorded | not recorded | read-only inventory, no module load |
+| E0.5 | 7.0.0-31-generic | 595.91.07 (port; 595.84 gone) | "Blocked" section (vermagic) and port section |
+| E0.7 | 7.0.0-31-generic | 595.91.07 | report header |
+| E0.8 | not recorded | not recorded | analysis-only, on E0.7 data |
+| E0.9 | 7.0.0-31-generic | 595.91.07 | report header |
+| E0.9a-2 | 7.0.0-34-generic (after a routine OS update) | 595.91.07 | report header |
+| E0.9b, E1, E1b/E3a, E3a-2, E3b, E4, E5 | 7.0.0-34-generic | 595.91.07 | each gate's header or preflight |
+
+The earlier phrase "driver 595.91.07 throughout" is replaced by this table: E0 and E0.8
+record neither value. The current header's "RTX 5070 Ti (595.84)" and "(580.95.05)"
+labels stay as they are. Every Gate E claim below is stated for **595.91.07** and is
+**not** pooled with 595.84 data.
+
+---
+
+## Part 1 — Existing claims (current rows 1–17)
+
+### CS2-1 · D4/D5 dominance of the dispatch window
+- **Current text** (claim cell, exact): "D4/D5 (GPU fault service, held under the va_space lock) is the dominant sub-phase of the dispatch window across all 7 Phase C workloads: **63-74%** under ratio-of-medians (the statistic of record, `STATISTIC_OF_RECORD.md`), **60.75-86.00%** under median-of-ratios (batch-to-batch dispersion figure, appendix use)"
+- **Status:** stands.
+- **Proposed text:** unchanged. Optionally add a 595.91.07 data point: in the E0.9b pilot, Stencil-24K C1 has D5 = 1.5952 s of a 2.2397 s servicing window (`E1PartB.stencil.D5`, `E1PartB.stencil.window`).
+- **Baseline:** none (decomposition of a single configuration: C0 in Phase C; C1 in the E0.9b pilot).
+- **Evidence:** 63–74%, 60.75–86.00%, 52.1–76.9% and 50.38–84.56% are **UNCHECKED**. The 595.91.07 data point comes from the evidence ids above.
+- **Scope:** T4 (595.71.05) and RTX 5070 Ti (595.84); 7 Phase C workloads; not oracle-based.
+- **What changed and why:** nothing. Gate E does not bear on it. The E0.9b pilot is consistent with it on a third configuration.
+
+### CS2-2 · D5 is orchestration plus an async push, not a blocking wait
+- **Current text:** "D5's measured CPU time is CPU-side orchestration + an async GPU push (`uvm_push_end`), not a blocking wait on GPU completion"
+- **Status:** stands.
+- **Proposed text:** unchanged.
+- **Baseline:** n/a (source-level).
+- **Evidence:** `D5_CHARACTERIZATION.md` (source reading). No numbers.
+- **Scope:** driver source at 595.71.05 / 595.84; source-derived.
+- **What changed and why:** nothing.
+
+### CS2-3 · D3 (lock wait) is negligible
+- **Current text:** "D3 (lock wait) is <0.2% of the dispatch window in the typical batch across all workloads -- no lock contention"
+- **Status:** stands.
+- **Proposed text:** unchanged.
+- **Baseline:** none.
+- **Evidence:** "<0.2%" and 0.05–0.14% are **UNCHECKED**.
+- **Scope:** T4 and 5070 Ti (595.84); single-stream benchmarks.
+- **What changed and why:** nothing.
+
+### CS2-4 · Same-block trylock throttle rate (76.1%)
+- **Current text:** "Same-block trylock throttle rate of 76.1% under cross-block speculative probing"
+- **Status:** stands.
+- **Proposed text:** unchanged.
+- **Baseline:** none.
+- **Evidence:** 76.1% is **UNCHECKED** (`results/phaseB2/GATE2_report.md`).
+- **Scope:** T4; Gate 2 probe.
+- **What changed and why:** nothing. (Related: E3a's width worker also uses `trylock`. E4's lost-after-enqueue counts are the current evidence for trylock loss at W > 1: `E4.mech.*`.)
+
+### CS2-5 · "Hit batches are ~5% slower than miss batches (no per-hit wall-time saving)"
+- **Current text:** "Hit batches are ~5% *slower* than miss batches (no per-hit wall-time saving)"
+- **Status:** **superseded.**
+- **Proposed text:** "*Per-hit* wall-time accounting is not a valid lens: a `spec_hits` 'hit' is a demand fault that still occurred on a page predicted within the last 10 ms (CS2-N7). Speculation's wall-time effect is measured directly instead:
+  - relative to prefetch-off C1, a cheap first-touch oracle saves 9.69% on Stencil-24K at W = 1 and 23.29% at W = 512;
+  - relative to the shipped driver C0, only whole-block speculation saves time (−4.93%, Stencil-24K; CS2-N1)."
+- **Baseline:** C1 (prefetch off) for the first figure; C0 (the driver as shipped) for the second. Both named.
+- **Evidence:** `E4.F3.stencil.C6-W1_vs_C1` (−9.69%), `E4.F3.stencil.C6-W512_vs_C1` (−23.29%), `E4.F1.stencil.C7-W512_vs_C0` (−4.93%). The original "~5%" is **UNCHECKED** and is retired with the claim.
+- **Scope:** RTX 5070 Ti 595.91.07; Stencil-24K; **perfect first-touch oracle**.
+- **What changed and why:** E0.9b and E1 flagged that a gain exists relative to C1, and E4 found one relative to C0. The claim's unit, a "hit batch", rests on `spec_hits`, which E0.9a-2 showed does not count wins.
+
+### CS2-6 · "Oracle mechanism ceiling: ~1/coalesce_factor"
+- **Current text:** "Oracle mechanism ceiling: one-prediction-per-batch design caps achievable hit rate at ~1/coalesce_factor"
+- **Status:** **superseded** (historical design).
+- **Proposed text:** "Historical, State-1 design only (commits `cc90fc1` → before `fc384fb`). One prediction per service batch caps **the number of faults that can receive a prediction** at about 1/coalesce_factor of all faults. It does not cap the hit rate among the predictions made; those are different denominators (AC-16). No module used after Gate E0.5 has this design: prediction has been per coalesced fault since `fc384fb`."
+- **Baseline:** n/a.
+- **Evidence:** 442/56 ≈ 7.9 faults per batch, 23/56 = 41.07%, and 1/7.9 ≈ 12.7% are **PROSE-ONLY** (E0.5 Addition 2 and Addendum §3; the raw `results/phaseB1/oracle_coalesce/*.bin` is gitignored).
+- **Scope:** the State-1 driver design; `coalesce_probe.cu`.
+- **What changed and why:** E0.5 showed the claim's own evidence contradicts the formula as a hit-rate ceiling (41.07% > 12.7%), because the two quantities use different denominators.
+
+### CS2-7 · C3 loses to C0
+- **Current text:** "C3 (oracle+depth=1, the absolute upper bound of SpecAsync) loses to C0 (stock prefetcher) on both Stencil-24K (process wall-clock) and GraphBFS-23"
+- **Status:** **narrowed.**
+- **Proposed text:** "C3 is the policy-4 trace-replay oracle as run before Gate E0.5, with depth 1 and prefetch off. Its recorded trace was consumed ~11.7× (Stencil) / ~2.1× (GraphBFS) faster than it was recorded, so it was **not** an aligned predictor and not an upper bound. C3 loses to C0 on both benchmarks and both platforms: this is a wall-clock measurement of that configuration:
+  - T4: +278.49% (Stencil-24K), +7.34% (GraphBFS-23);
+  - RTX 5070 Ti (595.84): +302.25%, +4.83%.
+
+  The generalisation 'no tested oracle configuration beats C0' is **retired**: see CS2-N1."
+- **Baseline:** C0, the driver as shipped.
+- **Evidence:** `T1B5.T4.bench_stencil`, `T1B5.T4.bench_graph_bfs`, `T1B5.5070Ti-595.84.bench_stencil`, `T1B5.5070Ti-595.84.bench_graph_bfs` (recomputed from `gate3_interleaved_times.csv`; they match the current prose). The over-consumption ratios 11.7× / 2.1× are **PROSE-ONLY** (E0 §7, E0.5).
+- **Scope:** T4 (595.71.05) and RTX 5070 Ti (595.84); Stencil-24K, GraphBFS-23; misaligned oracle.
+- **What changed and why:**
+  - E0 and E0.5 found the oracle was never aligned, so "absolute upper bound" is false.
+  - E1 generalised the loss to every oracle tested.
+  - E4 then found a configuration that beats C0, so the generalisation is retired.
+
+### CS2-8 · Turning the prefetcher off costs more than speculation can recover
+- **Current text:** "Turning off the stock UVM prefetcher to enable SpecAsync costs more than SpecAsync's oracle-upper-bound can recover, on both tested benchmarks"
+- **Status:** stands (strengthened; wording updated).
+- **Proposed text:** "Turning the stock prefetcher off costs more than even perfect off-path staging recovers, on both tested benchmarks. The prefetch-off penalty (C1/C0) is 3.55× on T4 and 3.88× on RTX 5070 Ti (595.84) for Stencil-24K. On RTX 5070 Ti (595.91.07), the best prefetch-off arm stages 99.95% of Stencil's distinct pages ahead of their fault, and is still 2.92× C0 on Stencil-24K and 1.039× on GraphBFS-23."
+- **Baseline:** C0 (the driver as shipped).
+- **Evidence:** `T1B5.T4.bench_stencil` (C1/C0 3.55×), `T1B5.5070Ti-595.84.bench_stencil` (3.88×), `E4.F4.stencil.C6-W512_vs_C0` (+191.95%, i.e. 2.92×), `E4.F4.graphbfs.C6-W512_vs_C0` (+3.86%), `E4.mech.stencil.C6-W512` (far_frac 0.9995). The T4 "3.6x/1.06x" are **UNCHECKED** as originally cited; the recomputed 3.55× / 1.07× are evidence-backed.
+- **Scope:** T4, RTX 5070 Ti (595.84 and 595.91.07); Stencil-24K, GraphBFS-23. For the 595.91.07 part: a near-perfect first-touch table (Stencil) and a weakened-cursor table (GraphBFS, C6 coverage 0.22–0.81).
+- **What changed and why:** "oracle-upper-bound" is replaced by a measured perfect-staging arm (E4 F4). The claim survives every later gate (E0.9b, E1, E4, E5).
+
+### CS2-9 · C3 vs C1
+- **Current text:** "C3 vs C1 is statistically indistinguishable (per the pre-correction abstract claim)"
+- **Status:** **narrowed** (interpretation only; the measured split stands).
+- **Proposed text:** "Per workload and platform, as currently stated:
+  - Stencil-24K: C3 is slower than C1 (T4 +6.67%, 5070 Ti 595.84 +3.60%).
+  - GraphBFS-23: indistinguishable on T4 (+0.02%), Holm-significant −0.39% on the 5070 Ti (595.84).
+
+  This measures the pre-E0.5 **misaligned** oracle configuration against prefetch-off, **not** 'oracle vs no speculation'. With an aligned cheap first-touch oracle, the Stencil comparison reverses (C6-W1 vs C1: −9.69%)."
+- **Baseline:** C1 (prefetch off, no speculation).
+- **Evidence:** `claim9.T4.bench_stencil`, `claim9.T4.bench_graph_bfs`, `claim9.5070Ti-595.84.bench_stencil`, `claim9.5070Ti-595.84.bench_graph_bfs`, `E4.F3.stencil.C6-W1_vs_C1`. p-values, Cohen's d and MDEs in the current row are **UNCHECKED**.
+- **Scope:** T4 and 5070 Ti (595.84) for C3; 5070 Ti (595.91.07) for C6.
+- **What changed and why:** the C3 predictor was misaligned (E0.5), so its C1 comparison does not speak for speculation in general.
+
+### CS2-10 · Rate mismatch explains the near-zero hit rate
+- **Current text:** "Rate mismatch (real-workload demand-fault rate outruns the speculative worker's dispatch latency) explains SpecAsync's near-zero hit rate on real benchmarks with the prefetcher off"
+- **Status:** **retired** as an explanation. The dispatch-latency *measurements* stand.
+- **Proposed text:** "Measured, and standing: the speculative worker's contended dispatch latency is milliseconds under load:
+  - median 9.4 ms (Stencil) and 10.6 ms (GraphBFS) on T4;
+  - 2.3 ms on RTX 5070 Ti (595.84);
+  - processed == enqueued, so there is no backlog.
+
+  Retired: that this latency explains the near-zero `spec_hits` rate. See R1 for what replaced it."
+- **Baseline:** n/a (mechanism measurement).
+- **Evidence:** `A1.T4.full_run.bench_stencil` (9,438 µs), `A1.T4.full_run.bench_graph_bfs` (10,607 µs), `A1.5070Ti.full_run.bench_stencil` (2,306 µs). The fault rates 0.188M/s and 0.00765M/s appear as `T4hit.bench_stencil.rep1.corrected_marginal_clean` (188,000.87/s) and the GraphBFS clean reps (7,627–7,674/s). The ~1,774× / ~81× ratios are **UNCHECKED**.
+- **Scope:** T4 and 5070 Ti (595.84); C3 (misaligned oracle).
+- **What changed and why:**
+  - The hit rate the race was invoked to explain was produced by a misaligned oracle (E0 §7, E0.5) and measured with a 10 ms window counter (CS2-N7).
+  - With a correct, early first-touch oracle, the worker beats the servicing thread for 919,262 pages on Stencil (CS2-N7 evidence).
+  - The residual servicing cost turned out to be the oracle's own lookup (E3b), and width removes the queue limit (E4).
+
+### CS2-11 · GraphBFS C2 vs C1
+- **Current text:** "GraphBFS C2 (stride) measures significantly faster than C1 (no speculation)"
+- **Status:** stands (still "not a claim").
+- **Proposed text:** unchanged.
+- **Baseline:** C1.
+- **Evidence:** `claim9.T4.bench_graph_bfs` (C2 vs C1 −0.24%), `claim9.5070Ti-595.84.bench_graph_bfs` (−0.47%).
+- **Scope:** T4, 5070 Ti (595.84).
+- **What changed and why:** nothing.
+
+### CS2-12 · cuFFT legacy +4.4%
+- **Current text:** "cuFFT gains up to 4.4% (mean, n=50) at small-to-medium FFT sizes on RTX 5070 Ti (580.95.05)"
+- **Status:** stands as a legacy claim. **Narrowed in its hit-rate part.**
+- **Proposed text:** unchanged for the wall-clock figure. Add: "The associated hit-rate figures (25.47%; 4.07%; 13.80%) are `spec_hits`-based. They count faults on recently predicted pages, not successes (CS2-N7), and must not be read as prediction accuracy."
+- **Baseline:** p0 baseline (legacy protocol).
+- **Evidence:** 4.4%, 25.47%, 4.07% and 13.80% are **UNCHECKED**.
+- **Scope:** RTX 5070 Ti (580.95.05) legacy; policy 2.
+- **What changed and why:** E0.9a-2 established the `spec_hits` semantics.
+
+### CS2-13 · Phase 1 microbenchmark null (±1–2%)
+- **Current text:** "SGEMM, STREAM, Stencil (Phase 1 microbenchmarks) show results within ±1-2% of baseline, consistent with measurement noise"
+- **Status:** stands.
+- **Proposed text:** unchanged.
+- **Baseline:** p0.
+- **Evidence:** **UNCHECKED**.
+- **Scope:** legacy platform.
+- **What changed and why:** nothing.
+
+### CS2-14 · STREAM −8.8% does not survive; +1.5–2% worker-presence cost
+- **Current text:** "STREAM's originally-reported -8.8% "speedup" does not survive interleaved measurement; the true effect is a ~1.5-2% worker-presence slowdown that tracks p5 (null) not prediction quality"
+- **Status:** stands.
+- **Proposed text:** unchanged.
+- **Baseline:** p0; p5 as the null-worker control.
+- **Evidence:** **UNCHECKED**.
+- **Scope:** T4, Gate C.
+- **What changed and why:** nothing.
+
+### CS2-15 · Async-offload (D1+D2) hypothesis does not materialize; the pipelining ceiling
+- **Current text:** "Phase B's async-offload hypothesis (that offloading D1+D2 would yield net system-level throughput gain) does not materialize"
+- **Status:** **narrowed.**
+- **Proposed text:** "Offloading **D1+D2** (fault-buffer drain and preprocessing) would recover at most the corrected end-to-end pipelining ceiling, 0.08–7.94% of wall-clock across both platforms. Phase B found no system-level gain. The ceiling **bounds the overlap of D1+D2 only**. It does not bound off-path schemes that remove D4/D5 work or prevent faults. In particular, it says nothing about:
+  - speculative pre-staging, which removed 0.681 s of D5 on Stencil-24K C6-L4096 while D1+D2 moved by +0.003 s;
+  - the E4/E5 gains, which come through fault prevention and D5."
+- **Baseline:** the ceiling is a share of prefetch-on (policy 0) process wall-clock.
+- **Evidence:**
+  - 0.08–7.94%, 7.25% (5070 Ti Sweep-24K, 595.84) and 9–30% (window share) are **PROSE-ONLY**. No committed CSV of the corrected ceilings was found (`CEILING_BASIS_VERIFICATION.md` §6 prose).
+  - The pre-staging numbers are evidence-backed: `E1PartB.stencil.D5` (+0.6813 s), `E1PartB.stencil.D1+D2` (+0.0033 s).
+- **Scope:** T4 and 5070 Ti (595.84) for the ceiling; 5070 Ti (595.91.07) for the pre-staging decomposition.
+- **What changed and why:**
+  - E1 Part B showed pre-staging acts on D5, a phase the ceiling excludes by construction.
+  - The current wording, "structural upper limit on what's even offloadable", overreaches, and E4/E5 confirm the gains lie outside it.
+
+### CS2-16 · Decomposition telemetry overhead
+- **Current text:** "Instrumentation overhead of Phase C's decomposition telemetry is +0.64% (Stencil-24K, kernel-loop time)"
+- **Status:** stands.
+- **Proposed text:** unchanged.
+- **Baseline:** DECOMP=0 build.
+- **Evidence:** the 5070 Ti figure **+0.331%** is `claim16.5070Ti` (recomputed: medians 368.515 vs 369.735 ms). T4 +0.64% (1635.1 → 1645.6 ms) is **UNCHECKED**.
+- **Scope:** T4 and 5070 Ti (595.84); Stencil-24K kernel-loop time.
+- **What changed and why:** nothing. The 5070 Ti value is now evidence-backed.
+
+### CS2-17 · Infrastructure is minimal (<400 net new lines)
+- **Current text:** "SpecAsync infrastructure itself (producer-consumer ring, policy dispatch layer, debugfs telemetry interface) is a clean, minimal (<400 net new lines), safety-invariant-preserving addition to the stock driver"
+- **Status:** **narrowed** (scope).
+- **Proposed text:** "The base SpecAsync infrastructure (verified module `5997D238…`) is a minimal addition, <400 net new lines (UNCHECKED, see Evidence). The E3a-2 module (`33FD42E6…`), which adds speculative width and the cheap oracle, passes the E3a-2 review protocol (compile-only review, function-and-precondition table, attended first load), and is not covered by the <400-line figure. That protocol exists because of the E0.9a-2 kernel crash (AC-22)."
+- **Baseline:** n/a.
+- **Evidence:** "<400" is **UNCHECKED**. The crash is PROSE-ONLY (E0.9a-2 §4).
+- **Scope:** code.
+- **What changed and why:** new code since the claim was written, and a crash in the project's own instrumentation.
+
+---
+
+## Part 2 — New claims
+
+### CS2-N1 · The central claim, restated (replaces "speculation cannot improve the driver as it ships")
+- **Current text:** new. It replaces the paper's central claim as last stated in E1 ("Speculation … cannot improve the shipped driver on these two benchmarks").
+- **Status:** new.
+- **Proposed text:**
+  1. "Off-path speculation **cannot prevent a fault by itself**: it stages residency but never installs a mapping (CS2-N2).
+  2. **Page-granularity speculation does not beat the driver as shipped.** With a near-perfect first-touch table (Stencil) and a weakened-cursor table (GraphBFS), and the prefetcher on, the cheap-oracle configuration at W = 1 is slower than C0 on Stencil-24K (+5.87%, Holm-significant). On GraphBFS-23 it shows no difference from C0.
+  3. **Whole-block staging (W = 512) with the prefetcher left on beats C0 on Stencil-24K by 4.93%** (replicated at 5.26%). It is accompanied by about 40% fewer demand faults (CS2-N3) and by copy offload (CS2-N4); their contributions to the wall-clock gain are not apportioned.
+  4. There is **no difference detected on GraphBFS-23**: all three F1 arms are not significant, and the MDE at achieved n is **0.28–0.43% of the C0 median wall-clock** (computed from the E4 F1 GraphBFS rows: `mde_s` ÷ `median_base` in `results/analysis/gate_e/e4/primary_comparisons.csv`).
+  5. All of this uses a **near-perfect first-touch table (Stencil) and a weakened-cursor table (GraphBFS)**, on **one platform**."
+- **Limitation:** C0 at prefetch thresholds below 51 not tested (Gate E6 pending).
+- **Baseline:** C0 (the driver as shipped), throughout.
+- **Evidence:**
+  - `E4.F1.stencil.C7-W1_vs_C0` (+5.87%, Holm-sig);
+  - `E4.F1.stencil.C7-W64_vs_C0` (−1.83%, n.s.);
+  - `E4.F1.stencil.C7-W512_vs_C0` (−4.93%, p 1.08e-5, MDE 0.0144 s, trigger True);
+  - `E5.wall.t51` (−5.26%, replication);
+  - `E4.F1.graphbfs.C7-W1_vs_C0` / `C7-W64` / `C7-W512` (−0.28%, −0.10%, −0.06%, n.s.; MDE 0.0873–0.1351 s, i.e. 0.28–0.43% of the C0 median);
+  - `E5.D(51)` (+0.4009);
+  - `E4.mech.stencil.C7-W512` vs `E4.mech.stencil.C0` (demand faults 204,641 vs 339,251).
+- **Scope:** RTX 5070 Ti, driver 595.91.07, kernel 7.0.0-34 (E4, E5); near-perfect first-touch table (Stencil) and weakened-cursor table (GraphBFS, coverage 0.22–0.81 across the C6 arms); cheap oracle `specasync_ft_fast=1`.
+- **What changed and why:** E4's pre-registered falsification trigger fired, and E5 replicated the result and identified its mechanisms. E1's expensive-oracle figures (`E1.stencil.C7-L1_vs_C0` … `E1.stencil.C7-L4096_vs_C0`, +3.89% to +8.39%) move here from item 2: they measure the expensive oracle, whose lookup cost E3b showed to be 77–88% of its per-fault cost, and are not the cheap-oracle result.
+
+### CS2-N2 · H-map: speculation never installs mappings
+- **Current text:** new (from E0.9a-2 §9, narrowed by E5).
+- **Status:** new.
+- **Proposed text:** "The speculative worker calls `uvm_va_block_make_resident()`, which copies data and updates residency but installs no mapping. Mapping happens only in the demand path's `uvm_va_block_service_finish()` → `block_service_finish_map()`. So **speculation acting alone can make a fault cheaper, never prevent it.** Faults are prevented only when a mapping step, the prefetcher's in the same service call, acts over the staged residency (CS2-N3). At T_off, with 99.95% of Stencil's distinct pages staged ahead of their fault, no fault is prevented: C7W512 has 2.1% *more* faults than C0-toff."
+- **Baseline:** C0 at the same threshold (E5); C1 (E4 F4 context).
+- **Evidence:**
+  - Source: `uvm_va_block.c:4968-4995` (make_resident → copy + finish) and `:11981` (the only mapping call), E0.9a-2 §3; `:11532`, `:11961`, `:11981`, `E5_MECHANISM.md` §2.
+  - Data: `E5.mech.t100.C7W512` (far 1,124,488, far_frac 0.9995, demand 2,995,898); `E5.mech.t100.C0` (2,932,890); `E5.D(100)` (−0.0215); `E4.mech.stencil.C6-W512` (far_frac 0.9995, demand 2,960,758) vs `E4.mech.stencil.C1` (2,921,620).
+  - E0.9a-2's per-prediction "prevented = 0.0000% at every L" is **PROSE-ONLY**.
+- **Scope:** driver 595.91.07 source and 5070 Ti data; Stencil-24K (GraphBFS in E0.9a-2 prose).
+- **What changed and why:** E0.9a-2's "can never eliminate one" is narrowed to "speculation acting alone". E5 showed the prefetcher *can* map over staged residency.
+
+### CS2-N3 · H-feed: speculation feeds the prefetcher's density rule
+- **Current text:** new (E4 exploratory item 4 → E5, pre-registered).
+- **Status:** new.
+- **Proposed text:** "The stock prefetcher's density test counts **resident or faulting** pages on the destination (`resident_mask | faulted_pages`), and residency staged by speculation counts. Whole-block staging therefore pushes regions over the threshold early, and the demand path's service step maps them, preventing later faults. The fault reduction exists only while the density rule can fire: D(t) = 1 − faults(C7W512)/faults(C0) is +0.401 at the default threshold, +0.534 at 75, and −0.022 with the rule disabled (T_off = 100)."
+- **Baseline:** C0 at the same `uvm_perf_prefetch_threshold` (C0-t51 is the shipped driver; C0-t75 and C0-toff are not).
+- **Evidence:** source `uvm_perf_prefetch.c:227` (bitmap = resident | faulted), `:397` (destination resident mask), `:118` (strict test), `:552-561` (range; >100 falls back to 51), `E5_MECHANISM.md` §1–4. Data: `E5.D(51)`, `E5.D(75)`, `E5.D(100)`.
+- **Scope:** RTX 5070 Ti 595.91.07; Stencil-24K only; near-perfect first-touch table, W = 512.
+- **Limitation:** C0 at prefetch thresholds below 51 not tested (Gate E6 pending).
+- **What changed and why:** a new pre-registered result (E5 verdict SUPPORTED; dose-response held).
+
+### CS2-N4 · Copy offload: pre-staging removes D5 work
+- **Current text:** new.
+- **Status:** new.
+- **Proposed text:** "Pre-staging moves the page copy off the servicing thread's locked phase (D5).
+  - The effect is **large with the prefetcher off**:
+    - Stencil-24K D5 1.5952 → 0.9139 s at C6-L4096;
+    - 1.7318 → 0.6188 s at T_off with W = 512, where C7W512 is 21.04% faster than C0-toff while preventing no faults.
+  - With the prefetcher on, D5 totals fall (C0 0.1051 s → C7-W512 0.0565 s), but they
+    fall with the fault count. Per demand fault (`e4/mechanism.csv`, `d5_s` ÷
+    `demand_faults`): **309.8 ns** for C0 (339,251 faults) and **276.3 ns** for
+    C7-W512 (204,641 faults). These prefetch-on figures are **not** evidence of copy
+    offload: per-fault D5 is **not separable from fault count**.
+  - It is paid for partly by the handoff on the same thread (CS2-N5).
+  - With a cheap oracle at W = 1 the worker queue overflows (215,117 → 325,927 drops), which shrinks the saving. Width removes that."
+- **Baseline:** C1 (prefetch off), C0-toff (E5), C0 (prefetch on); each named at use.
+- **Evidence:**
+  - `E1PartB.stencil.D5`, `E5.mech.t100.C0`, `E5.mech.t100.C7W512`, `E5.wall.t100` (−21.04%);
+  - `E4.mech.stencil.C0` / `C7-W512` (D5 totals and demand faults; the per-fault figures
+    above are computed from these fields, descriptive only);
+  - `E3b.stencil.C6.d5`, `E3b.stencil.C6.drops`;
+  - `E4.mech.stencil.C6-W512` (drops 0).
+- **Scope:** RTX 5070 Ti 595.91.07; Stencil-24K (GraphBFS smaller: `E1PartB.graphbfs.D5` +0.0917 s); perfect oracle.
+- **What changed and why:** it was identified in the E1 Part B pilot and confirmed independently of fault prevention by E5's failed secondary prediction.
+
+### CS2-N5 · The speculative handoff sits on the fault-servicing critical path; its cost was mostly the oracle's lookup, and width amortises it
+- **Current text:** new (it replaces E1's "~0.42 µs per prediction" framing; see R2).
+- **Status:** new.
+- **Proposed text:**
+  - "**The cost is on the servicing thread.** Speculation's added servicing-thread time sits before the VA-space lock, inside `service_fault_batch()` (99.9–100% of the outside-lock increase), so the 'off-path' design pays on the critical path.
+  - **What it consists of.** The enqueue itself costs 54–75 ns per prediction (12.7–31.0% of the increase). The rest is per-fault prediction work: 139–167 ns per fault with the expensive oracle, of which **77.6–87.8% was the oracle's own binary search and global lock**. A constant-time lookup leaves 18.7–35.0 ns per fault.
+  - **Width amortises the enqueue.** At W = 512 the outside-lock time falls to 0.0058 s (Stencil, prefetch on) against 0.0796 s with the slow oracle at W = 1.
+  - **The slow oracle's cost is visible in wall-clock:** 0.2216 s on Stencil C6 (Holm-significant)."
+- **Baseline:**
+  - handoff increase: speculation arm vs C1 or C0;
+  - oracle residual: fast = 1 vs fast = 0 within one module;
+  - F2 wall-clock: C6-W1 vs C6-slow-W1.
+- **Evidence:** `E1b.stencil.C64096-C1`, `E1b.stencil.C74096-C0`, `E1b.graphbfs.C64096-C1`; `E3b.stencil.C6.residual`, `E3b.stencil.C7.residual`, `E3b.graphbfs.C6.residual`; `E4.mech.stencil.C7-slow-W1` / `C7-W1` / `C7-W512` (outside_lock_s); `E4.F2.stencil.C6-W1_vs_C6-slow-W1` (−0.2216 s); `E4.F2.stencil.C7-W1_vs_C7-slow-W1` (−0.0247 s, n.s.).
+- **Scope:** RTX 5070 Ti 595.91.07; Stencil-24K, GraphBFS-23; first-touch oracle.
+- **What changed and why:**
+  - E1 attributed the cost from source structure.
+  - E1b measured it, and found the enqueue is the minor part.
+  - E3b attributed the remainder to the oracle's lookup.
+  - E4 showed width amortises what remains.
+
+### CS2-N6 · Fault-order nondeterminism breaks index-based replay
+- **Current text:** new (E0.8, corrected by E0.9 §1).
+- **Status:** new.
+- **Proposed text:** "Across independent runs of the same benchmark, the **first-touch order of pages is nearly stable**:
+  - Stencil-24K: maximum rank displacement 107 of 1,125,000; symmetric agreement within ±100 ranks 99.9997%.
+  - GraphBFS-23: far looser, about 13.5% of the range.
+
+  The **number of duplicate faults per page varies run to run**: plain C1-vs-C1 differences of 1,247–4,418 faults on Stencil. Any oracle that replays a recorded fault stream **by position** therefore drifts out of alignment, and its accuracy swings between ~0% and ~100% depending on the drift's sign. A first-touch table indexed by page is immune to the duplicate-count drift."
+- **Baseline:** n/a (run-to-run property).
+- **Evidence:** 107 / 1,125,000, 99.9997%, the Spearman values, 36,618–38,990, and 1,247–4,418 are all **PROSE-ONLY**. They come from E0.8 §4/§6 and E0.9 §1 (script `tests/gate_e08_index_drift_analysis.py` committed; raw `results/phaseB1/gate_e07_*` gitignored). The E4 post-reboot table check (98 / 35,823 vs 96 / 37,992) is also **PROSE-ONLY** (`E4_STATUS.md`).
+- **Scope:** RTX 5070 Ti, driver 595.91.07, **kernel 7.0.0-31-generic** (the E0.7 data; E0.8 is analysis-only on that data and records no platform); Stencil-24K, GraphBFS-23; prefetch off.
+- **What changed and why:** E0.7 read the accuracy collapse as divergence. E0.8 overturned that for Stencil (index drift), and E0.9 corrected two of E0.8's own readings.
+
+### CS2-N7 · Metric semantics: `spec_hits` is a 10 ms staleness-window counter; `spec_migrations` counts no-op successes
+- **Current text:** new.
+- **Status:** new.
+- **Proposed text:** "**`spec_hits`** increments when a demand fault arrives for a page that the worker inserted into a **256-slot**, overwrite-on-collision hit table within the last **10 ms** (`SPECASYNC_HIT_MAX_AGE_NS`). It counts faults that *happened*, on recently predicted pages. It is **not** a count of wins, prevented faults or accurate predictions:
+  - it collapses when predictions run far ahead: at Stencil C6-L4096 there are 858 `spec_hits` against 919,262 `fault_already_resident`;
+  - the fastest arm has almost none: C7-W512 has 1,322 `spec_hits` while beating C0.
+
+  **`spec_migrations`** counts successful `make_resident` calls, including no-ops on pages already resident, so pre-staged coverage computed from it is an upper bound. That bound is loose with the prefetcher on: C7-L4096 records 252,656 `spec_migrations` against 30,530 `fault_already_resident`.
+
+  **`fault_already_resident`** means the worker beat the servicing thread, not the GPU."
+- **Baseline:** n/a.
+- **Evidence:** source `driver/src/specasync_telemetry.h:292` (256 slots), `:304` (10 ms), consume site `uvm_gpu_replayable_faults.c:2893-2907`; E0.9b Step 1 Q1 (no-op `make_resident` returns NV_OK). Data: `E09b.mech.stencil.C64096`, `E09b.mech.stencil.C6256` (441,672 vs 846,140), `E4.mech.stencil.C7-W512`, `E1.mech.stencil.C7-L4096`.
+- **Scope:** all SpecAsync builds (source constants unchanged since the hit table's introduction).
+- **What changed and why:** E0.9a-2 found the counter collapsing at large lookahead, E0.9b labelled it, and C1 confirmed the table size from source.
+
+### CS2-N9 · B10 (oversubscription, C4) is excluded from claims
+- **Current text:** new (E0.5 Addition 3, row "Oracle-on-prefetcher (C4)").
+- **Status:** new (exclusion).
+- **Proposed text:** "B10's C4 arm (oracle plus prefetcher, oversubscription, N = 48000) replayed a trace that was **misaligned** (recording/consumption granularity mismatch), **truncated** (the trace ring overflowed at oversubscription scale) and **rotated** (the ring was read in physical-slot order). Its wall-clock results are a measurement of a configuration with an invalid predictor:
+  - an oscillating sign across iterations, +4.33% at iters 1 to −36.03% at iters 20;
+  - replication: −25.60% (8), +14.25% (12), +4.18% (16), −35.93% (20).
+
+  They are **excluded from all mechanism claims**, including the 'residency accumulation' narrative."
+- **Baseline:** C0 (as B10 used).
+- **Evidence:** `B10.t_b10_aggregate_comparison.csv.iters1` / `iters5` / `iters20`; `B10.t_b10c_aggregate_comparison.csv.iters8` / `12` / `16` / `20`. The invalidity classification ("2, additionally truncated + rotated") is **PROSE-ONLY** (E0.5 Addition 3; E0 §3). The truncation is a derived property of ring capacity vs fault count, not a CSV value.
+- **Scope:** RTX 5070 Ti (595.84); oversubscription only.
+- **What changed and why:** E0 and E0.5 established that the oversubscription oracle's trace was truncated and rotated on top of the rate mismatch. The same applies to B9's oversubscription C3 (`B9.2c.*`), which stays a wall-clock measurement of its configuration. Its C0 comparison is AC-12's subject.
+
+---
+
+## Part 3 — Retired explanations
+
+### R1 · The dispatch-race explanation of near-zero hit rates — RETIRED
+- **Current text** (`GATE_A1_REPORT.md:223`): "Near-zero real-workload hit rate is fully explained by (a) dispatch-latency race loss". Also CS 10, and `GATE_T4_REPORT.md` §2–3: "the oracle policy predicts with perfect trace-based accuracy and still cannot get credited".
+- **Status:** retired.
+- **What replaced it:**
+  1. **Pre-E0.5, there were no correct predictions to credit.** The oracle trace was consumed ~11.7× / ~2.1× faster than recorded (E0 §7, E0.5; **PROSE-ONLY** ratios).
+  2. **After alignment, positional replay still failed** on duplicate-count drift (CS2-N6).
+  3. **The counter measured a 10 ms window, not wins** (CS2-N7).
+  4. **With correct, early predictions, the worker routinely wins.** A first-touch oracle stages 919,262 Stencil pages ahead of the servicing thread at L4096, and 129,526 even at L = 1 (`E09b.mech.stencil.C64096`, `E09b.mech.stencil.C61`).
+- **What stands:** the dispatch-latency and backlog measurements (CS2-10).
+
+### R2 · "~0.42 µs per prediction" handoff cost — RETIRED
+- **Current text** (`GATE_E1_REPORT.md:178`): "about 0.48 s per 1.125M predictions in E0.9b, or roughly 0.42 µs each".
+- **Status:** retired. It was a ratio of total pre-lock time to predictions, not a per-prediction cost.
+- **What replaced it:** the enqueue costs **54–75 ns per prediction** (114 ns on GraphBFS). The rest is **139–167 ns per coalesced fault** of prediction work, of which 77.6–87.8% was the oracle's lookup and lock: 18.7–35.0 ns per fault at fast = 1. Evidence: `E1b.*` (enq_per_pred, residual_per_fault) and `E3b.*.residual`. See CS2-N5.
+
+---
+
+## Status counts (proposed)
+
+| status | count | IDs |
+|---|---:|---|
+| stands | 9 | 1, 2, 3, 4, 8, 11, 13, 14, 16 |
+| narrowed | 5 | 7, 9, 12 (hit-rate part), 15, 17 |
+| superseded | 2 | 5, 6 |
+| retired | 3 | 10 (as an explanation), R1, R2 |
+| new | 8 | N1, N2, N3, N4, N5, N6, N7, N9 |
+
+(No "N8" is used, to avoid a collision with "claim 8". CS2-12 stands as a legacy claim
+and is counted under narrowed, for its hit-rate part.)
