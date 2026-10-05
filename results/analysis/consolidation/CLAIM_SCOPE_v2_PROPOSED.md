@@ -20,12 +20,24 @@ Every PROSE-ONLY and UNCHECKED number is listed in `C1_REVIEW.md`.
 
 ## Header change (proposed)
 
-A **third** RTX 5070 Ti configuration now carries most of the project's current
-evidence: **RTX 5070 Ti, driver 595.91.07, kernel 7.0.0-34-generic** (Gate E, E0.5
-onward). The current header's "RTX 5070 Ti (595.84)" and "(580.95.05)" labels stay
-as they are. Every Gate E claim below is stated for **595.91.07** and is **not**
-pooled with 595.84 data. The kernel and driver changed between sessions through
-OS updates, not by project action (AC-23; `COMPLETENESS_LEDGER.md` E0.9b entry).
+Gate E data were collected on **RTX 5070 Ti, driver 595.91.07**, with the kernel changing
+between gates through routine OS updates (not by project action; AC-23). The kernel per
+gate, each read from that gate's own report (C1-APPLY item 1, 2026-10-05):
+
+| gate | kernel | driver | where the statement is |
+|---|---|---|---|
+| E0 | not recorded | not recorded | read-only inventory, no module load |
+| E0.5 | 7.0.0-31-generic | 595.91.07 (port; 595.84 gone) | "Blocked" section (vermagic) and port section |
+| E0.7 | 7.0.0-31-generic | 595.91.07 | report header |
+| E0.8 | not recorded | not recorded | analysis-only, on E0.7 data |
+| E0.9 | 7.0.0-31-generic | 595.91.07 | report header |
+| E0.9a-2 | 7.0.0-34-generic (after a routine OS update) | 595.91.07 | report header |
+| E0.9b, E1, E1b/E3a, E3a-2, E3b, E4, E5 | 7.0.0-34-generic | 595.91.07 | each gate's header or preflight |
+
+The earlier phrase "driver 595.91.07 throughout" is replaced by this table: E0 and E0.8
+record neither value. The current header's "RTX 5070 Ti (595.84)" and "(580.95.05)"
+labels stay as they are. Every Gate E claim below is stated for **595.91.07** and is
+**not** pooled with 595.84 data.
 
 ---
 
@@ -109,7 +121,7 @@ OS updates, not by project action (AC-23; `COMPLETENESS_LEDGER.md` E0.9b entry).
 - **Proposed text:** "Turning the stock prefetcher off costs more than even perfect off-path staging recovers, on both tested benchmarks. The prefetch-off penalty (C1/C0) is 3.55× on T4 and 3.88× on RTX 5070 Ti (595.84) for Stencil-24K. On RTX 5070 Ti (595.91.07), the best prefetch-off arm stages 99.95% of Stencil's distinct pages ahead of their fault, and is still 2.92× C0 on Stencil-24K and 1.039× on GraphBFS-23."
 - **Baseline:** C0 (the driver as shipped).
 - **Evidence:** `T1B5.T4.bench_stencil` (C1/C0 3.55×), `T1B5.5070Ti-595.84.bench_stencil` (3.88×), `E4.F4.stencil.C6-W512_vs_C0` (+191.95%, i.e. 2.92×), `E4.F4.graphbfs.C6-W512_vs_C0` (+3.86%), `E4.mech.stencil.C6-W512` (far_frac 0.9995). The T4 "3.6x/1.06x" are **UNCHECKED** as originally cited; the recomputed 3.55× / 1.07× are evidence-backed.
-- **Scope:** T4, RTX 5070 Ti (595.84 and 595.91.07); Stencil-24K, GraphBFS-23; perfect first-touch oracle for the 595.91.07 part.
+- **Scope:** T4, RTX 5070 Ti (595.84 and 595.91.07); Stencil-24K, GraphBFS-23. For the 595.91.07 part: a near-perfect first-touch table (Stencil) and a weakened-cursor table (GraphBFS, C6 coverage 0.22–0.81).
 - **What changed and why:** "oracle-upper-bound" is replaced by a measured perfect-staging arm (E4 F4). The claim survives every later gate (E0.9b, E1, E4, E5).
 
 ### CS2-9 · C3 vs C1
@@ -205,7 +217,7 @@ OS updates, not by project action (AC-23; `COMPLETENESS_LEDGER.md` E0.9b entry).
 ### CS2-17 · Infrastructure is minimal (<400 net new lines)
 - **Current text:** "SpecAsync infrastructure itself (producer-consumer ring, policy dispatch layer, debugfs telemetry interface) is a clean, minimal (<400 net new lines), safety-invariant-preserving addition to the stock driver"
 - **Status:** **narrowed** (scope).
-- **Proposed text:** "The *base* SpecAsync infrastructure (verified module `5997D238…`) is a minimal addition, <400 net new lines. The E3a-2 module used in E4/E5 (`33FD42E6…`) adds speculative width and the cheap oracle on top (`driver/patches/e3a_spec_width.patch`), and is **not** covered by the <400-line figure. The E0.9a-2 kernel crash (AC-22) shows 'safety-invariant-preserving' must be qualified: instrumentation code added in E0.9a oopsed on an unguarded NULL, and was fixed and verified in `ea1a262`."
+- **Proposed text:** "The base SpecAsync infrastructure (verified module `5997D238…`) is a minimal addition, <400 net new lines (UNCHECKED, see Evidence). The E3a-2 module (`33FD42E6…`), which adds speculative width and the cheap oracle, passes the E3a-2 review protocol (compile-only review, function-and-precondition table, attended first load), and is not covered by the <400-line figure. That protocol exists because of the E0.9a-2 kernel crash (AC-22)."
 - **Baseline:** n/a.
 - **Evidence:** "<400" is **UNCHECKED**. The crash is PROSE-ONLY (E0.9a-2 §4).
 - **Scope:** code.
@@ -220,26 +232,22 @@ OS updates, not by project action (AC-23; `COMPLETENESS_LEDGER.md` E0.9b entry).
 - **Status:** new.
 - **Proposed text:**
   1. "Off-path speculation **cannot prevent a fault by itself**: it stages residency but never installs a mapping (CS2-N2).
-  2. **Page-granularity speculation does not beat the driver as shipped.** With a perfect first-touch oracle and the prefetcher on:
-     - at W = 1 it is slower than C0 on Stencil-24K (+5.87% with a cheap oracle; +3.89% to +8.39% with the expensive one);
-     - it is indistinguishable from C0 on GraphBFS-23.
-  3. **Whole-block staging (W = 512) with the prefetcher left on beats C0 on Stencil-24K by 4.93%** (replicated at 5.26%) through two mechanisms:
-     - the prefetcher maps regions that speculation's residency pushes over its density threshold (CS2-N3, about 40% fewer faults);
-     - copy work is removed from the servicing thread (CS2-N4).
-  4. There is **no measurable gain on GraphBFS-23** (effect below ≈0.28%, with a weakened oracle).
-  5. All of this is with a **perfect** first-touch oracle, on **one platform**."
+  2. **Page-granularity speculation does not beat the driver as shipped.** With a near-perfect first-touch table (Stencil) and a weakened-cursor table (GraphBFS), and the prefetcher on, the cheap-oracle configuration at W = 1 is slower than C0 on Stencil-24K (+5.87%, Holm-significant). On GraphBFS-23 it shows no difference from C0.
+  3. **Whole-block staging (W = 512) with the prefetcher left on beats C0 on Stencil-24K by 4.93%** (replicated at 5.26%). It is accompanied by about 40% fewer demand faults (CS2-N3) and by copy offload (CS2-N4); their contributions to the wall-clock gain are not apportioned.
+  4. There is **no difference detected on GraphBFS-23**: all three F1 arms are not significant, and the MDE at achieved n is **0.28–0.43% of the C0 median wall-clock** (computed from the E4 F1 GraphBFS rows: `mde_s` ÷ `median_base` in `results/analysis/gate_e/e4/primary_comparisons.csv`).
+  5. All of this uses a **near-perfect first-touch table (Stencil) and a weakened-cursor table (GraphBFS)**, on **one platform**."
+- **Limitation:** C0 at prefetch thresholds below 51 not tested (Gate E6 pending).
 - **Baseline:** C0 (the driver as shipped), throughout.
 - **Evidence:**
   - `E4.F1.stencil.C7-W1_vs_C0` (+5.87%, Holm-sig);
-  - `E1.stencil.C7-L1_vs_C0` … `E1.stencil.C7-L4096_vs_C0` (+3.89% to +8.39%);
   - `E4.F1.stencil.C7-W64_vs_C0` (−1.83%, n.s.);
   - `E4.F1.stencil.C7-W512_vs_C0` (−4.93%, p 1.08e-5, MDE 0.0144 s, trigger True);
   - `E5.wall.t51` (−5.26%, replication);
-  - `E4.F1.graphbfs.C7-W1_vs_C0` / `C7-W64` / `C7-W512` (−0.28%, −0.10%, −0.06%, n.s.; MDE 0.087–0.135 s);
+  - `E4.F1.graphbfs.C7-W1_vs_C0` / `C7-W64` / `C7-W512` (−0.28%, −0.10%, −0.06%, n.s.; MDE 0.0873–0.1351 s, i.e. 0.28–0.43% of the C0 median);
   - `E5.D(51)` (+0.4009);
   - `E4.mech.stencil.C7-W512` vs `E4.mech.stencil.C0` (demand faults 204,641 vs 339,251).
-- **Scope:** RTX 5070 Ti, driver 595.91.07, kernel 7.0.0-34; Stencil-24K and GraphBFS-23; **perfect first-touch oracle** (not a practical predictor); cheap oracle `specasync_ft_fast=1`.
-- **What changed and why:** E4's pre-registered falsification trigger fired, and E5 replicated the result and identified its mechanisms.
+- **Scope:** RTX 5070 Ti, driver 595.91.07, kernel 7.0.0-34 (E4, E5); near-perfect first-touch table (Stencil) and weakened-cursor table (GraphBFS, coverage 0.22–0.81 across the C6 arms); cheap oracle `specasync_ft_fast=1`.
+- **What changed and why:** E4's pre-registered falsification trigger fired, and E5 replicated the result and identified its mechanisms. E1's expensive-oracle figures (`E1.stencil.C7-L1_vs_C0` … `E1.stencil.C7-L4096_vs_C0`, +3.89% to +8.39%) move here from item 2: they measure the expensive oracle, whose lookup cost E3b showed to be 77–88% of its per-fault cost, and are not the cheap-oracle result.
 
 ### CS2-N2 · H-map: speculation never installs mappings
 - **Current text:** new (from E0.9a-2 §9, narrowed by E5).
@@ -259,7 +267,8 @@ OS updates, not by project action (AC-23; `COMPLETENESS_LEDGER.md` E0.9b entry).
 - **Proposed text:** "The stock prefetcher's density test counts **resident or faulting** pages on the destination (`resident_mask | faulted_pages`), and residency staged by speculation counts. Whole-block staging therefore pushes regions over the threshold early, and the demand path's service step maps them, preventing later faults. The fault reduction exists only while the density rule can fire: D(t) = 1 − faults(C7W512)/faults(C0) is +0.401 at the default threshold, +0.534 at 75, and −0.022 with the rule disabled (T_off = 100)."
 - **Baseline:** C0 at the same `uvm_perf_prefetch_threshold` (C0-t51 is the shipped driver; C0-t75 and C0-toff are not).
 - **Evidence:** source `uvm_perf_prefetch.c:227` (bitmap = resident | faulted), `:397` (destination resident mask), `:118` (strict test), `:552-561` (range; >100 falls back to 51), `E5_MECHANISM.md` §1–4. Data: `E5.D(51)`, `E5.D(75)`, `E5.D(100)`.
-- **Scope:** RTX 5070 Ti 595.91.07; Stencil-24K only; perfect first-touch oracle, W = 512.
+- **Scope:** RTX 5070 Ti 595.91.07; Stencil-24K only; near-perfect first-touch table, W = 512.
+- **Limitation:** C0 at prefetch thresholds below 51 not tested (Gate E6 pending).
 - **What changed and why:** a new pre-registered result (E5 verdict SUPPORTED; dose-response held).
 
 ### CS2-N4 · Copy offload: pre-staging removes D5 work
@@ -269,13 +278,18 @@ OS updates, not by project action (AC-23; `COMPLETENESS_LEDGER.md` E0.9b entry).
   - The effect is **large with the prefetcher off**:
     - Stencil-24K D5 1.5952 → 0.9139 s at C6-L4096;
     - 1.7318 → 0.6188 s at T_off with W = 512, where C7W512 is 21.04% faster than C0-toff while preventing no faults.
-  - It is **small with the prefetcher on**: D5 0.1051 → 0.0565 s (C0 → C7-W512).
+  - With the prefetcher on, D5 totals fall (C0 0.1051 s → C7-W512 0.0565 s), but they
+    fall with the fault count. Per demand fault (`e4/mechanism.csv`, `d5_s` ÷
+    `demand_faults`): **309.8 ns** for C0 (339,251 faults) and **276.3 ns** for
+    C7-W512 (204,641 faults). These prefetch-on figures are **not** evidence of copy
+    offload: per-fault D5 is **not separable from fault count**.
   - It is paid for partly by the handoff on the same thread (CS2-N5).
   - With a cheap oracle at W = 1 the worker queue overflows (215,117 → 325,927 drops), which shrinks the saving. Width removes that."
 - **Baseline:** C1 (prefetch off), C0-toff (E5), C0 (prefetch on); each named at use.
 - **Evidence:**
   - `E1PartB.stencil.D5`, `E5.mech.t100.C0`, `E5.mech.t100.C7W512`, `E5.wall.t100` (−21.04%);
-  - `E4.mech.stencil.C0` / `C7-W512` (D5);
+  - `E4.mech.stencil.C0` / `C7-W512` (D5 totals and demand faults; the per-fault figures
+    above are computed from these fields, descriptive only);
   - `E3b.stencil.C6.d5`, `E3b.stencil.C6.drops`;
   - `E4.mech.stencil.C6-W512` (drops 0).
 - **Scope:** RTX 5070 Ti 595.91.07; Stencil-24K (GraphBFS smaller: `E1PartB.graphbfs.D5` +0.0917 s); perfect oracle.
@@ -311,7 +325,7 @@ OS updates, not by project action (AC-23; `COMPLETENESS_LEDGER.md` E0.9b entry).
   The **number of duplicate faults per page varies run to run**: plain C1-vs-C1 differences of 1,247–4,418 faults on Stencil. Any oracle that replays a recorded fault stream **by position** therefore drifts out of alignment, and its accuracy swings between ~0% and ~100% depending on the drift's sign. A first-touch table indexed by page is immune to the duplicate-count drift."
 - **Baseline:** n/a (run-to-run property).
 - **Evidence:** 107 / 1,125,000, 99.9997%, the Spearman values, 36,618–38,990, and 1,247–4,418 are all **PROSE-ONLY**. They come from E0.8 §4/§6 and E0.9 §1 (script `tests/gate_e08_index_drift_analysis.py` committed; raw `results/phaseB1/gate_e07_*` gitignored). The E4 post-reboot table check (98 / 35,823 vs 96 / 37,992) is also **PROSE-ONLY** (`E4_STATUS.md`).
-- **Scope:** RTX 5070 Ti 595.91.07; Stencil-24K, GraphBFS-23; prefetch off.
+- **Scope:** RTX 5070 Ti, driver 595.91.07, **kernel 7.0.0-31-generic** (the E0.7 data; E0.8 is analysis-only on that data and records no platform); Stencil-24K, GraphBFS-23; prefetch off.
 - **What changed and why:** E0.7 read the accuracy collapse as divergence. E0.8 overturned that for Stencil (index drift), and E0.9 corrected two of E0.8's own readings.
 
 ### CS2-N7 · Metric semantics: `spec_hits` is a 10 ms staleness-window counter; `spec_migrations` counts no-op successes

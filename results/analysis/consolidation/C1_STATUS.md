@@ -32,3 +32,7 @@ Documentation only: no module loads, no runs, no desktop isolation. **No canonic
 - Commit `db708d4`; push exit 0; level with origin.
 - Confirmed unedited: `CLAIM_SCOPE.md`, `ARTIFACT_CATALOG.md`, `PREREGISTRATION.md`, `COMPLETENESS_LEDGER.md`, `paper/`, and all reports (`git diff c266e74 HEAD --stat` touches only `results/analysis/consolidation/` and `tests/c1_evidence.py`).
 - **HARD STOP.** Proposals are applied only after review.
+
+## Evidence-count reconciliation (C1-APPLY item 12)
+- The extractor printed **148** values during an intermediate run, after the claim-9, claim-16 and pooled-hit-rate rows were added but **before** the E1-mechanism and E4-migration rows (`spec_migrations` for the prefetch-on cells) were added.
+- The final extractor produces **164** values. The committed `EVIDENCE_EXTRACT.md` with 164 rows first appears in **`db708d4`**, and that is the file all proposals cite. The 148 figure does not appear in any committed file.

@@ -4,7 +4,7 @@ These are things the consolidation cannot settle without a decision from the aut
 Each gives the options and what the evidence does and does not support. **No option
 is applied.**
 
-### D1 · Does a practical block-level predictor belong in this paper or the follow-on?
+### D1 · Does a practical block-level predictor belong in this paper or the follow-on? — DECIDED 2026-10-05: **follow-on**
 - **Context:** CS2-N1's positive result uses a **perfect** first-touch table. E4/E5
   show *where* the gain comes from: whole-block staging, with the prefetcher mapping
   the staged regions. They do not show that any realisable predictor captures it.
@@ -22,7 +22,7 @@ is applied.**
   - GraphBFS shows nothing even with the perfect table.
 - **Risk if deferred:** the paper's positive result is oracle-only.
 
-### D2 · T4 replication scope
+### D2 · T4 replication scope — DECIDED 2026-10-05: **option (b)**. Install driver 595.91.07 on the T4 and replicate the E4 F1 cells; add E5's t51 and T_off comparisons if lease time allows.
 - **Context:** every Gate E result (E0.5 → E5) is RTX 5070 Ti, driver 595.91.07.
   The T4 carries the older C0–C3 results (CS2-7/8/9) under the misaligned oracle.
 - **Options:**
@@ -39,7 +39,7 @@ is applied.**
     CS2-8's 3.55× vs 3.88× shows the prefetch benefit is similar, but not identical,
     across platforms.
 
-### D3 · How GraphBFS's weakened-cursor oracle is presented
+### D3 · How GraphBFS's weakened-cursor oracle is presented — DECIDED 2026-10-05: **option (a), with (c)'s framing**. Report GraphBFS as a null for the weakened-cursor oracle, with the limitation stated, and frame GraphBFS as the example where the prefetcher already does most of the work (C1/C0 1.05–1.07×).
 - **Context:** policy 6's cursor jumps to one past the highest rank seen, so one
   out-of-order fault skips everything in between. GraphBFS's first-touch order is
   only loosely stable (CS2-N6), and coverage stays low even at L = 4096: 0.2229 at
@@ -60,27 +60,27 @@ is applied.**
   That argues for (a) or (c) over (b).
 
 ### D4 · Claims the ledger could not resolve
-1. **CS2-4 (trylock throttle, 76.1%).** Gate E's width worker also uses `trylock`,
+1. **CS2-4 (trylock throttle, 76.1%)** — DECIDED 2026-10-05: **historical**. Cite `lost_after_enqueue` from `results/analysis/gate_e/e4/mechanism.csv` as the current evidence for trylock loss at W > 1. Gate E's width worker also uses `trylock`,
    and E4 shows lost-after-enqueue at W > 1 (for example 33,727 at Stencil C7-W64;
    `results/analysis/gate_e/e4/mechanism.csv`, field `lost_after_enqueue`). It is
    not decided whether the claim should be restated for the
    current design, or left as a Gate 2 historical measurement.
-2. **CS2-17 ("safety-invariant-preserving").** The E0.9a-2 crash was in the
+2. **CS2-17 ("safety-invariant-preserving")** — DECIDED 2026-10-05: per C1-APPLY item 8 (wording replaced; see CS2-17). The E0.9a-2 crash was in the
    project's instrumentation. It is not decided whether the claim keeps that wording
    with a qualifier, or is restated as "passes the E3a-2 review protocol".
-3. **B9's oversubscription C3 wall-clock** (`B9.2c.*`). It is a measurement of a
+3. **B9's oversubscription C3 wall-clock** (`B9.2c.*`) — DECIDED 2026-10-05: **excluded from results; kept as AC-12's worked example.** It is a measurement of a
    configuration whose oracle was truncated, rotated and misaligned (AC-19). CS2-N9
    excludes B10's *mechanism* narrative. It is not decided whether B9's C3-vs-C0
    numbers stay in the paper (as AC-12's worked example) or are excluded entirely.
-4. **E0.9b's "5.65%" and E1's +3.9–8.4%.** They stand as expensive-oracle
+4. **E0.9b's "5.65%" and E1's +3.9–8.4%** — DECIDED 2026-10-05: **report E4's F2 instead; drop the 5.65% figure and E1 from the main text.** They stay in the gate reports, unedited. They stand as expensive-oracle
    measurements. It is not decided whether the paper reports them at all, now that
    E4 re-measured both questions with the cheap oracle.
-5. **The E5 wall-clock split at the default threshold.** How much of the 5.26% comes
+5. **The E5 wall-clock split at the default threshold** — DECIDED 2026-10-05: **not apportioned.** The paper says two mechanisms contribute, and does not divide the gain between them. How much of the 5.26% comes
    from fault prevention (H-feed) and how much from copy offload (D5) is not
    separable from E5's data. A claim that apportions it needs a new pre-registered
    design, or must be phrased as "two mechanisms, not apportioned".
 
-### D5 · Do averted hazards belong in the artifact catalog?
+### D5 · Do averted hazards belong in the artifact catalog? — DECIDED 2026-10-05: **option (b), a methodology note, not a catalog entry.**
 - `uvm_perf_prefetch_threshold` values above 100 silently fall back to 51, while
   read-back still shows the raw value (`E5_MECHANISM.md` §3). This was caught by
   source reading before any run, so it never produced a result.
@@ -89,7 +89,7 @@ is applied.**
   - **(b)** A methodology note only.
   - **(c)** Omit.
 
-### D6 · Evidence gaps: PROSE-ONLY numbers that the paper may need
+### D6 · Evidence gaps: PROSE-ONLY numbers that the paper may need — DECIDED 2026-10-05: **option (a)**, to be executed after the Phase 2 inventory (`consolidation/D6_RAW_INVENTORY.md`). Regeneration of derived CSVs is a follow-up, not part of C1-APPLY.
 Several central numbers exist only in prose, because their raw data is gitignored:
 - E0.8's index-drift statistics (CS2-N6);
 - E0.5's misalignment ratios 11.7× / 2.1× (CS2-7, R1, AC-13);

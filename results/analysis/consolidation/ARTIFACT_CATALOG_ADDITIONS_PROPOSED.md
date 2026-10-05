@@ -54,8 +54,8 @@ Numbers carry the same markers as `CLAIM_SCOPE_v2_PROPOSED.md`: an evidence id f
   once **per demand fault**". E0 §1 shows it was recorded once per **dispatch
   group**. #1's fix therefore addressed the wrong granularity and left this
   mismatch in place. Propose amending #1's root-cause cell to point to #13.
-- **How caught:** an **independent source audit** (Gate E0), about three months
-  after FIX-1, by tracing the consumption loop rather than trusting the recording
+- **How caught:** an **independent source audit** (Gate E0), 103 days after FIX-1
+  (`cc90fc1`, 2026-06-13; the audit commit `e7de063`, 2026-09-24), by tracing the consumption loop rather than trusting the recording
   side's description.
 - **Evidence:** 11.7× / 2.1× and the wrap counts are **PROSE-ONLY** (E0 §7; E0.5).
   The post-fix 1:1 alignment (2,953,867 = 2,953,867 and 483,896 = 483,896) is also
@@ -315,15 +315,24 @@ A quantity computed at one level is used at another:
 - forward-only vs symmetric (#18);
 - servicing-thread component vs whole-process wall-clock (#25).
 
-**The catalog's existing observation holds for this family without exception so
-far.** Every instance that produced a published number was caught by an
-independent pass or external review, never by the analysis that produced it.
+**Scope of the observation, stated exactly.** Among aggregation-family entries that
+reached a reported figure or a reported conclusion (#7, #8, #9, #13, #16, #17, #18),
+every one was caught by an independent pass or external review, never by the analysis
+that produced it. #25 is the one aggregation-family entry caught inside its own gate. Its
+pilot ceiling was a pre-registered prediction that failed, and it had not been reported
+beyond the pilot report.
+
+**Selection-effect caveat.** The catalog records only errors that were caught and
+written up. An in-gate catch never propagates into another report, so it never
+enters a catalog that counts reported errors. The catalog therefore cannot count what
+pre-registration or redundant measurement missed. The sample behind each mechanism is
+small: n = 2–3 per mechanism. Read the family comparisons as descriptive.
 
 #18 sharpens the point. The gate that diagnosed the forward-only failure repeated it
 two checks later, and it took outside review to catch the recurrence. Knowing the
 failure mode is not protection.
 
-**The one exception is #25, and it is instructive.** It was caught by the analysis
+**#25 is instructive.** It was caught by the analysis
 itself, but only because the prediction had been pre-registered, so a failed
 prediction could not be quietly reinterpreted.
 
@@ -382,8 +391,8 @@ conditions, and compile-only review before the first load.
 
 ### Does "#7–#9 were all caught by independent verification" generalise?
 **Only within its own family.**
-- All seven aggregation-level mismatches that produced published numbers were
-  caught by independent passes or review.
+- All seven aggregation-level mismatches that reached a reported figure or conclusion
+  (#7, #8, #9, #13, #16, #17, #18) were caught by independent passes or review.
 - Across the whole catalog, three other catching mechanisms appear:
   - **pre-registration** (#10, #21, #25);
   - **redundant measurement inside the original analysis** (#5's closure identity,
@@ -392,7 +401,7 @@ conditions, and compile-only review before the first load.
 - The two cheapest mechanisms, pre-registered predictions and a second counter for
   the same quantity, caught errors *during* the gate that made them. Independent
   verification caught them only later, after they had propagated into other reports
-  (#13 reached every oracle result for about three months).
+  (#13 reached every oracle result for 103 days, 2026-06-13 → 2026-09-24).
 
 ---
 
@@ -402,3 +411,21 @@ conditions, and compile-only review before the first load.
   `/sys/module/.../parameters/` still shows the raw value. It was **averted** by
   the source check before any run, so it never produced a result. Whether averted
   hazards belong in a catalog of artifacts is `OPEN_DECISIONS.md` D5.
+
+
+## Amendments to existing entries (C1-APPLY, 2026-10-05)
+
+These amend text in `ARTIFACT_CATALOG.md`'s existing rows. They are appended here, and
+the original rows are left unchanged, so the amendment is auditable.
+
+**Amendment A — #1, root-cause cell.** The existing cell says the fault trace was
+"recorded once **per demand fault**". Amended: the trace is recorded **once per va-block
+dispatch group** (E0 §1), and consumed once per coalesced fault. The consequence is the
+granularity mismatch now catalogued as #13. #1's fix addressed the consumption side and
+left the recording-side mismatch in place.
+
+**Amendment B — rejected-hypothesis row, "`spec_hits` never fires".** The existing verdict
+(REJECTED: "the counter is sound") is narrowed to: the counter fires as coded. It measures
+a 10 ms window over a 256-slot table (#20). The 254/256 = 99.2% probe score included
+zero-lead self-hits on the old code (`driver/PIPELINE_FIXES.md:60-62`; #14). The probe
+therefore does not establish that the counter measures wins.
