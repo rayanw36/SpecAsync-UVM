@@ -233,3 +233,4 @@ results/phaseB1/gate_e5/
 # Gate E6: raw ring dumps and tables (derived CSVs under results/analysis/gate_e/e6/ are committed)
 results/phaseB1/gate_e6/
 results/phaseB1/gate_e7/
+results/phaseB1/gate_e8/

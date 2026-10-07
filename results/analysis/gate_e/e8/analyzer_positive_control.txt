@@ -1,0 +1,6 @@
+# E8 analyzer positive control (run on E7's committed e7_runs.csv, Family A)
+comparison: stock-t0 (arm) vs stock-t51 (baseline), Stencil-24K; n = 10 / 10
+median stock-t51 = 1.1336 s; median stock-t0 = 1.0251 s
+delta = (arm - base) / base = -9.57%  (E7 reported -9.57%)
+MWU two-sided p = 1.08e-05  (E7 reported 1.08e-05)
+CONTROL: PASS - reproduces E7 Family A

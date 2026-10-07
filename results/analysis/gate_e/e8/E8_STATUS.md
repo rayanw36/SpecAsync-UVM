@@ -5,9 +5,11 @@ Phase 0 start: 2026-10-07 16:07:58 +03 (`e8/phase0_start.txt`). Session cap 3.5 
 ## Open for review
 (DOC-class items are appended here.)
 
+- Timestamps: log lines whose time I typed by hand (not printed by `date` or a script) were estimates; I corrected the E8 ones to the real clock. Some hand-typed times in `e7/E7_STATUS.md` (for example "14:20 Phase 3" and "14:05 Phase 2 DONE") are likewise estimates and run later than the real times (Phase 2 finished about 14:00 and the Phase 3 push was at 14:04:37 by `date`). Not edited; the git commit times are authoritative. From here on, times in this log come from `date` or the orchestrator.
+
 ## Log
 - 16:08 Phase 0: HEAD 5be5965, clean tree (untracked tests/group_probe); 0 unpushed (the 37 E7 commits had already been pushed by the user); git credential.helper is now `store`, remote HTTPS. Kernel 7.0.0-34; driver 595.91.07; srcversions stock 6284DA42.., verified 5997D238.., e3a2 33FD42E6..; timers inactive; MemAvailable 57.5 GB; 38 GB free; driver/src identical to ea1a262; GPU memory 16303 MiB. **Lingering is enabled** (Linger=yes, set in E7). System currently in graphical.target (restored at user request); isolate happens in Phase 4.
-- 16:25 Phase 1: `benchmarks/bench_sparse.cu` written, built with `/usr/local/cuda/bin/nvcc -O3 -arch=sm_120` (nvcc 13.0.88). Validation (`tests/e8_validate_bench.py`, 64 MiB and 1 GiB; timings dropped, not recorded) **OVERALL PASS**: (a) checksum equals host reference for K in {1,8,64,512}; (b) pages_touched = K x blocks; (c) same seed -> same hash, different seed -> different; (d) K=512 touches every page once (distinct = total = touched); (e) an off-by-one reference is detected (rc 1, MISMATCH). Log: `e8/bench_validation.log`. Fix during development: the two helper functions needed `__host__ __device__` (compile error, fixed before any validation run).
+- 16:10 Phase 1: `benchmarks/bench_sparse.cu` written, built with `/usr/local/cuda/bin/nvcc -O3 -arch=sm_120` (nvcc 13.0.88). Validation (`tests/e8_validate_bench.py`, 64 MiB and 1 GiB; timings dropped, not recorded) **OVERALL PASS**: (a) checksum equals host reference for K in {1,8,64,512}; (b) pages_touched = K x blocks; (c) same seed -> same hash, different seed -> different; (d) K=512 touches every page once (distinct = total = touched); (e) an off-by-one reference is detected (rc 1, MISMATCH). Log: `e8/bench_validation.log`. Fix during development: the two helper functions needed `__host__ __device__` (compile error, fixed before any validation run).
 
 ### Code review: every CUDA call in bench_sparse.cu
 
@@ -25,3 +27,7 @@ Phase 0 start: 2026-10-07 16:07:58 +03 (`e8/phase0_start.txt`). Session cap 3.5 
 | `cudaEventDestroy` x2, `cudaFree(d_acc)`, `cudaFree(d_idx)`, `cudaFree(arr)` | releases | `CUDA_CHECK` |
 
 Not called anywhere: `cudaMemAdvise`, `cudaMemPrefetchAsync`, `cudaDeviceSynchronize` (events synchronise instead), any host read of `arr` after the kernels.
+- 16:09 Phase 1 committed and pushed.
+- 16:11 Phase 2: GPU total memory 16303 MiB = 15.92 GiB; 1.5x = 23.88 GiB -> oversubscribed size **24 GiB**. In-memory size 8 GiB, passes 3, seed 202610081. Empirical memory check (one oversubscribed run, K=1, 1 pass, timing not recorded, checksum OK): minimum MemAvailable during the run 30.4 GiB (> 12 GiB). No reduction needed.
+- DOC-CLASS decision (Phase 3 runner): e7_runner.py cannot be used unchanged: E8 needs the benchmark's stdout (per-pass kernel time, checksum line) and ring dumps for Family M, and e7_runner discards stdout. Per the brief's fallback, `tests/e8_runner.py` is a copy of e7_runner.py; changes listed in its docstring (cell table/paths, stdout capture, ring dumps for dump_rings=1 rows, dropped-cell filter, per-label timeouts).
+- 16:13:49 Phase 3: tests/e8_cells.py, e8_make_order.py (seed 202610082: 260 order rows, 28 smoke rows), e8_runner.py (copy of e7_runner, changes listed in its docstring), e8_orchestrate.py (stale-deadline abort test: ABORT, exit 5), e8_analyze.py. Positive control PASS (-9.57%, p 1.08e-05); selftest PASS (scratch only). E8_PREREGISTRATION.md written.
