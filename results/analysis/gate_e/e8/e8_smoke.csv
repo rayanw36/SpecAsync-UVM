@@ -1,0 +1,11 @@
+idx,label,ts_utc,workload,family,block,module,policy,depth,prefetch,L,W,fast,trace_faults,threshold,threshold_readback,prefetch_readback,wall_s,exit_code,srcversion,mem_before_kb,mem_after_kb,disk_free_gb,dmesg_new_lines,pass1_ms,pass2_ms,pass3_ms,batch_records,decomp_records,ft_fast_verified,ft_fast_nranges,ft_fast_verify_ns,demand_faults,enqueued,processed,drops,spec_hits,spec_migrations,ft_predictions,ft_skipped,ft_held,ft_unknown_page,ft_exhausted,fault_already_resident,trace_pushes,trace_overwrites,ft_same_region,spec_region_invalid,spec_pages_requested,ft_fast_cas_giveup
+1,in_k1 stock-t0,2026-10-07T13:14:10Z,in_k1,IN,,stock,,,1,,,,0,0,0,1,1.717009,0,6284DA42F15EDC3AB92332B,61483260,61230004,37.3,0,157.988,0.004,0.005,,,,,,,,,,,,,,,,,,,,,,,
+2,in_k1 stock-t25,2026-10-07T13:14:13Z,in_k1,IN,,stock,,,1,,,,0,25,25,1,1.554851,0,6284DA42F15EDC3AB92332B,61476932,61221112,37.3,0,37.744,0.004,0.006,,,,,,,,,,,,,,,,,,,,,,,
+3,in_k1 stock-t51,2026-10-07T13:14:16Z,in_k1,IN,,stock,,,1,,,,0,51,51,1,1.588047,0,6284DA42F15EDC3AB92332B,61470792,61242580,37.3,0,33.345,0.004,0.006,,,,,,,,,,,,,,,,,,,,,,,
+4,in_k8 stock-t0,2026-10-07T13:14:19Z,in_k8,IN,,stock,,,1,,,,0,0,0,1,1.638300,0,6284DA42F15EDC3AB92332B,61491996,61242996,37.3,0,161.029,0.017,0.018,,,,,,,,,,,,,,,,,,,,,,,
+5,in_k8 stock-t25,2026-10-07T13:14:22Z,in_k8,IN,,stock,,,1,,,,0,25,25,1,1.699451,0,6284DA42F15EDC3AB92332B,61491580,61217756,37.3,0,186.659,0.026,0.018,,,,,,,,,,,,,,,,,,,,,,,
+6,in_k8 stock-t51,2026-10-07T13:14:25Z,in_k8,IN,,stock,,,1,,,,0,51,51,1,1.676305,0,6284DA42F15EDC3AB92332B,61466800,61216736,37.3,0,138.357,0.124,0.020,,,,,,,,,,,,,,,,,,,,,,,
+7,in_k64 stock-t0,2026-10-07T13:14:27Z,in_k64,IN,,stock,,,1,,,,0,0,0,1,1.671340,0,6284DA42F15EDC3AB92332B,61478104,61210348,37.3,0,168.891,0.052,0.131,,,,,,,,,,,,,,,,,,,,,,,
+8,in_k64 stock-t25,2026-10-07T13:14:30Z,in_k64,IN,,stock,,,1,,,,0,25,25,1,1.710741,0,6284DA42F15EDC3AB92332B,61460420,61203032,37.3,0,185.135,0.060,0.131,,,,,,,,,,,,,,,,,,,,,,,
+9,in_k64 stock-t51,2026-10-07T13:14:34Z,in_k64,IN,,stock,,,1,,,,0,51,51,1,1.867382,0,6284DA42F15EDC3AB92332B,61456048,61218708,37.3,0,314.071,0.058,0.130,,,,,,,,,,,,,,,,,,,,,,,
+10,in_k512 stock-t0,2026-10-07T13:14:37Z,in_k512,IN,,stock,,,1,,,,0,0,0,1,1.813711,0,6284DA42F15EDC3AB92332B,61363356,61227448,37.3,0,173.064,0.708,1.066,,,,,,,,,,,,,,,,,,,,,,,
