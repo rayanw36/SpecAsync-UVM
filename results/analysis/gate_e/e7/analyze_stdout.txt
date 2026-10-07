@@ -1,0 +1,42 @@
+Family A (Stencil-24K, stock module; Holm of 2; delta = (arm - stock-t51) / stock-t51)
+  stock-t0  med 1.0251 vs t51 1.1336  delta -9.57%  p 1.08e-05  Holm-thr 0.0250  sig True  d -10.63  MDE 0.0127 s (1.12%)  MDE@family 0.0140 s (1.23%)  noout -0.1085/1.6e-04
+  stock-t10 med 1.0528 vs t51 1.1336  delta -7.13%  p 1.08e-05  Holm-thr 0.0500  sig True  d -7.73  MDE 0.0132 s (1.16%)  MDE@family 0.0145 s (1.28%)  noout -0.0808/4.6e-05
+
+Family B (one Holm family of 16; every significant slowdown is as reportable as every speedup)
+  stencil8k  stock-t0  med 0.3168 vs t51 0.3322  delta -4.65%  p 1.23e-01  Holm-thr 0.0083  n.s.  d -0.70  MDE 0.0255 s (7.68%)  MDE@family 10.41%  noout -0.0130/2.1e-01
+  stencil8k  stock-t25 med 0.3218 vs t51 0.3322  delta -3.13%  p 1.23e-01  Holm-thr 0.0100  n.s.  d -0.44  MDE 0.0250 s (7.52%)  MDE@family 10.20%  noout -0.0080/7.7e-02
+  sweep4k    stock-t0  med 0.2498 vs t51 0.2418  delta +3.34%  p 9.71e-01  Holm-thr 0.0250  n.s.  d +0.13  MDE 0.0210 s (8.68%)  MDE@family 11.77%  noout +0.0081/9.7e-01
+  sweep4k    stock-t25 med 0.2647 vs t51 0.2418  delta +9.47%  p 2.18e-01  Holm-thr 0.0125  n.s.  d +0.72  MDE 0.0221 s (9.16%)  MDE@family 12.42%  noout +0.0229/2.2e-01
+  sweep16k   stock-t0  med 0.5790 vs t51 0.6294  delta -8.02%  p 1.08e-05  Holm-thr 0.0031  FASTER  d -6.20  MDE 0.0102 s (1.62%)  MDE@family 2.19%  noout -0.0505/1.1e-05
+  sweep16k   stock-t25 med 0.6044 vs t51 0.6294  delta -3.98%  p 1.50e-03  Holm-thr 0.0050  FASTER  d -1.64  MDE 0.0161 s (2.56%)  MDE@family 3.47%  noout -0.0254/2.2e-05
+  stream     stock-t0  med 0.5417 vs t51 0.6181  delta -12.37%  p 1.08e-05  Holm-thr 0.0033  FASTER  d -5.52  MDE 0.0169 s (2.74%)  MDE@family 3.71%  noout -0.0772/2.2e-05
+  stream     stock-t25 med 0.5798 vs t51 0.6181  delta -6.20%  p 5.20e-03  Holm-thr 0.0056  FASTER  d -1.49  MDE 0.0247 s (3.99%)  MDE@family 5.41%  noout -0.0394/4.1e-04
+  sgemm      stock-t0  med 4.5152 vs t51 4.6308  delta -2.49%  p 1.08e-05  Holm-thr 0.0036  FASTER  d -10.04  MDE 0.0141 s (0.30%)  MDE@family 0.41%  noout -0.1162/2.2e-05
+  sgemm      stock-t25 med 4.5547 vs t51 4.6308  delta -1.64%  p 1.08e-05  Holm-thr 0.0038  FASTER  d -8.44  MDE 0.0109 s (0.24%)  MDE@family 0.32%  noout -0.0760/1.1e-05
+  cufft      stock-t0  med 0.3711 vs t51 0.3902  delta -4.90%  p 3.55e-02  Holm-thr 0.0071  n.s.  d -0.98  MDE 0.0209 s (5.36%)  MDE@family 7.27%  noout -0.0191/3.5e-02
+  cufft      stock-t25 med 0.3842 vs t51 0.3902  delta -1.55%  p 6.31e-01  Holm-thr 0.0167  n.s.  d -0.17  MDE 0.0241 s (6.19%)  MDE@family 8.38%  noout -0.0060/6.3e-01
+  graphbfs   stock-t0  med 31.4241 vs t51 31.5066  delta -0.26%  p 1.85e-02  Holm-thr 0.0063  n.s.  d -1.04  MDE 0.2000 s (0.63%)  MDE@family 0.86%  noout -0.0910/1.1e-02
+  graphbfs   stock-t25 med 31.5242 vs t51 31.5066  delta +0.06%  p 1.00e+00  Holm-thr 0.0500  n.s.  d -0.08  MDE 0.2642 s (0.84%)  MDE@family 1.14%  noout +0.0164/1.0e+00
+  oversub    stock-t0  med 2.7060 vs t51 3.2583  delta -16.95%  p 1.08e-05  Holm-thr 0.0042  FASTER  d -24.20  MDE 0.0284 s (0.87%)  MDE@family 1.18%  noout -0.5523/1.1e-05
+  oversub    stock-t25 med 2.8816 vs t51 3.2583  delta -11.56%  p 1.08e-05  Holm-thr 0.0045  FASTER  d -17.60  MDE 0.0263 s (0.81%)  MDE@family 1.10%  noout -0.3728/4.6e-05
+
+Family C (E3a-2 module, Stencil-24K; Holm of 2; delta = (block 2 - block 1) / block 1)
+  spec-C0-t51      block1 1.1387  block2 1.1345  delta -0.37%  p 6.31e-01  Holm-thr 0.0500  sig False  MDE 0.0104 s
+  spec-C7W512-t51  block1 1.0705  block2 1.0767  delta +0.59%  p 3.53e-01  Holm-thr 0.0250  sig False  MDE 0.0271 s
+
+Session medians (Stencil-24K, prefetch on, t51):
+  E4                   C0-t51 1.1295  C7W512-t51 1.0738  C7 vs C0 -4.93%
+  E5                   C0-t51 1.1265  C7W512-t51 1.0673  C7 vs C0 -5.26%
+  E6                   C0-t51 1.1298  C7W512-t51 1.0918  C7 vs C0 -3.36%
+  E7 (blocks pooled)   C0-t51 1.1363  C7W512-t51 1.0756  C7 vs C0 -5.34%
+  E7 block 1           C0-t51 1.1387  C7W512-t51 1.0705  C7 vs C0 -5.99%
+  E7 block 2           C0-t51 1.1345  C7W512-t51 1.0767  C7 vs C0 -5.09%
+  module presence (DESCRIPTIVE, not tested): specasync C0-t51 median 1.1363 vs stock t51 (Family A) 1.1336: +0.24% (p 3.50e-01, descriptive)
+
+Expectations (reviewer, directional; operational definitions fixed before the run):
+  XA  C0-t0 faster than C0-t51 on Stencil-24K, Holm-significant: HELD
+  XB1 no workload among Stencil-8K, Sweep-4K, Sweep-16K, STREAM, SGEMM significantly slower at t0 than t51: HELD
+  XB2 GraphBFS-23: no significant difference at either threshold: HELD
+  XB3 oversub Stencil: C0-t0 significantly SLOWER than C0-t51: FAILED
+  XB4 cuFFT: C0-t0 not significantly faster than C0-t51: HELD
+  XC  C7W512-t51 block-to-block |median difference| larger than C0-t51's: HELD  (spec-C0-t51 0.37%, spec-C7W512-t51 0.59%)

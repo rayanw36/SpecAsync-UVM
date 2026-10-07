@@ -25,3 +25,19 @@ Phase 0 start: 2026-10-07 13:51:00 +03 (file `e7/phase0_start.txt`). Session cap
 - 14:05:39 orchestrator smoke: phase0 13:51:00, now 14:05:39, session cap 16:51:00, latest sweep end (cap - 25 min reserve) 16:26:00
 - 14:08:19 smoke runner exit 0
 - 14:08:27 Phase 4 DONE: 27 smoke runs, all exit 0, thresholds read back, dmesg clean, no stop (e7_smoke.csv, excluded from analysis). Phase 5 starts.
+- 14:08:35 Headless push after isolate FAILED (could not read Username: gh token is in the GNOME keyring, unavailable without the desktop session). Recorded, not worked around. Pushed through 88a0f2c (pre-registration) BEFORE the isolate; later commits are local.
+- 14:08:35 orchestrator sweep: phase0 13:51:00, now 14:08:35, session cap 16:51:00, latest sweep end (cap - 25 min reserve) 16:26:00
+- 14:08:35 Family B estimates (s): stencil8k 130, sweep4k 128, sweep16k 139, stream 138, sgemm 258, cufft 132, graphbfs 1067, oversub 217; EST_C2 120
+- 14:10:35 Family C block 1 + Family A: idx 1-50: runner exit 0 (121 s)
+- 14:11:22 stencil8k: idx 51-80: runner exit 0 (46 s)
+- 14:12:06 sweep4k: idx 81-110: runner exit 0 (44 s)
+- 14:13:01 sweep16k: idx 111-140: runner exit 0 (55 s)
+- 14:13:55 stream: idx 141-170: runner exit 0 (54 s)
+- 14:16:48 sgemm: idx 171-200: runner exit 0 (174 s)
+- 14:17:36 cufft: idx 201-230: runner exit 0 (48 s)
+- 14:34:00 graphbfs: idx 231-260: runner exit 0 (983 s)
+- 14:36:04 oversub: idx 261-290: runner exit 0 (125 s)
+- 14:36:56 Family C block 2: idx 291-310: runner exit 0 (52 s)
+- 14:36:56 SWEEP COMPLETE; skipped Family B workloads: none
+- 14:37:05 Phase 5 DONE: 310 rows, no Family B workload skipped, no stop. Phase 6 starts.
+- 14:37:12 four runs (idx 89, 130, 204, 245) each logged 1 new kernel line: 'workqueue: drm_fb_helper_damage_work hogged CPU' (counts 4,5,7,11; same notice and counts as E6); not in the stop pattern.
