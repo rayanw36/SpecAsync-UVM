@@ -1,0 +1,7 @@
+# E7 analyzer positive control (run on E6's committed e6_runs.csv)
+comparison: C7W512-t51 (arm) vs C0-t0 (baseline); n = 10 / 10
+median C0-t0 = 1.0262 s; median C7W512-t51 = 1.0918 s
+delta = (arm - base) / base = +6.39%  (E6 reported +6.39%)
+MWU two-sided p = 1.08e-05  (E6 reported 1.08e-05)
+D(51) = 1 - median demand faults C7W512-t51 / C0-t51 = +0.4017  (E6 reported +0.4017)
+CONTROL: PASS - reproduces E6
