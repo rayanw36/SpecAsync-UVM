@@ -1,0 +1,25 @@
+PASS  (a) checksum == host reference [64MiB K=1] checksum=000000105d969038
+PASS  (b) pages_touched = K x blocks [64MiB K=1] 32 = 1 x 32
+PASS  (a) checksum == host reference [64MiB K=8] checksum=000000868205d9da
+PASS  (b) pages_touched = K x blocks [64MiB K=8] 256 = 8 x 32
+PASS  (a) checksum == host reference [64MiB K=64] checksum=00000401cc55a424
+PASS  (b) pages_touched = K x blocks [64MiB K=64] 2048 = 64 x 32
+PASS  (a) checksum == host reference [64MiB K=512] checksum=00001fdf33321218
+PASS  (b) pages_touched = K x blocks [64MiB K=512] 16384 = 512 x 32
+PASS  (d) K=512 touches every page exactly once per pass [64MiB K=512] distinct=16384 total=16384 touched=16384
+PASS  (c) same seed -> same page_list_hash [64MiB] cadb089e31a7ed3e
+PASS  (c) different seed -> different page_list_hash [64MiB] cadb089e31a7ed3e vs d7358ca74b9d82cc
+PASS  (e) off-by-one host reference is detected [64MiB] rc=1 checksum=000000868205d9da expected=000000868205d9db
+PASS  (a) checksum == host reference [1GiB K=1] checksum=000000fae789ab55
+PASS  (b) pages_touched = K x blocks [1GiB K=1] 512 = 1 x 512
+PASS  (a) checksum == host reference [1GiB K=8] checksum=0000081a00a8cddd
+PASS  (b) pages_touched = K x blocks [1GiB K=8] 4096 = 8 x 512
+PASS  (a) checksum == host reference [1GiB K=64] checksum=00003fe0c9634492
+PASS  (b) pages_touched = K x blocks [1GiB K=64] 32768 = 64 x 512
+PASS  (a) checksum == host reference [1GiB K=512] checksum=0001ff8a2003f125
+PASS  (b) pages_touched = K x blocks [1GiB K=512] 262144 = 512 x 512
+PASS  (d) K=512 touches every page exactly once per pass [1GiB K=512] distinct=262144 total=262144 touched=262144
+PASS  (c) same seed -> same page_list_hash [1GiB] 03115d610e56a59e
+PASS  (c) different seed -> different page_list_hash [1GiB] 03115d610e56a59e vs c4b38cda653baeb5
+PASS  (e) off-by-one host reference is detected [1GiB] rc=1 checksum=0000081a00a8cddd expected=0000081a00a8cdde
+OVERALL: PASS
