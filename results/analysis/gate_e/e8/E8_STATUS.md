@@ -36,3 +36,23 @@ Not called anywhere: `cudaMemAdvise`, `cudaMemPrefetchAsync`, `cudaDeviceSynchro
 - 16:16:40 smoke complete: 28 rows, dropped cells: 0; e8_timeouts.csv written
 - 16:16:45 push after smoke: ok
 - 16:16:57 Phase 4 DONE: 28 smoke runs (24 stock + 4 mechanism), all exit 0, thresholds read back, dmesg clean, no cell dropped (smoke max 10 s); timeouts 8-50 s (e8_timeouts.csv); smoke excluded from analysis; pushed. Phase 5 starts.
+- 16:16:57 orchestrator sweep: phase0 16:07:58, now 16:16:57, session cap 19:37:58, latest sweep end (cap - 25 min reserve) 19:12:58
+- 16:22:51 Family IN: idx 1-120: runner exit 0 (354 s)
+- 16:22:57 push after Family IN: ok
+- 16:22:57 Family OV group ov_k1: est 316 s, starting
+- 16:26:50 Family OV ov_k1: idx 121-150: runner exit 0 (232 s)
+- 16:26:56 push after Family OV ov_k1: ok
+- 16:26:56 Family OV group ov_k512: est 347 s, starting
+- 16:31:20 Family OV ov_k512: idx 151-180: runner exit 0 (264 s)
+- 16:31:26 push after Family OV ov_k512: ok
+- 16:31:26 Family OV group ov_k8: est 380 s, starting
+- 16:36:25 Family OV ov_k8: idx 181-210: runner exit 0 (300 s)
+- 16:36:32 push after Family OV ov_k8: ok
+- 16:36:32 Family OV group ov_k64: est 337 s, starting
+- 16:40:46 Family OV ov_k64: idx 211-240: runner exit 0 (254 s)
+- 16:40:51 push after Family OV ov_k64: ok
+- 16:41:53 Family M: idx 241-260: runner exit 0 (61 s)
+- 16:41:58 push after Family M: ok
+- 16:41:58 SWEEP COMPLETE; skipped OV groups: none
+- 16:42:13 Phase 5 DONE: 260 rows (IN 120, OV 120, M 20), no OV group or Family M skipped, no stop, pushed after every family/group. Phase 6 starts.
+- 16:43:29 Phase 6: analysis run; verdict GENERALITY FALSIFIED (largest slowdown ov K=1 t0 +84.96%); benchmark not suspect; XS1-3 held, XS4-5 failed. Two runs (idx 102, 223) counted one new kernel line each (drm_fb_helper / hrtimer notices; not in the stop pattern).

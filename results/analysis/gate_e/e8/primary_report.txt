@@ -1,0 +1,25 @@
+VERDICT: GENERALITY FALSIFIED: Holm-significant slowdown(s) at K < 512: ov K=1 stock-t0 +84.96% (p 1.08e-05); ov K=8 stock-t25 +46.71% (p 1.08e-05); ov K=8 stock-t0 +41.15% (p 1.08e-05); in K=1 stock-t0 +3.95% (p 1.08e-05); ov K=1 stock-t25 +1.88% (p 4.33e-05); in K=8 stock-t25 +0.78% (p 6.84e-03). Largest slowdown: ov K=1 stock-t0 +84.96%
+Primary tests (one Holm family of 16; delta = (arm - t51)/t51):
+  in K=1   stock-t0  med 1.6413 vs t51 1.5789  delta +3.95%  p 1.08e-05  Holm-thr 0.0031  SLOWER  d +6.92  MDE 0.70%  MDE@family 0.95%  noout +0.0622/1.0e-04
+  in K=1   stock-t25 med 1.5694 vs t51 1.5789  delta -0.60%  p 4.33e-02  Holm-thr 0.0500  FASTER  d -1.20  MDE 0.78%  MDE@family 1.06%  noout -0.0095/4.3e-02
+  in K=8   stock-t0  med 1.6535 vs t51 1.6928  delta -2.32%  p 1.08e-05  Holm-thr 0.0033  FASTER  d -3.98  MDE 0.64%  MDE@family 0.87%  noout -0.0398/4.6e-05
+  in K=8   stock-t25 med 1.7060 vs t51 1.6928  delta +0.78%  p 6.84e-03  Holm-thr 0.0250  SLOWER  d +1.42  MDE 0.83%  MDE@family 1.13%  noout +0.0132/6.8e-03
+  in K=64  stock-t0  med 1.6682 vs t51 1.8471  delta -9.69%  p 1.08e-05  Holm-thr 0.0036  FASTER  d -23.66  MDE 0.51%  MDE@family 0.69%  noout -0.1790/4.6e-05
+  in K=64  stock-t25 med 1.7103 vs t51 1.8471  delta -7.41%  p 1.08e-05  Holm-thr 0.0038  FASTER  d -17.41  MDE 0.53%  MDE@family 0.71%  noout -0.1368/2.2e-05
+  in K=512 stock-t0  med 1.8189 vs t51 1.9671  delta -7.54%  p 1.08e-05  Holm-thr 0.0042  FASTER  d -9.25  MDE 1.04%  MDE@family 1.41%  noout -0.1474/4.1e-05
+  in K=512 stock-t25 med 1.8439 vs t51 1.9671  delta -6.26%  p 1.08e-05  Holm-thr 0.0045  FASTER  d -4.63  MDE 1.57%  MDE@family 2.13%  noout -0.1255/4.1e-05
+  ov K=1   stock-t0  med 9.3473 vs t51 5.0537  delta +84.96%  p 1.08e-05  Holm-thr 0.0050  SLOWER  d +84.37  MDE 1.26%  MDE@family 1.71%  noout +4.2977/2.2e-05
+  ov K=1   stock-t25 med 5.1485 vs t51 5.0537  delta +1.88%  p 4.33e-05  Holm-thr 0.0167  SLOWER  d +3.23  MDE 0.77%  MDE@family 1.04%  noout +0.0989/2.2e-05
+  ov K=8   stock-t0  med 9.5652 vs t51 6.7765  delta +41.15%  p 1.08e-05  Holm-thr 0.0056  SLOWER  d +46.77  MDE 1.10%  MDE@family 1.49%  noout +2.7943/2.2e-05
+  ov K=8   stock-t25 med 9.9418 vs t51 6.7765  delta +46.71%  p 1.08e-05  Holm-thr 0.0063  SLOWER  d +99.10  MDE 0.59%  MDE@family 0.80%  noout +3.1653/1.1e-05
+  ov K=64  stock-t0  med 6.9274 vs t51 7.6688  delta -9.67%  p 1.08e-05  Holm-thr 0.0071  FASTER  d -32.00  MDE 0.38%  MDE@family 0.52%  noout -0.7381/2.2e-05
+  ov K=64  stock-t25 med 7.1353 vs t51 7.6688  delta -6.96%  p 1.08e-05  Holm-thr 0.0083  FASTER  d -23.28  MDE 0.38%  MDE@family 0.52%  noout -0.5301/2.2e-05
+  ov K=512 stock-t0  med 7.3262 vs t51 7.9336  delta -7.66%  p 1.08e-05  Holm-thr 0.0100  FASTER  d -17.22  MDE 0.56%  MDE@family 0.76%  noout -0.6039/2.2e-05
+  ov K=512 stock-t25 med 7.4917 vs t51 7.9336  delta -5.57%  p 1.08e-05  Holm-thr 0.0125  FASTER  d -12.77  MDE 0.55%  MDE@family 0.75%  noout -0.4384/2.2e-05
+
+Expectations (reviewer, directional; operational definitions fixed before the run):
+  XS1 in-memory K=1: t0 significantly slower than t51: HELD
+  XS2 oversubscribed K=1 or 8: t0 significantly slower than t51 (at least one): HELD
+  XS3 K=512, both sizes: t0 faster than t51 (direction): HELD  ([('in', -7.54), ('ov', -7.66)])
+  XS4 within each size, t0 delta rises monotonically as K falls (512 < 64 < 8 < 1): FAILED  ({'in': [(512, -7.54), (64, -9.69), (8, -2.32), (1, 3.95)], 'ov': [(512, -7.66), (64, -9.67), (8, 41.15), (1, 84.96)]})
+  XS5 t25 delta lies between the t0 delta and 0, cell by cell: FAILED  ([('in', 1, False), ('in', 8, False), ('ov', 8, False)])

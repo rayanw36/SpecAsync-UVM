@@ -1,0 +1,5 @@
+workload,cell,n,wall_median_s,demand_faults,d5_ns_per_demand_fault,fault_already_resident
+in_k1,spec-C0-t0,5,1.645768,5180.0,17368.23918918919,0.0
+in_k1,spec-C0-t51,5,1.569198,6744.0,4681.083629893238,0.0
+in_k512,spec-C0-t0,5,1.818078,73006.0,1316.9636331260444,0.0
+in_k512,spec-C0-t51,5,1.975325,141701.0,1854.1190676142016,0.0
