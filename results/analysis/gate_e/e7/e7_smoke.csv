@@ -1,0 +1,11 @@
+idx,label,ts_utc,workload,family,block,module,policy,depth,prefetch,L,W,fast,trace_faults,threshold,threshold_readback,prefetch_readback,wall_s,exit_code,srcversion,mem_before_kb,mem_after_kb,disk_free_gb,dmesg_new_lines,ft_fast_verified,ft_fast_nranges,ft_fast_verify_ns,demand_faults,enqueued,processed,drops,spec_hits,spec_migrations,ft_predictions,ft_skipped,ft_held,ft_unknown_page,ft_exhausted,fault_already_resident,trace_pushes,trace_overwrites,ft_same_region,spec_region_invalid,spec_pages_requested,ft_fast_cas_giveup
+1,stencil stock-t0,2026-10-07T11:05:41Z,stencil,A,,stock,,,1,,,,0,0,0,1,1.066965,0,6284DA42F15EDC3AB92332B,61527136,61269872,37.3,0,,,,,,,,,,,,,,,,,,,,,
+2,stencil stock-t10,2026-10-07T11:05:44Z,stencil,A,,stock,,,1,,,,0,10,10,1,1.061767,0,6284DA42F15EDC3AB92332B,61517936,61272524,37.3,0,,,,,,,,,,,,,,,,,,,,,
+3,stencil stock-t51,2026-10-07T11:05:46Z,stencil,A,,stock,,,1,,,,0,51,51,1,1.131330,0,6284DA42F15EDC3AB92332B,61529176,61285868,37.3,0,,,,,,,,,,,,,,,,,,,,,
+4,stencil8k stock-t0,2026-10-07T11:05:47Z,stencil8k,B,,stock,,,1,,,,0,0,0,1,0.310906,0,6284DA42F15EDC3AB92332B,61539956,61254004,37.3,0,,,,,,,,,,,,,,,,,,,,,
+5,stencil8k stock-t25,2026-10-07T11:05:49Z,stencil8k,B,,stock,,,1,,,,0,25,25,1,0.333318,0,6284DA42F15EDC3AB92332B,61504508,61252916,37.3,0,,,,,,,,,,,,,,,,,,,,,
+6,stencil8k stock-t51,2026-10-07T11:05:51Z,stencil8k,B,,stock,,,1,,,,0,51,51,1,0.336108,0,6284DA42F15EDC3AB92332B,61530188,61272400,37.3,0,,,,,,,,,,,,,,,,,,,,,
+7,sweep4k stock-t0,2026-10-07T11:05:52Z,sweep4k,B,,stock,,,1,,,,0,0,0,1,0.250394,0,6284DA42F15EDC3AB92332B,61529712,61286576,37.3,0,,,,,,,,,,,,,,,,,,,,,
+8,sweep4k stock-t25,2026-10-07T11:05:54Z,sweep4k,B,,stock,,,1,,,,0,25,25,1,0.246033,0,6284DA42F15EDC3AB92332B,61537472,61281152,37.3,0,,,,,,,,,,,,,,,,,,,,,
+9,sweep4k stock-t51,2026-10-07T11:05:55Z,sweep4k,B,,stock,,,1,,,,0,51,51,1,0.252928,0,6284DA42F15EDC3AB92332B,61528792,61236684,37.3,0,,,,,,,,,,,,,,,,,,,,,
+10,sweep16k stock-t0,2026-10-07T11:05:57Z,sweep16k,B,,stock,,,1,,,,0,0,0,1,0.586548,0,6284DA42F15EDC3AB92332B,61494520,61243772,37.3,0,,,,,,,,,,,,,,,,,,,,,
