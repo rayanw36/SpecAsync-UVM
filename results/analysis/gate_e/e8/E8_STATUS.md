@@ -34,3 +34,5 @@ Not called anywhere: `cudaMemAdvise`, `cudaMemPrefetchAsync`, `cudaDeviceSynchro
 - 16:14:05 Phase 4: pushed (305202c). Lingering still enabled (Linger=yes). isolate multi-user.target exit 0, session survived. Platform: 7.0.0-34, 595.91.07, stock 6284DA42 loaded refcnt 0, timers inactive, driver/src identical to ea1a262.
 - 16:14:07 orchestrator smoke: phase0 16:07:58, now 16:14:07, session cap 19:37:58, latest sweep end (cap - 25 min reserve) 19:12:58
 - 16:16:40 smoke complete: 28 rows, dropped cells: 0; e8_timeouts.csv written
+- 16:16:45 push after smoke: ok
+- 16:16:57 Phase 4 DONE: 28 smoke runs (24 stock + 4 mechanism), all exit 0, thresholds read back, dmesg clean, no cell dropped (smoke max 10 s); timeouts 8-50 s (e8_timeouts.csv); smoke excluded from analysis; pushed. Phase 5 starts.
