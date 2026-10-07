@@ -233,26 +233,27 @@ labels stay as they are. Every Gate E claim below is stated for **595.91.07** an
 ## Part 2 — New claims
 
 ### CS2-N1 · The central claim, restated (replaces "speculation cannot improve the driver as it ships")
-- **Current text:** new. It replaces the paper's central claim as last stated in E1 ("Speculation … cannot improve the shipped driver on these two benchmarks").
+- **Current text:** new. It replaces the paper's central claim as last stated in E1 ("Speculation … cannot improve the shipped driver on these two benchmarks"). Amended 2026-10-07 (Gate C2-APPLY) after Gate E6.
 - **Status:** new.
 - **Proposed text:**
-  1. "Off-path speculation **cannot prevent a fault by itself**: it stages residency but never installs a mapping (CS2-N2).
-  2. **Page-granularity speculation does not beat the driver as shipped.** With a near-perfect first-touch table (Stencil) and a weakened-cursor table (GraphBFS), and the prefetcher on, the cheap-oracle configuration at W = 1 is slower than C0 on Stencil-24K (+5.87%, Holm-significant). On GraphBFS-23 it shows no difference from C0.
-  3. **Whole-block staging (W = 512) with the prefetcher left on beats C0 on Stencil-24K by 4.93%** (replicated at 5.26%). It is accompanied by about 40% fewer demand faults (CS2-N3) and by copy offload (CS2-N4); their contributions to the wall-clock gain are not apportioned.
-  4. There is **no difference detected on GraphBFS-23**: all three F1 arms are not significant, and the MDE at achieved n is **0.28–0.43% of the C0 median wall-clock** (computed from the E4 F1 GraphBFS rows: `mde_s` ÷ `median_base` in `results/analysis/gate_e/e4/primary_comparisons.csv`).
-  5. All of this uses a **near-perfect first-touch table (Stencil) and a weakened-cursor table (GraphBFS)**, on **one platform**."
-- **Limitation:** C0 at prefetch thresholds below 51 not tested (Gate E6 pending).
-- **Baseline:** C0 (the driver as shipped), throughout.
+  1. "Off-path speculation cannot prevent a fault by itself (CS2-N2).
+  2. Its only route to fault prevention is indirect: staged residency pushes regions over the prefetcher's density threshold, and the demand path maps them (CS2-N3).
+  3. Against the driver as shipped (threshold 51), whole-block staging with a near-perfect first-touch table beats C0 on Stencil-24K: −4.93% (E4), −5.26% (E5), −3.36% (E6), all significant. The magnitude varies across sessions.
+  4. The same gain is available without speculation. C0 at threshold 0 or 10 is significantly faster than C7W512-t51 (E6: +6.39%, +4.72%); C0-t25 is indistinguishable from it (+2.11%, n.s.).
+  5. At matched thresholds, speculation adds at most 2.76% (t25, significant), and nothing detectable at t0 or t10 (MDE 1.8% at t0 and 2.0% at t10 at achieved n).
+  6. GraphBFS-23: no detected effect of speculation (E4; MDE 0.28–0.43% of the C0 median) or of threshold 0–51 (E6; MDE 0.41–0.49% of the C0-t51 median).
+  7. Scope: RTX 5070 Ti, 595.91.07, kernel 7.0.0-34; two workloads; near-perfect table (Stencil), weakened-cursor table (GraphBFS); not a practical predictor."
+- **Reading the signs:** in items 4–5 the E6 deltas are (arm − baseline) ÷ baseline with C7W512-t51 as the arm in item 4, so a positive value means the C7W512 arm is slower than that C0 baseline.
+- **Limitation:** C0 below the shipped threshold is **not** the shipped driver. Item 4 compares C7W512-t51 with C0 at tuned thresholds; the generality of tuning is addressed in CS2-N10.
+- **Baseline:** named at each item: C0 at threshold 51 (the driver as shipped) in item 3; C0-t0 / C0-t10 / C0-t25 (not the shipped driver) in item 4; C0 at the same threshold in item 5.
 - **Evidence:**
-  - `E4.F1.stencil.C7-W1_vs_C0` (+5.87%, Holm-sig);
-  - `E4.F1.stencil.C7-W64_vs_C0` (−1.83%, n.s.);
-  - `E4.F1.stencil.C7-W512_vs_C0` (−4.93%, p 1.08e-5, MDE 0.0144 s, trigger True);
-  - `E5.wall.t51` (−5.26%, replication);
-  - `E4.F1.graphbfs.C7-W1_vs_C0` / `C7-W64` / `C7-W512` (−0.28%, −0.10%, −0.06%, n.s.; MDE 0.0873–0.1351 s, i.e. 0.28–0.43% of the C0 median);
-  - `E5.D(51)` (+0.4009);
-  - `E4.mech.stencil.C7-W512` vs `E4.mech.stencil.C0` (demand faults 204,641 vs 339,251).
-- **Scope:** RTX 5070 Ti, driver 595.91.07, kernel 7.0.0-34 (E4, E5); near-perfect first-touch table (Stencil) and weakened-cursor table (GraphBFS, coverage 0.22–0.81 across the C6 arms); cheap oracle `specasync_ft_fast=1`.
-- **What changed and why:** E4's pre-registered falsification trigger fired, and E5 replicated the result and identified its mechanisms. E1's expensive-oracle figures (`E1.stencil.C7-L1_vs_C0` … `E1.stencil.C7-L4096_vs_C0`, +3.89% to +8.39%) move here from item 2: they measure the expensive oracle, whose lookup cost E3b showed to be 77–88% of its per-fault cost, and are not the cheap-oracle result.
+  - item 3: `E4.F1.stencil.C7-W512_vs_C0` (−4.93%, p 1.08e-5, MDE 0.0144 s, trigger True); `E5.wall.t51` (−5.26%); `E6.F1.C7W512-t51_vs_C0-t51` (−3.36%, p 3.25e-4);
+  - item 4: `E6.F1.C7W512-t51_vs_C0-t0` (+6.39%, p 1.08e-5, Holm-sig); `E6.F1.C7W512-t51_vs_C0-t10` (+4.72%, p 2.06e-4, Holm-sig); `E6.F1.C7W512-t51_vs_C0-t25` (+2.11%, p 0.28, n.s.);
+  - item 5: `E6.wall.C7W512-t25_vs_C0-t25` (−2.76%, Holm-sig); `E6.wall.C7W512-t0_vs_C0-t0` (−0.85%, n.s., MDE 0.0181 s of a 1.0262 s median = 1.8%); `E6.wall.C7W512-t10_vs_C0-t10` (−0.28%, n.s., MDE 0.0205 s of 1.0426 s = 2.0%);
+  - item 6: `E4.F1.graphbfs.C7-W1_vs_C0` / `C7-W64` / `C7-W512` (−0.28%, −0.10%, −0.06%, n.s.; MDE 0.0873–0.1351 s, 0.28–0.43% of the C0 median); `E6.F2.C0-t0_vs_C0-t51` and `E6.F2.C0-t25_vs_C0-t51` (−0.06%, +0.12%, n.s.; `mde_pct_of_base` 0.49%, 0.41%);
+  - supporting: `E4.F1.stencil.C7-W1_vs_C0` (+5.87%, Holm-sig; page-granularity speculation does not beat C0); `E5.D(51)` (+0.4009); `E6.D(t51)` (+0.4017).
+- **Scope:** RTX 5070 Ti, driver 595.91.07, kernel 7.0.0-34 (E4, E5, E6); near-perfect first-touch table (Stencil) and weakened-cursor table (GraphBFS, coverage 0.22–0.81 across the C6 arms); cheap oracle `specasync_ft_fast=1`; E3a-2 module for the speculation arms.
+- **What changed and why:** E6 (pre-registered falsification trigger fired) showed that C0 tuned to threshold 0 or 10 is faster than the speculation arm at the shipped threshold, so the claim that the Stencil gain requires speculation is withdrawn. Item 2 of the previous text (W = 1 loses, +5.87%) moves to the evidence line. E1's expensive-oracle figures (`E1.stencil.C7-L1_vs_C0` … `E1.stencil.C7-L4096_vs_C0`, +3.89% to +8.39%) measure the expensive oracle, whose lookup cost E3b showed to be 77–88% of its per-fault cost, and are not the cheap-oracle result.
 
 ### CS2-N2 · H-map: speculation never installs mappings
 - **Current text:** new (from E0.9a-2 §9, narrowed by E5).
@@ -269,12 +270,12 @@ labels stay as they are. Every Gate E claim below is stated for **595.91.07** an
 ### CS2-N3 · H-feed: speculation feeds the prefetcher's density rule
 - **Current text:** new (E4 exploratory item 4 → E5, pre-registered).
 - **Status:** new.
-- **Proposed text:** "The stock prefetcher's density test counts **resident or faulting** pages on the destination (`resident_mask | faulted_pages`), and residency staged by speculation counts. Whole-block staging therefore pushes regions over the threshold early, and the demand path's service step maps them, preventing later faults. The fault reduction exists only while the density rule can fire: D(t) = 1 − faults(C7W512)/faults(C0) is +0.401 at the default threshold, +0.534 at 75, and −0.022 with the rule disabled (T_off = 100)."
+- **Proposed text:** "The stock prefetcher's density test counts **resident or faulting** pages on the destination (`resident_mask | faulted_pages`), and residency staged by speculation counts. Whole-block staging therefore pushes regions over the threshold early, and the demand path's service step maps them, preventing later faults. The fault reduction exists only while the density rule can fire: D(t) = 1 − faults(C7W512)/faults(C0) is +0.401 at the default threshold, +0.534 at 75, and −0.022 with the rule disabled (T_off = 100). The prefetcher alone reaches lower fault counts at lower thresholds (C0-t0 134,993 vs C7W512-t51 202,740 demand faults), and D(t) falls to +0.05 at t0."
 - **Baseline:** C0 at the same `uvm_perf_prefetch_threshold` (C0-t51 is the shipped driver; C0-t75 and C0-toff are not).
-- **Evidence:** source `uvm_perf_prefetch.c:227` (bitmap = resident | faulted), `:397` (destination resident mask), `:118` (strict test), `:552-561` (range; >100 falls back to 51), `E5_MECHANISM.md` §1–4. Data: `E5.D(51)`, `E5.D(75)`, `E5.D(100)`.
+- **Evidence:** source `uvm_perf_prefetch.c:227` (bitmap = resident | faulted), `:397` (destination resident mask), `:118` (strict test), `:552-561` (range; >100 falls back to 51), `E5_MECHANISM.md` §1–4. Data: `E5.D(51)`, `E5.D(75)`, `E5.D(100)`; E6: `E6.mech.C0-t0` (134,993 faults), `E6.mech.C7W512-t51` (202,740), `E6.D(t0)` (+0.0532), `E6.D(t10)` (+0.0845), `E6.D(t25)` (+0.2213), `E6.D(t51)` (+0.4017).
 - **Scope:** RTX 5070 Ti 595.91.07; Stencil-24K only; near-perfect first-touch table, W = 512.
-- **Limitation:** C0 at prefetch thresholds below 51 not tested (Gate E6 pending).
-- **What changed and why:** a new pre-registered result (E5 verdict SUPPORTED; dose-response held).
+- **Limitation:** C0 below the shipped threshold is a different configuration from the shipped driver; see CS2-N1 item 4 and CS2-N10.
+- **What changed and why:** a new pre-registered result (E5 verdict SUPPORTED; dose-response held). Amended 2026-10-07 with the E6 fault counts: the prefetcher alone reaches lower fault counts at lower thresholds.
 
 ### CS2-N4 · Copy offload: pre-staging removes D5 work
 - **Current text:** new.
@@ -288,6 +289,7 @@ labels stay as they are. Every Gate E claim below is stated for **595.91.07** an
     `demand_faults`): **309.8 ns** for C0 (339,251 faults) and **276.3 ns** for
     C7-W512 (204,641 faults). These prefetch-on figures are **not** evidence of copy
     offload: per-fault D5 is **not separable from fault count**.
+  - **Prefetch on, at matched thresholds** (E6 secondary): wall-clock contribution n.s. at t0 and t10, −2.76% at t25. The expectation that copy offload stays significant at t0 (E6 X4) failed. The prefetch-off evidence stands.
   - It is paid for partly by the handoff on the same thread (CS2-N5).
   - With a cheap oracle at W = 1 the worker queue overflows (215,117 → 325,927 drops), which shrinks the saving. Width removes that."
 - **Baseline:** C1 (prefetch off), C0-toff (E5), C0 (prefetch on); each named at use.
@@ -296,7 +298,8 @@ labels stay as they are. Every Gate E claim below is stated for **595.91.07** an
   - `E4.mech.stencil.C0` / `C7-W512` (D5 totals and demand faults; the per-fault figures
     above are computed from these fields, descriptive only);
   - `E3b.stencil.C6.d5`, `E3b.stencil.C6.drops`;
-  - `E4.mech.stencil.C6-W512` (drops 0).
+  - `E4.mech.stencil.C6-W512` (drops 0);
+  - E6 matched-threshold wall-clock: `E6.wall.C7W512-t0_vs_C0-t0` (−0.85%, n.s.), `E6.wall.C7W512-t10_vs_C0-t10` (−0.28%, n.s.), `E6.wall.C7W512-t25_vs_C0-t25` (−2.76%, Holm-sig).
 - **Scope:** RTX 5070 Ti 595.91.07; Stencil-24K (GraphBFS smaller: `E1PartB.graphbfs.D5` +0.0917 s); perfect oracle.
 - **What changed and why:** it was identified in the E1 Part B pilot and confirmed independently of fault prevention by E5's failed secondary prediction.
 
@@ -361,6 +364,15 @@ labels stay as they are. Every Gate E claim below is stated for **595.91.07** an
 - **Scope:** RTX 5070 Ti (595.84); oversubscription only.
 - **What changed and why:** E0 and E0.5 established that the oversubscription oracle's trace was truncated and rotated on top of the rate mismatch. The same applies to B9's oversubscription C3 (`B9.2c.*`), which stays a wall-clock measurement of its configuration. Its C0 comparison is AC-12's subject.
 
+### CS2-N10 · Prefetch threshold tuning
+- **Current text:** new (Gate E6, Gate C2-APPLY).
+- **Status:** new, **descriptive** for Stencil; pre-registered null for GraphBFS.
+- **Proposed text:** "Lowering the stock prefetcher's density threshold speeds up the stock driver on Stencil-24K: C0-t0 is −9.2% and C0-t10 is −7.7% against C0-t51 (**DESCRIPTIVE**: these were not pre-registered E6 comparisons, since E6's tests were within threshold and against C7W512-t51; the confirmatory test is E7 Family A). On GraphBFS-23 the threshold has no detected effect over 0–51 (pre-registered, E6 Family 2). Generality across workloads is E7 Family B and the T4 replication."
+- **Baseline:** C0 at threshold 51 (the shipped driver); C0-t0, C0-t10 are **not** the shipped driver.
+- **Evidence:** `E6.C0-t0_vs_C0-t51.DESCRIPTIVE` (−9.17%); `E6.C0-t10_vs_C0-t51.DESCRIPTIVE` (−7.72%); `E6.C0-t25_vs_C0-t51.DESCRIPTIVE` (−5.36%); `E6.mech.C0-t0` / `E6.mech.C0-t10` / `E6.mech.C0-t51` (medians 1.0262, 1.0426, 1.1298 s; demand faults 134,993 / 171,872 / 338,838); GraphBFS: `E6.F2.C0-t0_vs_C0-t51` (−0.06%, p 0.97), `E6.F2.C0-t25_vs_C0-t51` (+0.12%, p 0.44), both n.s.
+- **Scope:** RTX 5070 Ti, driver 595.91.07, kernel 7.0.0-34; E3a-2 module with speculation off (policy 0) in E6; Stencil-24K and GraphBFS-23 only; n = 10 per cell.
+- **What changed and why:** E6 showed the threshold is a large lever on Stencil. The size comes from medians of 10 runs per cell and was not tested; it is cited here only as descriptive until E7 Family A.
+
 ---
 
 ## Part 3 — Retired explanations
@@ -390,7 +402,7 @@ labels stay as they are. Every Gate E claim below is stated for **595.91.07** an
 | narrowed | 5 | 7, 9, 12 (hit-rate part), 15, 17 |
 | superseded | 2 | 5, 6 |
 | retired | 3 | 10 (as an explanation), R1, R2 |
-| new | 8 | N1, N2, N3, N4, N5, N6, N7, N9 |
+| new | 9 | N1, N2, N3, N4, N5, N6, N7, N9, N10 |
 
 (No "N8" is used, to avoid a collision with "claim 8". CS2-12 stands as a legacy claim
 and is counted under narrowed, for its hit-rate part.)
