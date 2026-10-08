@@ -16,3 +16,41 @@ T0 start: 2026-10-08 16:38 UTC (5 h cap -> 21:38 UTC)
 - `apt-get update` run (index refresh only). apt offers nvidia-*-595-open only at 595.99.02 and 595.84. **595.91.07-0ubuntu0.24.04.1 is NOT in the apt index.**
 - The exact .debs still exist in the Ubuntu archive pool (pool/multiverse/n/nvidia-graphics-drivers-595/), but are not covered by the current signed index.
 - Per T1 ("not available -> stop and ask; do not substitute") nothing was installed. No packages changed.
+
+## T1 - driver provenance (user-approved Option 1, conditions 1-5)
+Source: http://us-west-2.ec2.archive.ubuntu.com/ubuntu/pool/multiverse/n/nvidia-graphics-drivers-595/ (files not in current apt index). Independent check: Launchpad API binaryFileUrls(include_meta) for both the Superseded and Deleted publications of 595.91.07-0ubuntu0.24.04.1 (amd64); 18/18 files x 2 publications MATCH, 0 mismatch (raw: results/analysis/t4/driver_deb_sha256.txt).
+
+| file | SHA256 |
+|---|---|
+| libnvidia-cfg1-595_595.91.07-0ubuntu0.24.04.1_amd64.deb | 4ad6a640ccc9612d8db11a60b0b432be79a6506dac05b7c8ad6d8a205beb5db7 |
+| libnvidia-common-595_595.91.07-0ubuntu0.24.04.1_amd64.deb | deee8e79ea0eb3517dc6da386cd0dfa79af41f19d3a4121da51c7d95fc2e8859 |
+| libnvidia-compute-595_595.91.07-0ubuntu0.24.04.1_amd64.deb | 285e9a350f7294c37b530801bcce4fc0f02ee5b3ecae1a0e397bef1d97c5653d |
+| libnvidia-decode-595_595.91.07-0ubuntu0.24.04.1_amd64.deb | b74222c2ffdb2d0f48f778044c1c52ffba993ec071980359ea70a3b5045c15dc |
+| libnvidia-encode-595_595.91.07-0ubuntu0.24.04.1_amd64.deb | 83ca5fe94f1b6a4ced9e16e83cb97198ee8e37b6dadac8bd5f3a23c57618dd76 |
+| libnvidia-extra-595_595.91.07-0ubuntu0.24.04.1_amd64.deb | 4b7b7192cbc1caf21bce696c100b8562f12075b4a69b27f6c12449b86362e5de |
+| libnvidia-fbc1-595_595.91.07-0ubuntu0.24.04.1_amd64.deb | 4e3d0f19d6367eded50654d95d49bf330c8d0b362e4f2f40db1d5af9a0ad9f44 |
+| libnvidia-gl-595_595.91.07-0ubuntu0.24.04.1_amd64.deb | 14283e1ca43f5ad453812a7d06ba3b438d616cdbb3e4ed01785b36f202101189 |
+| nvidia-compute-utils-595_595.91.07-0ubuntu0.24.04.1_amd64.deb | cdce96ee8a6b39c17621d90d83098e0f3b433d04e1657a8ba60c275e5d499d5b |
+| nvidia-dkms-595-open_595.91.07-0ubuntu0.24.04.1_amd64.deb | 70264a7964b7d5eb8dd24f16585323104966a272a181a26198a7ed14ce47881c |
+| nvidia-driver-595-open_595.91.07-0ubuntu0.24.04.1_amd64.deb | 4e8d54b3bedf0fbde487f2df7fbb2cd72cfa0e42cc9031e482d1544058aed268 |
+| nvidia-firmware-595-595.91.07_595.91.07-0ubuntu0.24.04.1_amd64.deb | 360d93469608748a46d063058357553bfb0975df1eb6a60d8dc8d8032d949952 |
+| nvidia-headless-595-open_595.91.07-0ubuntu0.24.04.1_amd64.deb | 7b0ed3be281b48cefc08116ac5dd018df3dc2c4892c456d3b2c1a5033868c9d8 |
+| nvidia-headless-no-dkms-595-open_595.91.07-0ubuntu0.24.04.1_amd64.deb | 437288901ea43614c5eb391b82670f87fe30b233f1eb765592db0c346bf9a376 |
+| nvidia-kernel-common-595_595.91.07-0ubuntu0.24.04.1_amd64.deb | dd9cca39b9235622c40682290f73d27e49111021b0c22346bb7f8374a611f15d |
+| nvidia-kernel-source-595-open_595.91.07-0ubuntu0.24.04.1_amd64.deb | 56d65487016ec399cccfa30be1f693e988bc37dd9875141ba8092707bb5ed44a |
+| nvidia-utils-595_595.91.07-0ubuntu0.24.04.1_amd64.deb | 7e090f2776b54795987f842554655011804d3b085115e9236821905f7a8a4744 |
+| xserver-xorg-video-nvidia-595_595.91.07-0ubuntu0.24.04.1_amd64.deb | 22ff09fdaba41b10972c34877b5320274fc58116dd0f8ea9d9069aaad146ae9f |
+
+Simulation (apt-get install --simulate --no-install-recommends): no other nvidia version, no kernel pkgs. Non-NVIDIA dependency changes pulled in by apt (not an upgrade command): libbz2-1.0, libdrm2, libdrm-common, libdrm-amdgpu1 upgraded; dkms, gcc-13, make, binutils, xserver-xorg-core, mesa etc. newly installed; libnvidia-egl-wayland1 1:1.1.13-1ubuntu0.1 from noble-updates.
+
+## T1 - result (DONE; user approved pool install, all 5 conditions met)
+- Installed the 18 debs above (open flavour, no recommends). Condition 1: simulate showed no 595.99/595.84. Condition 2: 36/36 Launchpad SHA256 matches. Condition 4: all 18 installed nvidia/libnvidia 595 pkgs on apt-mark hold (23 holds total incl. kernel).
+- No reboot needed: `modprobe nvidia nvidia_uvm` loaded cleanly; kernel still 6.17.0-1017-aws.
+- /proc/driver/nvidia/version: NVRM version: NVIDIA UNIX Open Kernel Module for x86_64  595.91.07  Release Build  (dvs-builder@U22-I3-B08-02-2)  Wed Jul 29 03:01:16 UTC 2026
+- dkms status: nvidia/595.91.07, 6.17.0-1017-aws, x86_64: installed
+- GPU: Tesla T4, compute_cap 7.5, 15360 MiB. Turing: driver recognises it; nvcc 13.0 lists compute_75.
+- Stock nvidia_uvm srcversion: **6284DA42F15EDC3AB92332B** (/sys/module + modinfo of /lib/modules/6.17.0-1017-aws/updates/dkms/nvidia-uvm.ko.zst; vermagic '6.17.0-1017-aws SMP mod_unload modversions'). NOTE: identical to the 5070 Ti stock srcversion (expected to differ); recorded, not an error. nvidia.ko srcversion A970FABA258551DAB05BE12.
+- uvm_perf_prefetch_threshold read-back (stock default): 51
+- CUDA toolkit: NVIDIA apt repo (signed-by cuda-archive-keyring from cuda-keyring_1.1-1 sha256 d2a6b11c...), cuda-compiler-13-0/libraries-13-0/libraries-dev-13-0 = 13.0.1-1; **nvcc release 13.0, V13.0.88** (cuda-nvcc-13-0 13.0.88-1); libcublas 13.1.1.3, libcufft 12.0.0.61. /usr/local/cuda -> cuda-13.0. Own pin file /etc/apt/preferences.d/cuda-limited blocks nvidia-*/libnvidia-* from that repo. Not installed: nsight/visual tools (not needed). cuda-toolkit-config-common 13.4.92 came in as a config-only dep.
+- gcc: gcc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0
+- Plus build-essential, rsync, patch, dkms installed (named, for builds).
