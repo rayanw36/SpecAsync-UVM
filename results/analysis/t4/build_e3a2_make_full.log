@@ -1,0 +1,17 @@
+=== make -C /home/ubuntu/specasync-work/nvidia-595.91.07-specasync-e3a NV_KERNEL_MODULES=nvidia nvidia-uvm nvidia-modeset nvidia-drm nvidia-peermem modules -j4
+make: Entering directory '/home/ubuntu/specasync-work/nvidia-595.91.07-specasync-e3a'
+make[1]: Entering directory '/usr/src/linux-headers-6.17.0-1017-aws'
+make[2]: Entering directory '/home/ubuntu/specasync-work/nvidia-595.91.07-specasync-e3a'
+  CC [M]  nvidia-uvm/uvm.o
+  CC [M]  nvidia-uvm/uvm_va_space.o
+  CC [M]  nvidia-uvm/uvm_gpu_replayable_faults.o
+  CC [M]  nvidia-uvm/specasync_debugfs.o
+  LD [M]  nvidia-uvm.o
+  MODPOST Module.symvers
+  CC [M]  nvidia-uvm.mod.o
+  LD [M]  nvidia-uvm.ko
+  BTF [M] nvidia-uvm.ko
+Skipping BTF generation for nvidia-uvm.ko due to unavailability of vmlinux
+make[2]: Leaving directory '/home/ubuntu/specasync-work/nvidia-595.91.07-specasync-e3a'
+make[1]: Leaving directory '/usr/src/linux-headers-6.17.0-1017-aws'
+make: Leaving directory '/home/ubuntu/specasync-work/nvidia-595.91.07-specasync-e3a'
