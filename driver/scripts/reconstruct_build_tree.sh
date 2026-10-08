@@ -13,8 +13,8 @@
 set -euo pipefail
 
 REPO="$(cd "$(dirname "$0")/../.." && pwd)"
-: "${SRC:=/usr/src/nvidia-595.71.05}"
-: "${WORK:=/opt/dlami/nvme/work/nvidia-595.71.05-specasync}"
+: "${SRC:=${NV_SRC:-/usr/src/nvidia-595.71.05}}"
+: "${WORK:=${SPECASYNC_WORK:-/opt/dlami/nvme/work/nvidia-595.71.05-specasync}}"
 # nvidia-uvm alone can leave conftest/ missing symbol checks (e.g.
 # NV_IS_EXPORT_SYMBOL_GPL_set_memory_encrypted) that nv-linux.h references
 # unconditionally -- those checks are only registered by the core "nvidia"

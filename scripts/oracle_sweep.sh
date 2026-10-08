@@ -9,7 +9,7 @@
 set -euo pipefail
 
 BENCH_DIR="$(cd "$(dirname "$0")/../benchmarks" && pwd)"
-UBUNTU_HOME="/home/ubuntu"
+UBUNTU_HOME="${SPECASYNC_HOME:-/home/ubuntu}"
 ORACLE_DIR="${UBUNTU_HOME}/SpecAsync-UVM/oracles"
 RESULTS_DIR="${UBUNTU_HOME}/SpecAsync-UVM/results/p4_d0"
 DEBUGFS="/sys/kernel/debug/specasync"
@@ -38,9 +38,9 @@ fi
 
 echo "[oracle_sweep] Policy=4 is set per module reload (oracle trace loaded at init)."
 
-UBUNTU_HOME="/home/ubuntu"
+UBUNTU_HOME="${SPECASYNC_HOME:-/home/ubuntu}"
 EBS_KO="${UBUNTU_HOME}/SpecAsync-UVM/driver/build/nvidia-uvm-specasync.ko"
-NVME_KO="/opt/dlami/nvme/work/nvidia-595.71.05-specasync/nvidia-uvm.ko"
+NVME_KO="${SPECASYNC_WORK:-/opt/dlami/nvme/work/nvidia-595.71.05-specasync}/nvidia-uvm.ko"
 # Use EBS copy when NVMe is wiped (stop/start clears instance store)
 if [[ -f "${NVME_KO}" ]]; then
     PATCHED_KO="${NVME_KO}"

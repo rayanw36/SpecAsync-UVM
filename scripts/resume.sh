@@ -9,10 +9,10 @@
 
 set -euo pipefail
 
-EBS_HOME="/home/ubuntu/SpecAsync-UVM"
+EBS_HOME="${SPECASYNC_ROOT:-/home/ubuntu/SpecAsync-UVM}"
 EBS_KO="${EBS_HOME}/driver/build/nvidia-uvm-specasync.ko"   # fast path
-SRC_STOCK="/usr/src/nvidia-595.71.05"
-WORK_TOP="/opt/dlami/nvme/work/nvidia-595.71.05-specasync"
+SRC_STOCK="${NV_SRC:-/usr/src/nvidia-595.71.05}"
+WORK_TOP="${SPECASYNC_WORK:-/opt/dlami/nvme/work/nvidia-595.71.05-specasync}"
 WORK_KO="${WORK_TOP}/nvidia-uvm.ko"
 STOCK_KO="/lib/modules/$(uname -r)/updates/dkms/nvidia-uvm.ko"
 STOCK_BACKUP="${EBS_HOME}/driver/stock_backup/nvidia-uvm.ko.stock"
@@ -46,8 +46,8 @@ elif [[ -f "${WORK_KO}" ]]; then
 else
     echo "[2/5] No pre-built .ko found — rebuilding from source (~3 min) ..."
 
-    mkdir -p /opt/dlami/nvme/work
-    chown ubuntu:ubuntu /opt/dlami/nvme/work
+    mkdir -p "$(dirname "$WORK_TOP")"
+    chown "${SPECASYNC_USER:-ubuntu}:${SPECASYNC_USER:-ubuntu}" "$(dirname "$WORK_TOP")"
 
     echo "  Copying stock source tree ..."
     cp -a "${SRC_STOCK}" "${WORK_TOP}"

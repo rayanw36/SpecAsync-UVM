@@ -13,7 +13,7 @@
 set -euo pipefail
 
 BENCH_DIR="$(cd "$(dirname "$0")/../benchmarks" && pwd)"
-UBUNTU_HOME="/home/ubuntu"
+UBUNTU_HOME="${SPECASYNC_HOME:-/home/ubuntu}"
 ORACLE_DIR="${UBUNTU_HOME}/SpecAsync-UVM/oracles"
 DEBUGFS="/sys/kernel/debug"
 TOOLS_DIR="${BENCH_DIR}/tools"

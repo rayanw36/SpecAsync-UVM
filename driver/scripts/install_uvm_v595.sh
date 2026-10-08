@@ -3,7 +3,7 @@
 # Must be run as root (or with sudo).
 set -euo pipefail
 
-WORK=/opt/dlami/nvme/work/nvidia-595.71.05-specasync
+WORK="${SPECASYNC_WORK:-/opt/dlami/nvme/work/nvidia-595.71.05-specasync}"
 POLICY="${SPECASYNC_POLICY:-1}"
 LOG="${SPECASYNC_LOG:-1}"
 DEPTH="${SPECASYNC_DEPTH:-0}"

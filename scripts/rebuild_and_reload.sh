@@ -10,10 +10,10 @@
 
 set -euo pipefail
 
-WORK_SRC="/opt/dlami/nvme/work/nvidia-595.71.05-specasync/nvidia-uvm"
-TOP_DIR="/opt/dlami/nvme/work/nvidia-595.71.05-specasync"
+WORK_SRC="${SPECASYNC_WORK:-/opt/dlami/nvme/work/nvidia-595.71.05-specasync}/nvidia-uvm"
+TOP_DIR="${SPECASYNC_WORK:-/opt/dlami/nvme/work/nvidia-595.71.05-specasync}"
 STOCK_KO="/lib/modules/6.17.0-1017-aws/updates/dkms/nvidia-uvm.ko"
-STOCK_BACKUP="/home/ubuntu/SpecAsync-UVM/driver/stock_backup/nvidia-uvm.ko.stock"
+STOCK_BACKUP="${SPECASYNC_ROOT:-/home/ubuntu/SpecAsync-UVM}/driver/stock_backup/nvidia-uvm.ko.stock"
 NEW_KO="${TOP_DIR}/nvidia-uvm.ko"
 KVER="$(uname -r)"
 
@@ -69,5 +69,5 @@ echo "=== SUCCESS ==="
 echo "export SPECASYNC_SRCVERSION=\"${LOADED_SRCVERSION}\""
 echo ""
 echo "Rsync results to EBS:"
-echo "  rsync -av /opt/dlami/nvme/work/nvidia-595.71.05-specasync/nvidia-uvm/nvidia-uvm.ko \\"
+echo "  rsync -av ${TOP_DIR}/nvidia-uvm/nvidia-uvm.ko \\"
 echo "    ~/SpecAsync-UVM/driver/build/nvidia-uvm-specasync-v595.ko"

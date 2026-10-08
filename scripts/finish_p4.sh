@@ -2,7 +2,7 @@
 # finish_p4.sh — re-parse all p4 raw bins with the CORRECT parser CLI, then run analysis.
 # Safe to run only AFTER the oracle sweep has finished (SWEEP_DONE).
 set -uo pipefail
-HOME_DIR=/home/ubuntu/SpecAsync-UVM
+HOME_DIR="${SPECASYNC_ROOT:-/home/ubuntu/SpecAsync-UVM}"
 PARSE="$HOME_DIR/benchmarks/tools/specasync_parse.py"
 P4="$HOME_DIR/results/p4_d0"
 

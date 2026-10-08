@@ -2,7 +2,7 @@
 # watch_progress.sh — show per-benchmark p4 parse + analysis progress.
 # Usage: bash watch_progress.sh        (one snapshot)
 #        watch -n2 bash watch_progress.sh   (live)
-H=/home/ubuntu/SpecAsync-UVM
+H="${SPECASYNC_ROOT:-/home/ubuntu/SpecAsync-UVM}"
 P4="$H/results/p4_d0"
 PH="$H/results/phaseB"
 

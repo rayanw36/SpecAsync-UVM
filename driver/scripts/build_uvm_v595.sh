@@ -2,7 +2,7 @@
 # Build the SpecAsync nvidia-uvm module for driver v595.71.05
 set -euo pipefail
 
-WORK=/opt/dlami/nvme/work/nvidia-595.71.05-specasync
+WORK="${SPECASYNC_WORK:-/opt/dlami/nvme/work/nvidia-595.71.05-specasync}"
 LOGDIR="$HOME/SpecAsync-UVM/results/phaseB/logs"
 mkdir -p "$LOGDIR"
 
