@@ -1,0 +1,5 @@
+workload,compared_dir,entries,same_page_set,max_rank_displacement
+stencil,postreboot_check,1125000,True,98
+stencil,smoke_tables,1125000,True,96
+graphbfs,postreboot_check,287956,True,35823
+graphbfs,smoke_tables,287956,True,37992

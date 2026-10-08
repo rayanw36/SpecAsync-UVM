@@ -1,0 +1,5 @@
+row,workload,raw_file,trace_entries,coalesced_faults_prose,ratio_faults_per_entry
+1,Stencil-24K,results/phaseB2/gate3_interleaved/c3_bench_stencil_trace.bin,276961,3237375,11.6889
+1,GraphBFS-23,results/phaseB2/gate3_interleaved/c3_bench_graph_bfs_trace.bin,207564,445721,2.1474
+2,Stencil-24K,results/phaseB1/gate_e05_realworkload/stencil24k_trace.bin,2953867,2953867,1.000000
+2,GraphBFS-23,results/phaseB1/gate_e05_realworkload/graphbfs23_trace.bin,483896,483896,1.000000

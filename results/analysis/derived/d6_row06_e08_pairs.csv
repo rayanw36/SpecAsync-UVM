@@ -1,0 +1,7 @@
+workload,pair,len_A,len_B,abs_count_diff,forward_set_pct,backward_set_pct,abs_forward_minus_backward_pts
+stencil24k,rep1 vs rep2,2945072,2940654,4418,1.9447,98.1357,96.1910
+stencil24k,rep1 vs rep3,2945072,2941901,3171,2.9480,97.0757,94.1277
+stencil24k,rep2 vs rep3,2940654,2941901,1247,21.2074,78.9212,57.7137
+graphbfs23,rep1 vs rep2,480809,482174,1365,70.8947,39.4606,31.4341
+graphbfs23,rep1 vs rep3,480809,485160,4351,80.5732,28.8530,51.7201
+graphbfs23,rep2 vs rep3,482174,485160,2986,78.6083,31.1381,47.4702
