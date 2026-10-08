@@ -1,0 +1,5 @@
+# E7-T4 analyzer positive control (5070 Ti E7 e7_runs.csv, Family A, stock-t0 vs stock-t51, m = 2)
+n = 10 / 10; median t51 1.1336 s, t0 1.0251 s
+delta = -9.57%  (E7 reported -9.57%)
+MWU two-sided p = 1.08e-05  (E7 reported 1.08e-05)
+CONTROL: PASS - reproduces E7 Family A
