@@ -32,7 +32,7 @@ import subprocess
 import sys
 import time
 
-REPO = "/home/rayenchikhaoui/SpecAsync-UVM"
+REPO = os.environ.get("SPECASYNC_REPO", "/home/rayenchikhaoui/SpecAsync-UVM")
 DBG = "/sys/kernel/debug/specasync"
 EXPECTED_SRCVERSION = "5997D238EF080B77DBD2AAF"
 KO = f"{REPO}/driver/build/595.91.07/nvidia-uvm-specasync-NEW-e0.9a2-fixed.ko"

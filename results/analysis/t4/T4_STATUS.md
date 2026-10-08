@@ -54,3 +54,13 @@ Simulation (apt-get install --simulate --no-install-recommends): no other nvidia
 - CUDA toolkit: NVIDIA apt repo (signed-by cuda-archive-keyring from cuda-keyring_1.1-1 sha256 d2a6b11c...), cuda-compiler-13-0/libraries-13-0/libraries-dev-13-0 = 13.0.1-1; **nvcc release 13.0, V13.0.88** (cuda-nvcc-13-0 13.0.88-1); libcublas 13.1.1.3, libcufft 12.0.0.61. /usr/local/cuda -> cuda-13.0. Own pin file /etc/apt/preferences.d/cuda-limited blocks nvidia-*/libnvidia-* from that repo. Not installed: nsight/visual tools (not needed). cuda-toolkit-config-common 13.4.92 came in as a config-only dep.
 - gcc: gcc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0
 - Plus build-essential, rsync, patch, dkms installed (named, for builds).
+
+## T2 - scripts run here (DONE)
+- Env-var path fixes were NOT on origin (PATH_AUDIT.md was audit-only), so one minimal edit: `tests/e09b_runner.py:35` `REPO = os.environ.get("SPECASYNC_REPO", "/home/rayenchikhaoui/SpecAsync-UVM")` (default unchanged; every E-runner imports it). Run with SPECASYNC_REPO=/home/ubuntu/SpecAsync-UVM. No other file edited. e7_runner.py/e5/e4/e3b unchanged.
+- Benchmarks built for sm_75 with nvcc 13.0.88 (benchmarks/Makefile, graph_bfs/Makefile, stencil_oversub/Makefile; binaries are gitignored). One warning: bench_graph_bfs.cu(98) unused variable `half`.
+- Smoke (stock module, threshold 51, setarch -R, single run, xrdp active, DESCRIPTIVE ONLY; old T4 C0 = GATE_T1_REPORT.md, driver 595.71.05):
+
+| workload | this run (595.91.07 stock t51) | old T4 C0 (595.71.05, n=20 median) |
+|---|---:|---:|
+| Stencil-24K | 5.91 s | 4.185 s |
+| GraphBFS-23 | 54.36 s | 54.265 s |
