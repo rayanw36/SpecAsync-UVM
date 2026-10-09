@@ -1,0 +1,213 @@
+% =====================================================================
+% Section I -- Introduction
+% SpecAsync-UVM manuscript, draft 2 (revision of draft 1)
+%
+% CHANGES FROM DRAFT 1 -- all are number corrections or scope repairs,
+% not rewrites of the argument:
+%   (a) Pipelining ceiling 0.20-19.06%  ->  0.08-7.94%.  The old figure
+%       came from a units mismatch (summed numerator over 5 trials,
+%       single-trial denominator) that inflated every ceiling ~5x and
+%       produced mathematically impossible >100% fractions on 4 of 6 T4
+%       workloads.  See CEILING_BASIS_VERIFICATION.md / GATE_T3_REPORT.md.
+%   (b) Hit rates 0.02% / 0.25%  ->  0.0132% / 0.2357% (marginal-diff of
+%       pre-saturation reps; the old figures were computed off a saturated
+%       ring).  Surrounding prose rewritten to state what the counter
+%       actually measures.
+%   (c) Prefetcher-disable cost 3.5x / 2.7-4.1x  ->  3.55x (T4), 3.88x
+%       (5070 Ti) for stencil; +218% to +485% for cuFFT.
+%   (d) "Six measurement artifacts"  ->  eleven, plus one candidate.
+%   (e) \prov{} markers removed where the blocking work has since landed
+%       (A1 worker telemetry, 5070 Ti cross-platform replication).  A3 is
+%       addressed in prose rather than marked provisional, since B7's
+%       12-core result largely answers it.
+%
+% NOT INCLUDED, deliberately: Gate B10 (C4 = prefetch ON + oracle) shows a
+% large apparent benefit at iters=20 under oversubscription, but the effect
+% oscillates in sign across iteration counts and a trace-ring phase-aliasing
+% artifact has not yet been ruled out.  Nothing about B10 appears in this
+% section until that is resolved.
+% =====================================================================
+
+\section{Introduction}
+
+Unified Virtual Memory (UVM) lets GPU kernels address memory larger than device
+capacity by migrating pages on demand, trading programmer effort for runtime
+page-fault handling. That trade is not free: each GPU fault that misses in
+device memory traps to the host driver, which must locate the faulting virtual
+address range, decide a residency, construct and submit a migration, and update
+page tables---all while holding a per-address-space lock. On fault-intensive
+workloads this host-side path is a substantial fraction of execution time, and
+it has accordingly attracted a decade of proposals to hide it: hardware and
+software prefetchers, access-pattern predictors, tiling and scheduling
+transformations, and speculative pre-staging of pages ahead of demand.
+
+A large fraction of that literature is evaluated in simulation. Simulation is a
+reasonable choice---modifying a production GPU driver is invasive, and
+fault-path instrumentation at nanosecond resolution is difficult to obtain
+otherwise---but it leaves a gap. A simulator models the costs its author chose
+to model. If a proposed mechanism's benefit depends on a cost the simulator
+abstracts away, or is defeated by an interaction with a component the simulator
+does not implement, the proposal can appear sound and still fail on real
+hardware. Closing that gap requires building the mechanism in a production
+driver and measuring it.
+
+This paper does that for one specific and widely-proposed idea: \emph{off-path
+speculative page staging}. The mechanism is intuitive. When the driver services
+a demand fault, it also predicts which page will fault next and hands that
+prediction to an asynchronous worker outside the fault-service path. The worker
+performs the residency lookup---and, optionally, the migration---concurrently
+with the application's continued execution. If the prediction is correct, the
+subsequent fault finds its work already done and the host-side cost is hidden.
+Because the speculative work runs off the critical path, the mechanism appears
+to be nearly free: a correct prediction saves time, and an incorrect one costs
+only wasted background work.
+
+We implemented this mechanism as \emph{SpecAsync-UVM}, a modification of
+NVIDIA's open-source UVM kernel driver, and evaluated it on real hardware across
+two GPU architectures, a range of workloads, and four prediction policies. Our
+central finding is negative: \textbf{off-path speculative staging yields no
+measurable wall-clock benefit, and the result is not attributable to poor
+prediction.}
+
+The evidence for that last clause is what distinguishes this study from a simple
+null result. To separate prediction quality from achievable speedup, we
+implement an \emph{oracle} policy that replays a previously recorded fault
+trace, making prediction accuracy 100\% by construction. Under oracle prediction
+with real page migration, and with every condition arranged in speculation's
+favour, we observe no improvement over an unspeculated baseline on either of two
+fault-intensive workloads: on GraphBFS the two are statistically
+indistinguishable ($p=0.78$, Cohen's $d=0.10$, with a minimum detectable effect
+of 0.16\% of baseline), and on a 2D stencil oracle speculation is measurably
+\emph{slower} ($+6.7\%$, $p<10^{-6}$ Holm-corrected, $d=1.75$). The stencil
+result reproduces on a second architecture in the same direction ($+3.60\%$
+slower, $p<10^{-7}$). No predictor can stage pages more accurately than the
+oracle; prediction accuracy is therefore not the bottleneck.
+
+Three structural reasons emerge from our measurements. We report them as a
+characterization rather than as a single mechanism, because the evidence
+supports some more strongly than others.
+
+\subsubsection*{Redundancy with the in-path prefetcher}
+Off-path speculation is \emph{structurally redundant} with the driver's existing
+in-path prefetcher. With the stock prefetcher enabled, speculative hit rates on
+real workloads are near zero, because the prefetcher has already migrated the
+pages that speculation would have predicted---it hides the very demand faults
+speculation needs in order to act. Disabling the prefetcher exposes those
+faults, but at a cost far exceeding anything speculation can recover:
+$3.55\times$ on the stencil workload on a Tesla T4 and $3.88\times$ on an RTX
+5070 Ti, and between $+218\%$ and $+485\%$ on cuFFT. That the two platforms
+agree so closely despite an $8\times$ difference in interconnect bandwidth
+indicates the prefetcher's value is not simply bandwidth-explained. Speculation
+is squeezed between a regime where it has nothing to do and a regime whose entry
+price it cannot repay.
+
+\subsubsection*{Predictions are not consumed}
+Even with the prefetcher disabled and prediction oracle-perfect, the driver
+telemetry records speculative work being consumed at fault time only rarely:
+0.0132\% and 0.2357\% of demand faults on our two T4 benchmarks, against
+99.61\% for a deterministic synthetic probe under the same instrumentation. We
+are deliberate about what this counter can and cannot establish. It increments
+when a demand fault occurs and finds speculative work already staged for that
+address, so it registers speculation that arrived in time to be \emph{useful}
+but not in time to \emph{prevent} the fault; it bounds one mode of benefit
+rather than measuring all of them. The negative result itself does not depend on
+it---wall-clock time is measured directly and is independent of how hits are
+counted. What the counter does establish is that the instrument works, and that
+on real workloads predictions are overwhelmingly not consumed in the mode it can
+see.
+
+Our measurements narrow the cause to the latency of the asynchronous worker
+relative to the arrival rate of demand faults. An uncontended round trip through
+the worker costs 5.598\,\textmu s of dispatch latency against
+0.300\,\textmu s of execution on the T4; under real workload load that
+dispatch window inflates by three orders of magnitude ($1{,}685$--$1{,}894\times$),
+while stencil faults arrive at roughly $188{,}000$ per second. The resulting race
+margin is on the order of $10^3$. The blowup is load-dependent rather than a
+fixed property of the design: it persists on a 12-core host, but at a
+substantially lower magnitude ($432$--$438\times$), which indicates a queueing-pressure
+threshold that additional cores raise without removing.
+
+\subsubsection*{The headroom is small, and it is not where the mechanism aims}
+The headroom available to \emph{any} such scheme is smaller than the mechanism's
+framing suggests. Decomposing the fault-dispatch window into seven sub-phases,
+we find that the overlappable portion---the work that could in principle be
+moved off the critical path---bounds end-to-end speedup at between 0.08\% and
+7.94\% across both platforms, driven almost entirely by how much of a workload's
+wall-clock time is spent servicing faults at all. The dominant cost is servicing
+under the address-space lock: 63--74\% of the dispatch window on the T4 and
+52.1--76.9\% on the 5070 Ti. Lock \emph{wait}, by contrast, is negligible on both
+($\approx 0.1\%$), so contention is not the problem. Source-level analysis of
+the 595.71.05 tree shows the dominant phase is CPU-side residency bookkeeping
+culminating in an asynchronous GPU submission rather than a blocking wait on the
+GPU. It is therefore not latency that asynchrony can hide.
+
+A cross-platform scaling comparison sharpens this. Moving the same workload from
+a PCIe gen3 $\times$8 host to a gen5 $\times$16 host---an $8.00\times$ raw
+interconnect improvement---yields $4.45\times$ on kernel-loop time,
+$3.787\times$ on process wall-clock, and only $2.350\times$ on the fault-dispatch
+window itself. The fault-servicing path benefits \emph{least} from a faster
+interconnect of anything we measured, which suggests its cost floor is set by
+per-fault CPU-side structure rather than by transport.
+
+\subsubsection*{A premise of our own earlier work was wrong}
+The mechanism was originally motivated by the belief that host-side metadata
+discovery dominates fault-service cost. Corrected instrumentation shows metadata
+accounts for 0.04\,\textmu s, under 1\% of that cost; dispatch and
+migration dominate. The mechanism was aimed at the wrong target. We report this
+directly because the correction is itself part of the paper's contribution: the
+same instrumentation that refuted the premise is what makes the headroom bound
+measurable.
+
+\subsection{Contributions}
+
+\begin{itemize}
+  \item \textbf{An in-driver prototype on production hardware.} A working
+  modification of NVIDIA's open-source UVM driver---under 400 net new lines,
+  preserving the driver's safety invariants---implementing four prediction
+  policies, two speculation depths, and debugfs telemetry, ported across driver
+  versions and evaluated on a Tesla T4 (sm\_75, Turing, driver 595.71.05) and an
+  RTX 5070 Ti (sm\_120, Blackwell, driver 595.84).
+
+  \item \textbf{An oracle-based methodology separating prediction accuracy from
+  achievable speedup.} By replaying recorded fault traces we establish an upper
+  bound no heuristic predictor can exceed, allowing a negative result to be
+  attributed to the mechanism rather than to prediction quality.
+
+  \item \textbf{A rigorously validated negative result.} Measured under a
+  pre-registered analysis plan with strictly interleaved run ordering,
+  non-parametric testing, family-wise error correction, and reported minimum
+  detectable effects---so that ``no benefit observed'' is a well-powered finding
+  rather than an underpowered null.
+
+  \item \textbf{A cross-architecture replication, with its evidential asymmetry
+  stated.} Our two platforms differ along four axes simultaneously
+  (architecture, driver version, host kernel, and virtualization), so a finding
+  that reproduces across them is strong evidence of a driver-architectural
+  property, while a finding that does not reproduce is causally uninterpretable.
+  We label every result by which of these two categories it falls into rather
+  than reporting all cross-platform comparisons as equivalent.
+
+  \item \textbf{A quantified headroom bound and cost decomposition.} A
+  seven-phase decomposition of the fault-dispatch window, with instrumentation
+  overhead validated at 0.64\% (T4) and 0.331\% (5070 Ti, not statistically
+  distinguishable from zero), yielding an end-to-end bound on what any off-path
+  scheme could achieve, and a bandwidth-scaling ladder showing that the
+  fault-service path is the component least improved by a faster interconnect.
+
+  \item \textbf{A catalog of UVM measurement pitfalls.} Eleven distinct
+  measurement artifacts encountered and corrected during this study, each
+  presented with the false conclusion it would have produced---a reusable hazard
+  list for anyone instrumenting this subsystem. Three of the eleven were caught
+  not by the original analysis but by an independent verification pass over it,
+  and each of those three inflated an absolute headline number while leaving a
+  same-data ratio intact.
+\end{itemize}
+
+We do not claim that no form of speculation can benefit UVM. We claim,
+specifically, that \emph{off-path asynchronous} speculation cannot, on this
+driver architecture, for the reasons above---and that the headroom for
+critical-path restructuring, while larger, is bounded and measurable. We close
+by arguing that the productive direction indicated by our own decomposition is
+in-path: reducing the cost of residency decision and migration construction
+under the address-space lock, rather than predicting more accurately what to
+fetch.

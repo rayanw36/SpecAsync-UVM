@@ -1,0 +1,180 @@
+% =====================================================================
+% Section I -- Introduction
+% SpecAsync-UVM manuscript, draft 3 (rewrite, not a revision of draft 2)
+%
+% WHY A REWRITE: draft 2's central claim ("no benefit even under oracle-
+% perfect prediction") rested on a misaligned oracle (E0.5, AC-13). The
+% pre-registered Gate E series replaced it, and two falsification triggers
+% fired (E4: speculation beats the shipped driver; E6: threshold tuning
+% matches or beats speculation). E7 confirmed the threshold result; E8
+% showed it reverses for sparse oversubscribed access.
+%
+% REMOVED from draft 2 (superseded; see SUPERSEDED_VALUES.md):
+%   - oracle-null lead evidence (p=0.78; +6.7%; +3.60%)      -> CS2-7
+%   - spec_hits hit rates (0.0132%, 0.2357%, 99.61%)         -> CS2-N7
+%   - dispatch-race explanation (1,685-1,894x; 432-438x)     -> R1
+%   - "any such scheme" pipelining ceiling (0.08-7.94%)      -> CS2-15
+%   - metadata 0.04 us premise (source file never located)
+%   - "<400 lines", "preserving the driver's safety invariants" -> CS2-17
+%
+% EVIDENCE for every number below (ids in EVIDENCE_EXTRACT.md after
+% C3-APPLY): E4 F1/F4, E5 D(t), E6 Family 1 + secondary, E7 Families A/B,
+% E8 primary. Platform for all Gate E numbers: RTX 5070 Ti, driver
+% 595.91.07 (kernel 7.0.0-31 for E0.5-E0.9, 7.0.0-34 from E0.9a-2 on).
+%
+% OPEN before submission:
+%   [T4]   cross-platform sentence in the scope paragraph waits on the T4
+%          replication (quota pending).
+%   [LIT]  Go et al. sentence to be checked against the full paper (CS2-N11).
+%   [CAT]  artifact count (25) to be confirmed against ARTIFACT_CATALOG.md.
+%   [SEC]  section numbers in the roadmap follow the planned outline.
+% =====================================================================
+
+\section{Introduction}
+
+Unified Virtual Memory (UVM) lets GPU kernels address host and device memory
+through one pointer space, migrating pages on demand when the GPU touches data
+it does not hold. Each such access raises a fault that the host driver must
+service: it locates the faulting range, decides where the data should reside,
+migrates it, and installs a GPU mapping, largely while holding a lock on the
+address space. On fault-intensive workloads this host-side path is a large
+share of execution time. NVIDIA's driver already attacks it with an in-path
+prefetcher: when it services a fault, it also migrates neighbouring pages if
+enough of their surrounding region is already resident, using a density
+threshold over a tree of subregions within each 2\,MB block
+\cite{ganguly2019interplay}. A natural next step, proposed repeatedly in the
+literature and suggested explicitly by Allen \emph{et al.}\ after their
+fine-grained decomposition of the UVM fault path \cite{allen2024finegrain}, is
+to go further asynchronously: predict which pages will fault next and stage
+them \emph{off} the fault path, so the cost is paid before the fault arrives.
+
+This paper tests that idea on real hardware. We built it as
+\emph{SpecAsync-UVM}, a modification of NVIDIA's open-source UVM driver in which
+a background worker stages pages that a predictor nominates while the
+fault-servicing thread continues. To ask what off-path staging can achieve at
+all, rather than how well some heuristic predicts, we drive it with a
+\emph{first-touch oracle}: a table of the run's own page order recorded in an
+earlier run, which on our stencil workload is nearly deterministic, looked up in
+constant time. We then measured it against the driver as shipped, under
+pre-registered analysis plans with falsification triggers, on an RTX 5070 Ti
+(Blackwell) with driver 595.91.07.
+
+The answer has four parts, and the last two concern the driver's own
+prefetcher rather than speculation.
+
+\paragraph{Off-path staging cannot prevent a fault}
+The background worker can make a page resident, but in this driver only the
+fault-servicing path installs GPU mappings. A staged page therefore still
+faults when the GPU first touches it. We confirmed this from source, from
+counters, and with the oracle: with the prefetcher disabled, staging 99.95\% of
+pages ahead of demand left the demand-fault count unchanged, and that
+configuration remained $2.92\times$ slower than the shipped driver. Speculation
+can move copy work off the fault-servicing thread, worth 21--23\% against a
+driver whose prefetcher is off, but it cannot recover what turning the
+prefetcher off costs.
+
+\paragraph{Against the shipped driver, speculation helps only through the prefetcher}
+With the prefetcher on, whole-block staging with the oracle beats the shipped
+driver on a stencil workload by 3.4--5.3\% across four independent sessions,
+with no detectable gain on graph traversal. The gain does not come from the
+staged pages themselves. The prefetcher's density rule counts \emph{resident}
+pages, so pages staged by the worker push regions over its threshold, and the
+prefetcher then maps whole regions during ordinary fault service, preventing
+about 40\% of demand faults. A pre-registered dose--response test confirms
+this: the fault reduction grows from 40\% to 53\% as the threshold is raised from
+51 to 75, and vanishes when the rule is disabled.
+
+\paragraph{The same lever is available without speculation}
+If speculation's benefit runs through the density threshold, the threshold can
+be moved directly. Lowering it from the shipped 51 to 0, with no speculation,
+makes the stock driver 9.57\% faster on the same stencil workload (confirmatory
+test), and the oracle-driven speculation configuration at the shipped threshold
+is 6.4\% slower than it. At matched thresholds, speculation adds at most 2.8\%,
+and nothing detectable at threshold 0 or 10 (minimum detectable effects 1.8\%
+and 2.0\%). Across nine dense or streaming workloads, the lower threshold sped up
+four, by 2.5--17\%, and significantly slowed none.
+
+\paragraph{But the lever cuts both ways}
+The shipped threshold is a compromise, not an oversight. On a synthetic
+benchmark that touches only one or eight pages per 2\,MB block, the low
+threshold is 41--85\% \emph{slower} once the array exceeds GPU memory: the
+prefetcher brings in whole blocks for a few useful pages, inflating a working
+set that would fit into one that does not. With the array in memory the
+effects are small and mixed, and with 64 or more pages touched per block the low
+threshold is faster again. No fixed lower threshold dominates the shipped one.
+This agrees with Go \emph{et al.}, who found the threshold's impact to vary
+across workloads under oversubscription \cite{go2023earlyadaptor}; our
+contribution is to show that off-path speculation's measured value is a
+side effect of the same rule, and to measure the rule's effect in both
+directions under a pre-registered protocol.
+
+\medskip
+The result reverses this study's own earlier conclusion, and how it was
+overturned is part of what we report. An earlier version concluded that even
+oracle prediction yields no benefit. That oracle, we later found, replayed its
+trace at the wrong rate: faults were recorded once per batch but consumed once
+per fault, so the replay ran ahead of the application and silently wrapped. The
+corrected oracle produced the positive result above, and a falsification
+trigger committed before the run is what forced us to report it. The
+threshold experiment that then explained the positive result away was itself
+pre-registered with a trigger, and it fired. Each reversal was caught by a check
+written before the measurement it tested.
+
+\subsection{Contributions}
+
+\begin{itemize}
+  \item \textbf{An in-driver off-path staging prototype with a usable oracle.}
+  A modification of NVIDIA's open-source UVM driver with a constant-time,
+  lock-free first-touch oracle and a configurable staging width, whose kernel
+  changes passed a review protocol of compile-only review, a precondition table
+  for every driver call, and an attended first load.
+
+  \item \textbf{A mechanistic account of what off-path staging can and cannot
+  do.} Staging cannot prevent faults because it cannot map (verified from
+  source and by counters). Its only route to fault prevention is the
+  prefetcher's density rule, confirmed by a pre-registered dose--response
+  test. Its other effect, copy offload, is large only when the prefetcher is
+  off. We also measure the cost of handing work to the worker
+  (54--75\,ns per enqueue, on the critical path) and show that most of the
+  per-fault overhead in our first oracle was its own lookup.
+
+  \item \textbf{A two-directional measurement of the prefetch threshold.}
+  Pre-registered tests on the stock driver showing both the gain from a lower
+  threshold on dense and streaming access and the loss on sparse access to an
+  oversubscribed array, with minimum detectable effects reported for every
+  null.
+
+  \item \textbf{A falsifiable measurement protocol, exercised.} Every gate fixed
+  its families, statistic, test, minimum detectable effect, and falsification
+  trigger in a committed file before running. Two triggers fired and changed the
+  paper's conclusion. Analysis uses medians, two-sided Mann--Whitney $U$, Holm
+  correction across pre-declared families, and reports outliers with and
+  without removal.
+
+  \item \textbf{A catalog of UVM measurement artifacts.} Twenty-five artifacts
+  met in this study, each with the false conclusion it would have produced,
+  including the misaligned oracle. One pattern stands out: errors arising from
+  a mismatch of aggregation level (per batch versus per fault, per trial versus
+  per run) were caught only by later, independent passes, after they had spread
+  into other reports, whereas pre-registered predictions caught errors inside the
+  gate that made them.
+\end{itemize}
+
+\subsection{Scope}
+
+Our speculation results use a near-perfect oracle on the stencil workload and a
+weaker one on graph traversal, so they bound what off-path staging can achieve
+and do not evaluate a practical predictor. All Gate-series results are from one
+platform. % [T4] replace with the T4 replication result when available.
+The sparse-access counterexample uses one synthetic benchmark at one
+oversubscription ratio. We make no claim about prefetching performed above the
+driver, which operates differently and has reported gains
+\cite{shen2026stride}; Section~II discusses it.
+% [LIT] check the shen2026stride wording against the paper.
+
+Section~II reviews related work. Section~III describes the UVM fault path and
+the prefetcher's density rule. Section~IV presents SpecAsync-UVM and the oracle,
+and Section~V the measurement protocol. Section~VI reports the speculation
+results and their mechanism, Section~VII the threshold measurements, and
+Section~VIII the artifact catalog. Section~IX concludes.
+% [SEC] renumber if the outline changes.

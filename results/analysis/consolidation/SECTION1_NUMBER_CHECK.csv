@@ -1,0 +1,32 @@
+line,token,category,status,evidence_ids_first3,n_matching_ids,context
+44,2,quantity,exact,E4.F1.stencil.C7-W64_vs_C0;E4.F2.stencil.C7-W1_vs_C7-slow-W1;E09b.stencil.C6-L256_vs_C1,7,"d over a tree of subregions within each 2\,MB block"
+59,5070,quantity,not found,,0,"with falsification triggers, on an RTX 5070 Ti"
+60,595.91.07,identifier,n/a (version),,0,(Blackwell) with driver 595.91.07.
+69,99.95,quantity,rounded,E4.mech.stencil.C6-W512;E5.mech.t100.C7W512,2,": with the prefetcher disabled, staging 99.95\% of"
+71,2.92,quantity,not found,,0,configuration remained $2.92\times$ slower than the shippe
+72,21,small/other,rounded,D6.r06.stencil24k_rep2_vs_rep3_forward_set_2_dp;E09b.graphbfs.C6-L16_vs_C1;E4.F3.graphbfs.C6-W64_vs_C1,4,"k off the fault-servicing thread, worth 21--23\% against a"
+72,23,quantity,exact,D6.r03.new_spec_hits;D6.r03.new_spec_hits;D6.r03.new_spec_hits,4,"f the fault-servicing thread, worth 21--23\% against a"
+78,3.4,quantity,rounded,B10.t_b10_aggregate_comparison.csv.iters1;E09b.mech.graphbfs.C6256;E4.F3.stencil.C6-W64_vs_C1,5,driver on a stencil workload by 3.4--5.3\% across four independen
+78,5.3,quantity,rounded,D6.r09.5070_Ti_Sweep_16K_ceiling_sum_medagg_2_dp;E3b.stencil.C7.residual;E5.wall.t51,7,driver on a stencil workload by 3.4--5.3\% across four independent ses
+83,40,quantity,rounded,A1.5070Ti.short_run.bench_stencil;D6.r09.T4_Sweep_16K_ceiling_span_sumagg_2_dp;E5.D(51),5,about 40\% of demand faults. A pre-reg
+84,40,quantity,rounded,A1.5070Ti.short_run.bench_stencil;D6.r09.T4_Sweep_16K_ceiling_span_sumagg_2_dp;E5.D(51),5,this: the fault reduction grows from 40\% to 53\% as the threshold is
+84,53,quantity,rounded,E5.D(75);E8.in.K64.stock-t25_vs_stock-t51,2,the fault reduction grows from 40\% to 53\% as the threshold is raised
+85,51,small/other,rounded,D6.r06.stencil24k_depth_1_reduced_set_forward_2_dp;D6.r06.stencil24k_depth_1_reduced_window_W_100_forward_2_dp;E8.in.K64.stock-t0_vs_stock-t51,3,"51 to 75, and vanishes when the"
+85,"75,",small/other,exact,E1b.stencil.C74096-C0;E1b.stencil.C74096-C0,2,"51 to 75, and vanishes when the rule is"
+89,51,small/other,rounded,D6.r06.stencil24k_depth_1_reduced_set_forward_2_dp;D6.r06.stencil24k_depth_1_reduced_window_W_100_forward_2_dp;E8.in.K64.stock-t0_vs_stock-t51,3,"directly. Lowering it from the shipped 51 to 0, with no speculation,"
+89,"0,",small/other,exact,E4.mech.stencil.C0;E4.mech.stencil.C0;E4.mech.stencil.C0,61,"tly. Lowering it from the shipped 51 to 0, with no speculation,"
+90,9.57,quantity,exact,E7.A.stencil.stock-t0_vs_stock-t51;E7.A.stencil.stock-t0_vs_stock-t51,2,makes the stock driver 9.57\% faster on the same stencil
+92,6.4,quantity,rounded,E6.F1.C7W512-t51_vs_C0-t0,1,is 6.4\% slower than it. At matched
+92,2.8,quantity,rounded,A1.T4.short_run.bench_stencil;E4.F2.stencil.C6-W1_vs_C6-slow-W1;E6.wall.C7W512-t25_vs_C0-t25,3,"ed thresholds, speculation adds at most 2.8\%,"
+93,0,small/other,exact,E4.mech.stencil.C0;E4.mech.stencil.C0;E4.mech.stencil.C0,61,and nothing detectable at threshold 0 or 10 (minimum detectable eff
+93,10,small/other,exact,claim16.5070Ti;claim16.5070Ti;claim16.5070Ti,4,nd nothing detectable at threshold 0 or 10 (minimum detectable effects 1
+93,1.8,quantity,rounded,E4.F1.stencil.C7-W64_vs_C0;E4.F3.stencil.C6-W64_vs_C1;E4.F4.stencil.C6-W512_vs_C0,9,old 0 or 10 (minimum detectable effects 1.8\%
+94,2.0,quantity,rounded,E09b.graphbfs.C6-L1_vs_C1;E09b.pilot.stencil.C6.window;E09b.stencil.C6-L256_vs_C1,17,and 2.0\%). Across nine dense or stre
+95,2.5,quantity,rounded,E1b.stencil.C74096-C0;E4.F2.stencil.C7-W1_vs_C7-slow-W1;E4.mech.stencil.C7-slow-W1,5,"four, by 2.5--17\%, and significantly slow"
+95,17,quantity,rounded,B10.t_b10_aggregate_comparison.csv.iters20;B10.t_b10c_aggregate_comparison.csv.iters12;B10.t_b10c_aggregate_comparison.csv.iters20,9,"four, by 2.5--17\%, and significantly slowed n"
+99,2,quantity,exact,E4.F1.stencil.C7-W64_vs_C0;E4.F2.stencil.C7-W1_vs_C7-slow-W1;E09b.stencil.C6-L256_vs_C1,7,"hat touches only one or eight pages per 2\,MB block, the low"
+100,41,small/other,rounded,D6.r03.23_56_hit_rate_of_enqueued_2_dp;E4.mech.graphbfs.C6-W512;E6.F2.C0-t25_vs_C0-t51,5,threshold is 41--85\% \emph{slower} once the
+100,85,quantity,rounded,E6.wall.C7W512-t0_vs_C0-t0;E8.ov.K1.stock-t0_vs_stock-t51,2,threshold is 41--85\% \emph{slower} once the arra
+103,64,small/other,rounded,D6.r09.T4_GraphBFS_23_ceiling_span_sumagg_2_dp;E4.F3.graphbfs.C6-W64_vs_C1;E8.in.K8.stock-t0_vs_stock-t51,3,"effects are small and mixed, and with 64 or more pages touched per blo"
+138,54,small/other,exact,E4.mech.graphbfs.C7-W512;E4.mech.graphbfs.C7-W512;E1b.stencil.C64096-C1,4,"(54--75\,ns per enqueue, on the c"
+138,75,quantity,exact,E1b.stencil.C74096-C0;E1b.stencil.C74096-C0,2,"(54--75\,ns per enqueue, on the criti"
