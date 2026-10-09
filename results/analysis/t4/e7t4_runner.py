@@ -40,11 +40,33 @@ def guard():
         raise R.Stop("pre-registered stop: active xrdp / desktop session during a timed run: " + "; ".join(bad))
 
 
+# Amendment 2 stop condition: before each run, the benchmark's managed allocation must be below MemAvailable - 4 GiB.
+# Managed bytes per workload, from the benchmark sources (cudaMallocManaged calls): stencil 2*N^2*4; stream 3*N*4;
+# sgemm 3*N^2*4; cufft N*8; graph_bfs scale 23: V*(8+16*8+4+2*8) = V*156 (upper bound, edges deduplicated).
+MANAGED_BYTES = {
+    "stencil": 2 * 24000 ** 2 * 4, "stencil8k": 2 * 8000 ** 2 * 4, "sweep4k": 2 * 4000 ** 2 * 4, "sweep16k": 2 * 16000 ** 2 * 4,
+    "stream": 3 * 268435456 * 4, "sgemm": 3 * 24000 ** 2 * 4, "cufft": 134217728 * 8, "graphbfs": (1 << 23) * 156 + 8,
+}
+HEADROOM = 4 * 1024 ** 3
+
+
+def mem_guard(label):
+    wl = label.split()[1]
+    need = MANAGED_BYTES.get(wl)
+    if need is None:
+        raise R.Stop(f"pre-registered stop: no managed-allocation estimate for workload {wl!r}")
+    avail = R.mem_available_kb() * 1024
+    if not need < avail - HEADROOM:
+        raise R.Stop(f"pre-registered stop (Amendment 2): managed allocation {need} B (>= MemAvailable {avail} B - 4 GiB) for {label}")
+
+
 _orig = R.check_after
 
 
 def check_after(before, out_dir, label):
     guard()
+    if label.endswith("after insmod"):
+        mem_guard(label)
     return _orig(before, out_dir, label)
 
 

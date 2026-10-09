@@ -18,8 +18,8 @@ sys.path.insert(0, f"{REPO}/tests")
 import e7_analyze as X  # noqa: E402
 H = X.H
 E7 = f"{REPO}/results/analysis/gate_e/e7"
-WLB = X.FAM_B_WL
-N_FULL = 270
+WLB = [w for w in X.FAM_B_WL if w != "oversub"]   # Amendment 2: oversubscribed Stencil removed
+N_FULL = 240
 
 
 def control(out):
@@ -42,7 +42,7 @@ def ref5070():
 
 
 def analyze(d):
-    order = list(csv.DictReader(open(f"{HERE}/e7t4_order.csv")))
+    order = [o for o in csv.DictReader(open(f"{HERE}/e7t4_order.csv")) if o["workload"] != "oversub"]
     rows = X.load(f"{d}/e7t4_runs.csv")
     skipped = X.read_skipped(d)
     need = N_FULL - 30 * len(skipped)
@@ -83,7 +83,7 @@ def analyze(d):
     slow = [c for c in fb if c["arm"] in ("stock-t0", "stock-t25") and c["holm_sig"] and c["delta_s"] > 0]
     trigger = bool(slow)
     xa = replicated
-    xb_wl = [w for w in ("sweep16k", "stream", "sgemm", "oversub") if w in wls]
+    xb_wl = [w for w in ("sweep16k", "stream", "sgemm") if w in wls]
     xb_d = {w: next(c for c in fb if c["workload"] == w and c["arm"] == "stock-t0")["delta_s"] for w in xb_wl}
     xb = all(v < 0 for v in xb_d.values()) if xb_wl else None
     xc_bad = [c["workload"] for c in fb if c["arm"] == "stock-t0" and c["holm_sig"] and c["delta_s"] > 0]
@@ -115,7 +115,7 @@ def analyze(d):
         L.append(f"  SKIPPED whole (family_b_skipped.txt): {', '.join(skipped)}")
     L += ["", "Expectations (committed before the run):",
           f"  XA stock-t0 faster than t51 on Stencil-24K, Holm-significant: {hf(xa)}",
-          f"  XB Sweep-16K, STREAM, SGEMM, oversub faster at t0 than t51, direction only: {hf(xb)}  ("
+          f"  XB Sweep-16K, STREAM, SGEMM faster at t0 than t51, direction only: {hf(xb)}  ("
           + ", ".join(f"{w} {100 * xb_d[w] / next(c for c in fb if c['workload'] == w)['median_base']:+.2f}%" for w in xb_wl) + ")",
           f"  XC no workload significantly slower at t0: {hf(xc)}" + (f"  (violations: {xc_bad})" if xc_bad else "")]
     L += ["", "5070 Ti E7 for comparison (SEPARATE data, never pooled; delta % / Holm-significant in that analysis):"]

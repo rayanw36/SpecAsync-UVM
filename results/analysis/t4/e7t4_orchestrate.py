@@ -25,7 +25,8 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.environ.get("SPECASYNC_REPO") or os.path.dirname(os.path.dirname(os.path.dirname(HERE)))
 os.environ["SPECASYNC_REPO"] = REPO
 RAW = f"{HERE}/raw"
-WL = ["stencil8k", "sweep4k", "sweep16k", "stream", "sgemm", "cufft", "graphbfs", "oversub"]
+# Amendment 2: oversubscribed Stencil removed (cannot run on 15.4 GiB host); Family B = 7 workloads, idx 31-240.
+WL = ["stencil8k", "sweep4k", "sweep16k", "stream", "sgemm", "cufft", "graphbfs"]
 CAP_S, RESERVE_S, OVERHEAD_S = float(os.environ.get("T4_CAP_HOURS", 5)) * 3600, 25 * 60, 4.0
 ORDER = f"{HERE}/e7t4_order.csv"
 STATUS = f"{HERE}/T4_STATUS.md"
@@ -64,7 +65,7 @@ def main():
             log(f"ABORT: {name} {d:%H:%M:%S} is not later than now {now:%H:%M:%S}")
             return 5
     if mode == "smoke":
-        rc = runner(f"{HERE}/e7t4_smoke_order.csv", f"{HERE}/e7t4_smoke.csv", f"{RAW}/smoke", 0, 0, "E7-T4 smoke")
+        rc = runner(f"{HERE}/e7t4_smoke_order.csv", f"{HERE}/e7t4_smoke.csv", f"{RAW}/smoke", 0, 24, "E7-T4 smoke")  # Amendment 2: rows 25-27 (oversub) removed
         log(f"smoke runner exit {rc}")
         if rc == 0:
             smoke = list(csv.DictReader(open(f"{HERE}/e7t4_smoke.csv")))
