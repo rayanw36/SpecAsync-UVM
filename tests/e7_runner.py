@@ -85,7 +85,7 @@ def commit(paths, msg):
     R.sh(["git", "-C", REPO, "add"] + paths)
     if R.sh(["git", "-C", REPO, "diff", "--cached", "--quiet"]).returncode == 0:
         return None
-    R.sh(["git", "-C", REPO, "commit", "-q", "-m", msg + "\n\nCo-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>\n"
+    R.sh(["git", "-C", REPO, "commit", "-q", "-m", msg + "\n\n"
           "Claude-Session: https://claude.ai/code/session_013R7hqocoYREgYBhLTAjkLy"])
     return R.sh(["git", "-C", REPO, "log", "--oneline", "-1"]).stdout.strip()
 
