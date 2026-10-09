@@ -8,11 +8,11 @@ No report is edited; this file sits beside them. Evidence ids are in `EVIDENCE_E
 (`T4.B.count`: 14 tests, 12 faster, 0 slower). E8's adversarial benchmark gives counter-examples: oversubscribed sparse access is +41.15% to +84.96% slower at t0
 (`E8.range.ov_sparse_t0`). The E7 statement is true of E7's workloads and is not a general property; CS2-N10 now says so.
 
-## 2. E8's "host write identical across thresholds" is contradicted by E9's CPU-fault counts (status: see the update below)
+## 2. E8's "host write identical across thresholds" is contradicted by E9's CPU-fault counts (CONFIRMED by the step-5 check)
 
 `GATE_E8_REPORT.md` (Limitations) states that the host's initial write of the whole array, inside the timed process, is identical across thresholds and only dilutes relative effects.
 E9 counts **6.00x more CPU page faults at t51 than at t0 in all seven workloads** (`E9.ratio.cpu_faults_t51_over_t0`); at t0 the count equals the number of 2 MB blocks. If those faults are on the host
-first-touch path, the host write is **not** identical across thresholds. The source-code and phase-split checks that bear on this are in `CPU_FAULT_CHECK.md`.
+first-touch path, the host write is **not** identical across thresholds. **Step-5 result (`CPU_FAULT_CHECK.md`):** the CPU fault path calls the same prefetcher with the same single threshold (`uvm_va_block.c:12467` -> `:12046` -> `:11504` -> `uvm_perf_prefetch.c:118`); in all 42 traced runs every CPU fault falls in the host-fill window; and E8's own data show the time outside the kernels is lower at t0/t25 than at t51 in all 16 comparisons (11-191 ms; 17-23% of the dense-access gain at t0). The E8 limitation is wrong in the letter; the effect is small relative to the GPU-side effects and no E8 verdict depends on it. E6/E7 time the same host initialisation, so part of their gain also arises on the host (unquantified untraced).
 
 ## 3. E8's XS4 and XS5 failed
 
