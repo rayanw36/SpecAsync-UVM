@@ -64,3 +64,10 @@ Simulation (apt-get install --simulate --no-install-recommends): no other nvidia
 |---|---:|---:|
 | Stencil-24K | 5.91 s | 4.185 s |
 | GraphBFS-23 | 54.36 s | 54.265 s |
+- 17:02:22 orchestrator smoke: T0 16:38:43, now 17:02:22, session cap 21:38:43, latest sweep end (cap - 25 min reserve) 21:13:43
+
+## T5 - STOPPED before the sweep (2026-10-09 07:27 UTC, session resumed)
+- 17:02 UTC: xrdp/xrdp-sesman stopped (isolate to multi-user.target restarted xrdp, stopped again), no graphical session; smoke pass launched.
+- Smoke ran 24 of 27 rows (idx 1-24; oversub idx 25-27 not run) with zero stop conditions: exit 0, srcversion 6284DA42..., read-back ok, 0 new dmesg lines.
+- **17:59 UTC: the instance was powered off and started again (journal: clean systemd-poweroff, `last -x`: shutdown 17:59, boot 17:59). Not initiated by this session; cause unknown.** It killed the orchestrator. Same kernel 6.17.0-1017-aws, stock module/threshold 51 present after boot, xrdp active again (default graphical.target).
+- Session resumed 07:27 UTC on Oct 9: T0 + 5 h cap (21:38:43 UTC Oct 8) is ~10 h past. The orchestrator would abort, and re-running from a changed machine state is a departure from the pre-registration (a stop condition), so per the RUN-class rule: **no retry, no sweep, no timeouts file written (needs all 27 smoke rows), stop.** No timed data exist; no verdict.
