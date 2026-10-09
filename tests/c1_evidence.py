@@ -305,6 +305,61 @@ for r in load(P):
     _seen.add(eid)
     rec(eid, f"derived={r['derived']} prose={r['prose']} result={r['result']}", P, f"d6_comparison.csv row {r['row']}: {r['prose_source']}")
 
+# ---------- T4 replication of E7 (Gate C4; results/analysis/t4) ----------
+T4 = "results/analysis/t4/"
+for name, tag in (("family_a.csv", "A"), ("family_b.csv", "B")):
+    P = T4 + name
+    for r in load(P):
+        rec(f"T4.{tag}.{r['workload']}.{r['arm']}_vs_{r['base']}",
+            f"median_base={f(r['median_base'])} median_arm={f(r['median_c6'])} delta_pct(arm-base)/base={float(r['delta_pct']):+.2f}% "
+            f"p={float(r['p']):.2e} holm_sig={r['holm_sig']} mde_pct={float(r['mde_pct']):.2f}% mde_family_pct={float(r['mde_family_pct']):.2f}%",
+            P, "median_base (t51), median_c6 (=arm), delta_pct, p, holm_sig, mde_pct, mde_family_pct (Tesla T4, driver 595.91.07)")
+_b = load(T4 + "family_b.csv")
+_fast = [r for r in _b if r["holm_sig"] == "True" and float(r["delta_s"]) < 0]
+_slow = [r for r in _b if r["holm_sig"] == "True" and float(r["delta_s"]) > 0]
+rec("T4.B.count", f"tests={len(_b)} holm_significant_faster={len(_fast)} holm_significant_slower={len(_slow)} not_significant={len(_b) - len(_fast) - len(_slow)}",
+    T4 + "family_b.csv", "count of rows by (holm_sig, sign of delta_s)")
+_g = [r for r in _b if r["workload"] == "graphbfs"]
+rec("T4.B.graphbfs.vs_mde", " ".join(f"{r['arm']}: delta={float(r['delta_pct']):+.2f}% mde_pct={float(r['mde_pct']):.2f}% holm_sig={r['holm_sig']}" for r in _g),
+    T4 + "family_b.csv", "GraphBFS-23 rows: delta against the MDE (the effect is below the MDE although Holm-significant)")
+_a = [r for r in load(T4 + "family_a.csv") if r["arm"] == "stock-t0"][0]
+rec("T4.cross_version.stencil_t51", f"this session stock-t51 median={f(_a['median_base'])} s (driver 595.91.07); the old T4 C0 median 4.185 s (595.71.05) is PROSE-ONLY (GATE_T1_REPORT.md) and not in a committed CSV",
+    T4 + "family_a.csv", "median_base of stock-t0_vs_stock-t51; cross-version comparison is descriptive and untested")
+
+# ---------- E9 (nsys tracing; results/analysis/gate_e/e9) ----------
+E9 = "results/analysis/gate_e/e9/"
+P = E9 + "cell_medians.csv"
+GIB = 1073741824.0
+cm = {(r["workload"], int(r["threshold"])): r for r in load(P)}
+for (wl, t), r in cm.items():
+    rec(f"E9.cell.{wl}.t{t}",
+        f"n={r['n']} htod_gib={float(r['htod_bytes_median']) / GIB:.3f} dtoh_gib={float(r['dtoh_bytes_median']) / GIB:.3f} "
+        f"gpu_page_faults={float(r['report_gpu_faults_median']):,.0f} cpu_page_faults={float(r['report_cpu_faults_median']):,.0f} "
+        f"dtoh_pass2_gib={float(r['pass2_dtoh_bytes_median']) / GIB if r['pass2_dtoh_bytes_median'] not in ('', 'nan') else float('nan'):.3f} "
+        f"dtoh_pass3_gib={float(r['pass3_dtoh_bytes_median']) / GIB if r['pass3_dtoh_bytes_median'] not in ('', 'nan') else float('nan'):.3f} "
+        f"htod_pass2_gib={float(r['pass2_htod_bytes_median']) / GIB if r['pass2_htod_bytes_median'] not in ('', 'nan') else float('nan'):.3f} "
+        f"htod_pass3_gib={float(r['pass3_htod_bytes_median']) / GIB if r['pass3_htod_bytes_median'] not in ('', 'nan') else float('nan'):.3f}",
+        P, "per-cell medians of nsys UM counts, n=3 (descriptive); GiB = 2^30 B")
+rec("E9.ratio.ov_k1.htod_t0_over_t51", f"{float(cm[('ov_k1', 0)]['htod_bytes_median']) / float(cm[('ov_k1', 51)]['htod_bytes_median']):.1f}x", P, "htod_bytes_median t0 / t51")
+rec("E9.ratio.stencil", f"htod_diff_pct={100 * abs(float(cm[('stencil', 0)]['htod_bytes_median']) - float(cm[('stencil', 51)]['htod_bytes_median'])) / float(cm[('stencil', 51)]['htod_bytes_median']):.2f}% "
+    f"gpu_faults_t0={float(cm[('stencil', 0)]['report_gpu_faults_median']):,.0f} gpu_faults_t51={float(cm[('stencil', 51)]['report_gpu_faults_median']):,.0f}", P, "Stencil-24K t0 vs t51")
+_cpu = {k: float(v["report_cpu_faults_median"]) for k, v in cm.items()}
+rec("E9.ratio.cpu_faults_t51_over_t0", "; ".join(f"{w}={_cpu[(w, 51)] / _cpu[(w, 0)]:.2f}x (t0={_cpu[(w, 0)]:,.0f})" for w in ("ov_k1", "ov_k8", "ov_k64", "ov_k512", "in_k1", "in_k512", "stencil")),
+    P, "report_cpu_faults_median t51 / t0; 24 GiB / 2 MiB = 12,288 blocks; 8 GiB / 2 MiB = 4,096")
+
+# ---------- derived ranges and counts quoted by CS2-N10 (computed from the E8 / E7 primary tests; Gate C4) ----------
+P = "results/analysis/gate_e/e8/primary_tests.csv"
+_e8 = load(P)
+_d = lambda rows: [float(r["delta_pct"]) for r in rows]  # noqa: E731
+_dense = [r for r in _e8 if int(r["K"]) >= 64]
+_ovs = [r for r in _e8 if r["size"] == "ov" and int(r["K"]) <= 8 and r["arm"] == "stock-t0"]
+_ovs25 = [r for r in _e8 if r["size"] == "ov" and int(r["K"]) <= 8 and r["arm"] == "stock-t25"]
+_ins = [r for r in _e8 if r["size"] == "in" and int(r["K"]) <= 8]
+rec("E8.range.dense_K64plus", f"min={min(_d(_dense)):+.2f}% max={max(_d(_dense)):+.2f}% over {len(_dense)} tests (K>=64, both sizes, t0 and t25)", P, "delta_pct over K>=64")
+rec("E8.range.ov_sparse_t0", f"min={min(_d(_ovs)):+.2f}% max={max(_d(_ovs)):+.2f}% over {len(_ovs)} tests (oversubscribed K in {{1,8}}, t0)", P, "delta_pct, oversubscribed, K<=8, t0")
+rec("E8.range.ov_sparse_t25", f"{'; '.join('K=' + r['K'] + ' ' + format(float(r['delta_pct']), '+.2f') + '%' for r in _ovs25)} (oversubscribed, t25)", P, "delta_pct, oversubscribed, K<=8, t25 (K=1 is outside the t0 range)")
+rec("E8.range.in_sparse", f"min={min(_d(_ins)):+.2f}% max={max(_d(_ins)):+.2f}% over {len(_ins)} tests (in-memory K in {{1,8}}, t0 and t25)", P, "delta_pct, in-memory, K<=8")
+
 with open(OUT, "w") as fh:
     fh.write("# Gate C1 — Evidence extract (generated)\n\n")
     fh.write("Generated by `tests/c1_evidence.py` from **committed derived files only**. Every number a\n")
