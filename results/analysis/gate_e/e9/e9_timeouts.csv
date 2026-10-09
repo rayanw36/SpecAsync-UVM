@@ -1,0 +1,15 @@
+label,timeout_s,basis
+ov_k1 stock-t0,141,3 x E8 timeout 47 s
+ov_k1 stock-t51,78,3 x E8 timeout 26 s
+ov_k8 stock-t0,141,3 x E8 timeout 47 s
+ov_k8 stock-t51,102,3 x E8 timeout 34 s
+ov_k64 stock-t0,105,3 x E8 timeout 35 s
+ov_k64 stock-t51,117,3 x E8 timeout 39 s
+ov_k512 stock-t0,111,3 x E8 timeout 37 s
+ov_k512 stock-t51,120,3 x E8 timeout 40 s
+in_k1 stock-t0,27,3 x E8 timeout 9 s
+in_k1 stock-t51,24,3 x E8 timeout 8 s
+in_k512 stock-t0,30,3 x E8 timeout 10 s
+in_k512 stock-t51,30,3 x E8 timeout 10 s
+stencil stock-t0,66,3 x 22 s (the E3b/E7 Stencil-24K timeout; the cell was not in E8)
+stencil stock-t51,66,3 x 22 s (the E3b/E7 Stencil-24K timeout; the cell was not in E8)

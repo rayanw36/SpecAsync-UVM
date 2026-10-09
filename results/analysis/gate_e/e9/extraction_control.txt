@@ -1,0 +1,7 @@
+# E9 extraction control (one fresh traced 1 GiB bench_sparse run, K=8, 3 passes, seed 202610081, threshold 51)
+OK  HtoD: report MB == sum of UVM HtoD memcpy bytes / 1e6 (3 dp): 251.789 vs 251.789
+OK  DtoH: report MB == sum of UVM DtoH memcpy bytes / 1e6 (3 dp): 0.0 vs 0.0
+OK  GPU faults: report == sum of numberOfPageFaults: 82 vs 82
+OK  HtoD causes sum to the total: 251789312 vs 251789312
+OK  per-pass HtoD sums to the total: 251789312 vs 251789312
+CONTROL: PASS
