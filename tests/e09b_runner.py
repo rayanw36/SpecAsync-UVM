@@ -147,7 +147,7 @@ def git_commit(paths, msg):
     r = sh(["git", "-C", REPO, "diff", "--cached", "--quiet"])
     if r.returncode == 0:
         return None
-    sh(["git", "-C", REPO, "commit", "-q", "-m", msg + "\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\n"
+    sh(["git", "-C", REPO, "commit", "-q", "-m", msg + "\n\n"
         "Claude-Session: https://claude.ai/code/session_013R7hqocoYREgYBhLTAjkLy"])
     return sh(["git", "-C", REPO, "log", "--oneline", "-1"]).stdout.strip()
 

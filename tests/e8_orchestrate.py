@@ -76,7 +76,7 @@ def smoke():
     log(f"smoke complete: {len(rows)} rows, dropped cells: "
         f"{open(f'{E8}/dropped_cells.txt').read().count(chr(10)) if os.path.exists(f'{E8}/dropped_cells.txt') else 0}; e8_timeouts.csv written")
     subprocess.run(["git", "-C", REPO, "add", f"{E8}"], check=False)
-    subprocess.run(["git", "-C", REPO, "commit", "-q", "-m", "Gate E8 smoke: timeouts and dropped cells\n\nCo-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>\nClaude-Session: https://claude.ai/code/session_013R7hqocoYREgYBhLTAjkLy"], check=False)
+    subprocess.run(["git", "-C", REPO, "commit", "-q", "-m", "Gate E8 smoke: timeouts and dropped cells\n\nClaude-Session: https://claude.ai/code/session_013R7hqocoYREgYBhLTAjkLy"], check=False)
     push("smoke")
     return 0
 
