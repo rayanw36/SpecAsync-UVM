@@ -21,7 +21,7 @@ is applied.**
     but still an unmeasured one.
   - GraphBFS shows nothing even with the perfect table.
 - **Risk if deferred:** the paper's positive result is oracle-only.
-- **Note (2026-10-07, after E6):** Any follow-on predictor or mapping worker is compared against a tuned C0, not only the shipped threshold.
+- **Note (2026-10-09, Gate C4; replaces the 2026-10-07 note):** Any follow-on predictor or mapping worker is compared against C0 at t51 (shipped) and at t0 (fixed aggressive), both reported; no best-of-thresholds baseline without a separate pre-registered session; any adaptive-threshold follow-on must differentiate from Early-Adaptor.
 
 ### D2 · T4 replication scope — DECIDED 2026-10-05: **option (b)**. Install driver 595.91.07 on the T4 and replicate the E4 F1 cells; add E5's t51 and T_off comparisons if lease time allows.
 - **Context:** every Gate E result (E0.5 → E5) is RTX 5070 Ti, driver 595.91.07.

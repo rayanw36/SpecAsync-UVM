@@ -5,6 +5,8 @@ from git history). Every claim in v1 is carried here as a block, with its status
 new claims N1–N7 and N9 and the retired explanations R1–R2 come from the Gate E series
 and the flag ledger (`results/analysis/consolidation/FLAG_LEDGER.md`).
 
+**Amended 2026-10-09 (Gate C4):** CS2-N10 replaced (two platforms, sparse access, mechanism); CS2-N11 added (PENDING-LIT); CS2-N1 item 4 extended; a `Platform scope` line added to every Gate E claim (N1-N7, N9, N10, N11).
+
 Two standing rules apply throughout: every number cites an evidence id from
 `results/analysis/consolidation/EVIDENCE_EXTRACT.md`, or is marked PROSE-ONLY or
 UNCHECKED (see the convention below); and every comparison names its baseline.
@@ -239,7 +241,7 @@ labels stay as they are. Every Gate E claim below is stated for **595.91.07** an
   1. "Off-path speculation cannot prevent a fault by itself (CS2-N2).
   2. Its only route to fault prevention is indirect: staged residency pushes regions over the prefetcher's density threshold, and the demand path maps them (CS2-N3).
   3. Against the driver as shipped (threshold 51), whole-block staging with a near-perfect first-touch table beats C0 on Stencil-24K: −4.93% (E4), −5.26% (E5), −3.36% (E6), all significant. The magnitude varies across sessions.
-  4. The same gain is available without speculation. C0 at threshold 0 or 10 is significantly faster than C7W512-t51 (E6: +6.39%, +4.72%); C0-t25 is indistinguishable from it (+2.11%, n.s.).
+  4. The same gain is available without speculation, by lowering the threshold, a setting whose effect is workload-dependent and reverses for sparse oversubscribed access (CS2-N10). C0 at threshold 0 or 10 is significantly faster than C7W512-t51 (E6: +6.39%, +4.72%); C0-t25 is indistinguishable from it (+2.11%, n.s.).
   5. At matched thresholds, speculation adds at most 2.76% (t25, significant), and nothing detectable at t0 or t10 (MDE 1.8% at t0 and 2.0% at t10 at achieved n).
   6. GraphBFS-23: no detected effect of speculation (E4; MDE 0.28–0.43% of the C0 median) or of threshold 0–51 (E6; MDE 0.41–0.49% of the C0-t51 median).
   7. Scope: RTX 5070 Ti, 595.91.07, kernel 7.0.0-34; two workloads; near-perfect table (Stencil), weakened-cursor table (GraphBFS); not a practical predictor."
@@ -253,6 +255,7 @@ labels stay as they are. Every Gate E claim below is stated for **595.91.07** an
   - item 6: `E4.F1.graphbfs.C7-W1_vs_C0` / `C7-W64` / `C7-W512` (−0.28%, −0.10%, −0.06%, n.s.; MDE 0.0873–0.1351 s, 0.28–0.43% of the C0 median); `E6.F2.C0-t0_vs_C0-t51` and `E6.F2.C0-t25_vs_C0-t51` (−0.06%, +0.12%, n.s.; `mde_pct_of_base` 0.49%, 0.41%);
   - supporting: `E4.F1.stencil.C7-W1_vs_C0` (+5.87%, Holm-sig; page-granularity speculation does not beat C0); `E5.D(51)` (+0.4009); `E6.D(t51)` (+0.4017).
 - **Scope:** RTX 5070 Ti, driver 595.91.07, kernel 7.0.0-34 (E4, E5, E6); near-perfect first-touch table (Stencil) and weakened-cursor table (GraphBFS, coverage 0.22–0.81 across the C6 arms); cheap oracle `specasync_ft_fast=1`; E3a-2 module for the speculation arms.
+- **Platform scope:** RTX 5070 Ti only (everything from E0.5 onward, including all speculation results; the E3a-2 module was compiled on the T4 and never loaded).
 - **What changed and why:** E6 (pre-registered falsification trigger fired) showed that C0 tuned to threshold 0 or 10 is faster than the speculation arm at the shipped threshold, so the claim that the Stencil gain requires speculation is withdrawn. Item 2 of the previous text (W = 1 loses, +5.87%) moves to the evidence line. E1's expensive-oracle figures (`E1.stencil.C7-L1_vs_C0` … `E1.stencil.C7-L4096_vs_C0`, +3.89% to +8.39%) measure the expensive oracle, whose lookup cost E3b showed to be 77–88% of its per-fault cost, and are not the cheap-oracle result.
 
 ### CS2-N2 · H-map: speculation never installs mappings
@@ -265,6 +268,7 @@ labels stay as they are. Every Gate E claim below is stated for **595.91.07** an
   - Data: `E5.mech.t100.C7W512` (far 1,124,488, far_frac 0.9995, demand 2,995,898); `E5.mech.t100.C0` (2,932,890); `E5.D(100)` (−0.0215); `E4.mech.stencil.C6-W512` (far_frac 0.9995, demand 2,960,758) vs `E4.mech.stencil.C1` (2,921,620).
   - E0.9a-2's per-prediction "prevented = 0.0000% at every L" is **PROSE-ONLY**.
 - **Scope:** driver 595.91.07 source and 5070 Ti data; Stencil-24K (GraphBFS in E0.9a-2 prose).
+- **Platform scope:** RTX 5070 Ti only (everything from E0.5 onward, including all speculation results; the E3a-2 module was compiled on the T4 and never loaded).
 - **What changed and why:** E0.9a-2's "can never eliminate one" is narrowed to "speculation acting alone". E5 showed the prefetcher *can* map over staged residency.
 
 ### CS2-N3 · H-feed: speculation feeds the prefetcher's density rule
@@ -274,6 +278,7 @@ labels stay as they are. Every Gate E claim below is stated for **595.91.07** an
 - **Baseline:** C0 at the same `uvm_perf_prefetch_threshold` (C0-t51 is the shipped driver; C0-t75 and C0-toff are not).
 - **Evidence:** source `uvm_perf_prefetch.c:227` (bitmap = resident | faulted), `:397` (destination resident mask), `:118` (strict test), `:552-561` (range; >100 falls back to 51), `E5_MECHANISM.md` §1–4. Data: `E5.D(51)`, `E5.D(75)`, `E5.D(100)`; E6: `E6.mech.C0-t0` (134,993 faults), `E6.mech.C7W512-t51` (202,740), `E6.D(t0)` (+0.0532), `E6.D(t10)` (+0.0845), `E6.D(t25)` (+0.2213), `E6.D(t51)` (+0.4017).
 - **Scope:** RTX 5070 Ti 595.91.07; Stencil-24K only; near-perfect first-touch table, W = 512.
+- **Platform scope:** RTX 5070 Ti only (everything from E0.5 onward, including all speculation results; the E3a-2 module was compiled on the T4 and never loaded).
 - **Limitation:** C0 below the shipped threshold is a different configuration from the shipped driver; see CS2-N1 item 4 and CS2-N10.
 - **What changed and why:** a new pre-registered result (E5 verdict SUPPORTED; dose-response held). Amended 2026-10-07 with the E6 fault counts: the prefetcher alone reaches lower fault counts at lower thresholds.
 
@@ -301,6 +306,7 @@ labels stay as they are. Every Gate E claim below is stated for **595.91.07** an
   - `E4.mech.stencil.C6-W512` (drops 0);
   - E6 matched-threshold wall-clock: `E6.wall.C7W512-t0_vs_C0-t0` (−0.85%, n.s.), `E6.wall.C7W512-t10_vs_C0-t10` (−0.28%, n.s.), `E6.wall.C7W512-t25_vs_C0-t25` (−2.76%, Holm-sig).
 - **Scope:** RTX 5070 Ti 595.91.07; Stencil-24K (GraphBFS smaller: `E1PartB.graphbfs.D5` +0.0917 s); perfect oracle.
+- **Platform scope:** RTX 5070 Ti only (everything from E0.5 onward, including all speculation results; the E3a-2 module was compiled on the T4 and never loaded).
 - **What changed and why:** it was identified in the E1 Part B pilot and confirmed independently of fault prevention by E5's failed secondary prediction.
 
 ### CS2-N5 · The speculative handoff sits on the fault-servicing critical path; its cost was mostly the oracle's lookup, and width amortises it
@@ -317,6 +323,7 @@ labels stay as they are. Every Gate E claim below is stated for **595.91.07** an
   - F2 wall-clock: C6-W1 vs C6-slow-W1.
 - **Evidence:** `E1b.stencil.C64096-C1`, `E1b.stencil.C74096-C0`, `E1b.graphbfs.C64096-C1`; `E3b.stencil.C6.residual`, `E3b.stencil.C7.residual`, `E3b.graphbfs.C6.residual`; `E4.mech.stencil.C7-slow-W1` / `C7-W1` / `C7-W512` (outside_lock_s); `E4.F2.stencil.C6-W1_vs_C6-slow-W1` (−0.2216 s); `E4.F2.stencil.C7-W1_vs_C7-slow-W1` (−0.0247 s, n.s.).
 - **Scope:** RTX 5070 Ti 595.91.07; Stencil-24K, GraphBFS-23; first-touch oracle.
+- **Platform scope:** RTX 5070 Ti only (everything from E0.5 onward, including all speculation results; the E3a-2 module was compiled on the T4 and never loaded).
 - **What changed and why:**
   - E1 attributed the cost from source structure.
   - E1b measured it, and found the enqueue is the minor part.
@@ -334,6 +341,7 @@ labels stay as they are. Every Gate E claim below is stated for **595.91.07** an
 - **Baseline:** n/a (run-to-run property).
 - **Evidence:** 107 / 1,125,000, 99.9997%, the Spearman values, 36,618–38,990, and 1,247–4,418 are all **PROSE-ONLY**. They come from E0.8 §4/§6 and E0.9 §1 (script `tests/gate_e08_index_drift_analysis.py` committed; raw `results/phaseB1/gate_e07_*` gitignored). The E4 post-reboot table check (98 / 35,823 vs 96 / 37,992) is also **PROSE-ONLY** (`E4_STATUS.md`).
 - **Scope:** RTX 5070 Ti, driver 595.91.07, **kernel 7.0.0-31-generic** (the E0.7 data; E0.8 is analysis-only on that data and records no platform); Stencil-24K, GraphBFS-23; prefetch off.
+- **Platform scope:** RTX 5070 Ti only (everything from E0.5 onward, including all speculation results; the E3a-2 module was compiled on the T4 and never loaded).
 - **What changed and why:** E0.7 read the accuracy collapse as divergence. E0.8 overturned that for Stencil (index drift), and E0.9 corrected two of E0.8's own readings.
 
 ### CS2-N7 · Metric semantics: `spec_hits` is a 10 ms staleness-window counter; `spec_migrations` counts no-op successes
@@ -349,6 +357,7 @@ labels stay as they are. Every Gate E claim below is stated for **595.91.07** an
 - **Baseline:** n/a.
 - **Evidence:** source `driver/src/specasync_telemetry.h:292` (256 slots), `:304` (10 ms), consume site `uvm_gpu_replayable_faults.c:2893-2907`; E0.9b Step 1 Q1 (no-op `make_resident` returns NV_OK). Data: `E09b.mech.stencil.C64096`, `E09b.mech.stencil.C6256` (441,672 vs 846,140), `E4.mech.stencil.C7-W512`, `E1.mech.stencil.C7-L4096`.
 - **Scope:** all SpecAsync builds (source constants unchanged since the hit table's introduction).
+- **Platform scope:** RTX 5070 Ti only (everything from E0.5 onward, including all speculation results; the E3a-2 module was compiled on the T4 and never loaded).
 - **What changed and why:** E0.9a-2 found the counter collapsing at large lookahead, E0.9b labelled it, and C1 confirmed the table size from source.
 
 ### CS2-N9 · B10 (oversubscription, C4) is excluded from claims
@@ -362,16 +371,46 @@ labels stay as they are. Every Gate E claim below is stated for **595.91.07** an
 - **Baseline:** C0 (as B10 used).
 - **Evidence:** `B10.t_b10_aggregate_comparison.csv.iters1` / `iters5` / `iters20`; `B10.t_b10c_aggregate_comparison.csv.iters8` / `12` / `16` / `20`. The invalidity classification ("2, additionally truncated + rotated") is **PROSE-ONLY** (E0.5 Addition 3; E0 §3). The truncation is a derived property of ring capacity vs fault count, not a CSV value.
 - **Scope:** RTX 5070 Ti (595.84); oversubscription only.
+- **Platform scope:** RTX 5070 Ti only (everything from E0.5 onward, including all speculation results; the E3a-2 module was compiled on the T4 and never loaded).
 - **What changed and why:** E0 and E0.5 established that the oversubscription oracle's trace was truncated and rotated on top of the rate mismatch. The same applies to B9's oversubscription C3 (`B9.2c.*`), which stays a wall-clock measurement of its configuration. Its C0 comparison is AC-12's subject.
 
-### CS2-N10 · Prefetch threshold tuning
-- **Current text:** new (Gate E6, Gate C2-APPLY).
-- **Status:** new, **descriptive** for Stencil; pre-registered null for GraphBFS.
-- **Proposed text:** "Lowering the stock prefetcher's density threshold speeds up the stock driver on Stencil-24K: C0-t0 is −9.2% and C0-t10 is −7.7% against C0-t51 (**DESCRIPTIVE**: these were not pre-registered E6 comparisons, since E6's tests were within threshold and against C7W512-t51; the confirmatory test is E7 Family A). On GraphBFS-23 the threshold has no detected effect over 0–51 (pre-registered, E6 Family 2). Generality across workloads is E7 Family B and the T4 replication."
-- **Baseline:** C0 at threshold 51 (the shipped driver); C0-t0, C0-t10 are **not** the shipped driver.
-- **Evidence:** `E6.C0-t0_vs_C0-t51.DESCRIPTIVE` (−9.17%); `E6.C0-t10_vs_C0-t51.DESCRIPTIVE` (−7.72%); `E6.C0-t25_vs_C0-t51.DESCRIPTIVE` (−5.36%); `E6.mech.C0-t0` / `E6.mech.C0-t10` / `E6.mech.C0-t51` (medians 1.0262, 1.0426, 1.1298 s; demand faults 134,993 / 171,872 / 338,838); GraphBFS: `E6.F2.C0-t0_vs_C0-t51` (−0.06%, p 0.97), `E6.F2.C0-t25_vs_C0-t51` (+0.12%, p 0.44), both n.s.
-- **Scope:** RTX 5070 Ti, driver 595.91.07, kernel 7.0.0-34; E3a-2 module with speculation off (policy 0) in E6; Stencil-24K and GraphBFS-23 only; n = 10 per cell.
-- **What changed and why:** E6 showed the threshold is a large lever on Stencil. The size comes from medians of 10 runs per cell and was not tested; it is cited here only as descriptive until E7 Family A.
+### CS2-N10 · Prefetch threshold (stock driver)
+- **Current text:** replaces the E6-era CS2-N10 ("Prefetch threshold tuning", descriptive). Rewritten 2026-10-09 (Gate C4) after E7, E7-T4, E8 and E9.
+- **Status:** new. Dense-access part: pre-registered and confirmed on two platforms (E7 Family A; E7-T4 Family A). Sparse-access part: pre-registered adversarial test (E8), RTX 5070 Ti only. Mechanism: E9, descriptive (n = 3, under tracing).
+- **Proposed text:** "Prefetch threshold (stock driver): the effect of lowering uvm_perf_prefetch_threshold depends on access density and on oversubscription.
+  - Dense or streaming access is faster at lower thresholds:
+    - RTX 5070 Ti: Stencil-24K −9.57% at t0 (confirmatory, E7 Family A); one-pass oversubscribed Stencil −16.95%, STREAM −12.37%, Sweep-16K −8.02%, SGEMM −2.49% (E7 Family B); synthetic benchmark at K >= 64 pages per 2 MB block −5.6% to −9.7% (E8).
+    - Tesla T4, same driver (595.91.07): Stencil-24K −5.07% (Holm-significant); 12 of 14 Family B tests faster, none slower (E7-T4). The direction replicates; the magnitude is smaller.
+  - Sparse access (K <= 8) on a 1.5x oversubscribed array is much slower at lower thresholds: +41.15% to +84.96% (E8, 5070 Ti only).
+  - Sparse access in memory: small, mixed effects (−2.32% to +3.95%).
+  - GraphBFS-23: no effect beyond the MDE on either platform.
+  The shipped default (51) is therefore not dominated by any fixed lower threshold.
+  Mechanism (E9, nsys tracing, n = 3, descriptive):
+  - At t0, sparse oversubscribed access migrates whole regions on every pass (K = 1: 129.8 GiB in, 114.6 GiB evicted, against 4.0 / 3.5 GiB at t51).
+  - At t51, repeat passes still migrate ~1.2 GiB each way.
+  - Dense access moves the same bytes in fewer GPU faults (Stencil-24K: 4.26 vs 4.29 GiB; 27,876 vs 91,935 faults).
+  - CPU page faults also differ by threshold (about 6x more at t51; at t0 equal to the number of 2 MB blocks). Part of the wall-clock effect may therefore arise on the host; see step 5.
+  Scope: oversubscription and sparse access on the RTX 5070 Ti only; one synthetic sparse benchmark; one oversubscription ratio (1.5x); crossover between K = 8 and K = 64 not located."
+- **Baseline:** C0 at threshold 51 (the shipped driver) throughout; thresholds 0, 10 and 25 are **not** the shipped driver.
+- **Evidence:**
+  - dense, 5070 Ti: `E7.A.stencil.stock-t0_vs_stock-t51` (−9.57%); `E7.B.oversub.stock-t0_vs_stock-t51` (−16.95%); `E7.B.stream.stock-t0_vs_stock-t51` (−12.37%); `E7.B.sweep16k.stock-t0_vs_stock-t51` (−8.02%); `E7.B.sgemm.stock-t0_vs_stock-t51` (−2.49%); `E8.range.dense_K64plus` (−5.57% to −9.69%, K >= 64, both sizes, t0 and t25);
+  - dense, T4: `T4.A.stencil.stock-t0_vs_stock-t51` (−5.07%); `T4.B.count` (14 tests, 12 Holm-significantly faster, 0 slower);
+  - sparse: `E8.range.ov_sparse_t0` (+41.15% to +84.96%); `E8.ov.K1.stock-t0_vs_stock-t51` (+84.96%); `E8.ov.K8.stock-t0_vs_stock-t51` (+41.15%); `E8.range.in_sparse` (−2.32% to +3.95%);
+  - GraphBFS-23: `E7.B.graphbfs.stock-t0_vs_stock-t51` and `E7.B.graphbfs.stock-t25_vs_stock-t51` (5070 Ti); `T4.B.graphbfs.vs_mde` (T4: −0.14% and −0.11%, both below their MDEs of 0.26% and 0.22%);
+  - mechanism: `E9.cell.ov_k1.t0` (129.8 GiB in, 114.6 GiB out); `E9.cell.ov_k1.t51` (4.0 / 3.5 GiB; repeat passes 1.31 and 1.15 GiB in and out); `E9.ratio.stencil` (HtoD within 0.74%; 27,876 vs 91,935 GPU faults); `E9.cell.stencil.t0`, `E9.cell.stencil.t51` (4.26, 4.29 GiB); `E9.ratio.cpu_faults_t51_over_t0` (6.00x in all seven workloads).
+- **Scope:** oversubscription and sparse access on the RTX 5070 Ti only; one synthetic sparse benchmark; one oversubscription ratio (1.5x); crossover between K = 8 and K = 64 not located. Stock module throughout (E9 counts are under nsys tracing).
+- **Platform scope:** **two platforms** (RTX 5070 Ti and Tesla T4, both driver 595.91.07) for the dense-access part only; RTX 5070 Ti only for the sparse-access, oversubscription and mechanism parts.
+- **What changed and why:** E6's descriptive Stencil result was confirmed pre-registered (E7), replicated on the T4 (E7-T4), shown to reverse for sparse oversubscribed access (E8) and explained by migration counts (E9). The previous text's claim that the generality "is E7 Family B and the T4 replication" is replaced by the measurements.
+
+### CS2-N11 · Prior work on the threshold
+- **Current text:** new (Gate C4).
+- **Status:** new. **PENDING-LIT**: wording to be checked against the full paper.
+- **Proposed text:** "Go et al. (Early-Adaptor, ISPASS 2023) report, on an RTX 3090 with the open driver, that the prefetch threshold's impact varies across workloads, and they propose an adaptive scheme under oversubscription. This work does not claim the threshold's workload-dependence as new. Its distinct claims are CS2-N1 to N4 (speculation's gain runs through the density rule) and the pre-registered two-direction, two-platform measurement (CS2-N10). STATUS: PENDING-LIT; wording to be checked against the full paper."
+- **Baseline:** n/a (literature positioning).
+- **Evidence:** literature (not a measurement): Go et al., Early-Adaptor, ISPASS 2023 (cited in `paper/section1_introduction.tex` as `go2023earlyadaptor`); **UNCHECKED** against the full paper.
+- **Scope:** positioning only. "Two-platform" refers to CS2-N10's dense-access part; the two-direction measurement on oversubscribed sparse access is RTX 5070 Ti only.
+- **Platform scope:** not applicable (a statement about the literature); the measurements it points to are scoped in CS2-N1 to N4 and CS2-N10.
+- **What changed and why:** added so that the paper does not present the workload-dependence of the threshold as its own finding.
 
 ---
 
@@ -402,7 +441,7 @@ labels stay as they are. Every Gate E claim below is stated for **595.91.07** an
 | narrowed | 5 | 7, 9, 12 (hit-rate part), 15, 17 |
 | superseded | 2 | 5, 6 |
 | retired | 3 | 10 (as an explanation), R1, R2 |
-| new | 9 | N1, N2, N3, N4, N5, N6, N7, N9, N10 |
+| new | 10 | N1, N2, N3, N4, N5, N6, N7, N9, N10, N11 (N11 PENDING-LIT) |
 
 (No "N8" is used, to avoid a collision with "claim 8". CS2-12 stands as a legacy claim
 and is counted under narrowed, for its hit-rate part.)
