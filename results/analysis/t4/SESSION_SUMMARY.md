@@ -1,6 +1,6 @@
 # Gate T4-R1 session summary
 
-**Outcome: setup, builds and pre-registration complete; E7-T4 sweep NOT run, no verdict.** Stopped at T5 (smoke 24/27) after an
+**Outcome (updated 2026-10-09 08:25 UTC): setup, builds, pre-registration and Amendment 1 complete; E7-T4 sweep NOT run, no verdict. Second stop: the pre-registered oversubscribed Stencil OOMs this 15.4 GiB / no-swap host (see 'Second stop').** Stopped at T5 (smoke 24/27) after an
 unplanned instance power-cycle and the 5 h cap expiring while the session was away. T6 (analysis/report/figure) not produced: no timed data.
 
 | phase | result |
@@ -15,6 +15,13 @@ unplanned instance power-cycle and the 5 h cap expiring while the session was aw
 
 ## Why it stopped
 The instance was powered off and rebooted at 17:59 UTC (clean systemd poweroff, not by this session). The orchestrator died at smoke row 24. When the session resumed at 07:27 UTC the next day, the cap (21:38 UTC) was long past. Resuming would depart from the pre-registration, and the gate says to stop without retries.
+
+## Second stop (resume attempt, Amendment 1)
+After Amendment 1 (new cap 12:05:10 UTC) smoke row 25 (oversub, N=48000) was OOM-killed by the kernel at 08:05:52 UTC: the 17.17 GiB managed
+allocation is populated in host RAM, the T4 host has 15.4 GiB and no swap. My pre-registered sizing check only compared VRAM ratios. No run succeeded
+or failed in a way that produced data (smoke CSV unchanged, 24 rows). Stopped under the RUN-class rule; machine restored to stock module / threshold 51 / xrdp active.
+Options for you (each needs Amendment 2 before any run): (a) keep oversub but add swap/zram or use a bigger instance (g4dn.2xlarge has 32 GiB RAM, same T4); (b) pick a smaller N giving the same VRAM-oversubscription
+ratio class with less host footprint (cannot: footprint scales with the ratio, a 1.078 ratio needs ~16.2 GiB host here); (c) drop oversub and report Family B over 7 workloads (14 tests). I'd lean to (a) with g4dn.2xlarge: same GPU and driver, nothing else changes.
 
 ## To finish later (user's call)
 Needs a new cap/T0 decision. The pre-registered skip rule and deadline are in the orchestrator and `phase0_start.txt`. Smoke rows 25-27 (oversub) and the timeouts file are still needed before the sweep.
