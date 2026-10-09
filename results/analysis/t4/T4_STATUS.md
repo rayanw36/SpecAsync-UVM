@@ -92,3 +92,14 @@ Simulation (apt-get install --simulate --no-install-recommends): no other nvidia
 - xrdp + xrdp-sesman stopped; `systemctl isolate multi-user.target` **restarted xrdp/xrdp-sesman**; stopped again (xrdp inactive, sesman 'failed' = not running), 10 s later still stopped, 0 xrdp/Xorg processes, only a tty login session.
 - Launched ONE chain: `systemd-run --user --unit=e7t4-sweep` -> `e7t4_chain.sh` (smoke -> timeouts -> sweep), log `e7t4_chain.log`, halts on first failure. Smoke was already complete (24 rows), timeouts file written: {"cufft": 9, "graphbfs": 163, "sgemm": 51, "stencil": 18, "stencil8k": 8, "stream": 12, "sweep16k": 11, "sweep4k": 7}.
 - **Detachment verified:** chain main PID 11982 has PPID 741 = `systemd --user`; its cgroup is `.../user@1000.service/app.slice/e7t4-sweep.service`, whereas this Claude process is in `.../app.slice/tmux-spawn-*.scope`; `systemctl --user show`: Restart=no, KillMode=control-group; `Linger=yes`. So it has no process-tree or cgroup relation to the Claude session.
+- 12:07:01 Family A: idx 1-30: runner exit 0 (207 s)
+- 12:08:56 stencil8k: idx 31-60: runner exit 0 (109 s)
+- 12:10:41 sweep4k: idx 61-90: runner exit 0 (100 s)
+- 12:13:12 sweep16k: idx 91-120: runner exit 0 (146 s)
+- 12:15:55 stream: idx 121-150: runner exit 0 (157 s)
+- 12:25:05 sgemm: idx 151-180: runner exit 0 (544 s)
+- 12:27:10 cufft: idx 181-210: runner exit 0 (119 s)
+- 12:55:00 graphbfs: idx 211-240: runner exit 0 (1664 s)
+- 12:55:05 SWEEP COMPLETE; skipped Family B workloads: none
+
+## A3 (2026-10-09): chain complete 12:55:08 UTC (240 rows, no skips, no STOP). Analysis, GATE_E7T4_REPORT.md and SESSION_SUMMARY.md written. End state: stock module srcversion 6284DA42F15EDC3AB92332B, threshold 51; xrdp + xrdp-sesman started again.

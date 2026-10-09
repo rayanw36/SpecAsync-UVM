@@ -1,0 +1,10 @@
+{
+ "cufft": 9,
+ "graphbfs": 163,
+ "sgemm": 51,
+ "stencil": 18,
+ "stencil8k": 8,
+ "stream": 12,
+ "sweep16k": 11,
+ "sweep4k": 7
+}

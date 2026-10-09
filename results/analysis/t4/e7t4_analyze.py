@@ -170,7 +170,7 @@ def figure(rows, wls, fa, fb, R5a, R5b, fig):
     for ax in axes.flat[len(panels):]:
         ax.axis("off")
     h, l = axes.flat[0].get_legend_handles_labels()
-    f_.legend(h, l, loc="upper right", fontsize=8, frameon=False, ncol=2)
+    f_.legend(h, l, loc="lower right", bbox_to_anchor=(0.97, 0.08), fontsize=8, frameon=False, ncol=1)
     f_.suptitle("E7-T4: stock driver 595.91.07 on Tesla T4, wall-clock change vs threshold 51 (n=10 per cell; filled = Holm-significant; dashes = 5070 Ti medians, not pooled)",
                 fontsize=9, color=INK, x=0.01, ha="left")
     f_.tight_layout(rect=(0, 0, 1, 0.95))
