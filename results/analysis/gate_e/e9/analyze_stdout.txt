@@ -1,0 +1,23 @@
+E9 descriptive results (medians of n runs per cell; ranges in cell_medians.csv; wall-clock NOT compared)
+
+cell             thr  n  HtoD GiB  DtoH GiB  GPU faults  CPU faults  | per-pass DtoH GiB (1,2,3) | HtoD by cause GiB: fault / prefetch
+oversub K=1      t0   3   129.801   114.605         626      12,288  |  32.805  41.035  40.822  |   0.254 / 129.547
+oversub K=1      t51  3     3.960     3.485         526      73,728  |   1.025   1.308   1.152  |   0.248 /   3.713
+oversub K=8      t0   3   138.312   122.736       1,634      12,288  |  32.789  44.846  45.109  |   0.913 / 137.399
+oversub K=8      t51  3    33.222    29.166       4,857      73,728  |   7.749  10.683  10.898  |   2.024 /  31.199
+oversub K=64     t0   3    71.781    53.764       2,027      12,288  |   6.816  24.000  22.947  |   1.097 /  70.706
+oversub K=64     t51  3    72.000    56.812       7,661      73,728  |   8.812  24.000  24.000  |   2.441 /  69.556
+oversub K=512    t0   3    71.676    52.871       2,780      12,288  |   6.857  24.000  22.014  |   1.314 /  70.364
+oversub K=512    t51  3    71.833    54.852       6,642      73,728  |   8.854  24.000  21.998  |   2.730 /  69.104
+in-memory K=1    t0   3     8.000     0.000          74       4,096  |   0.000   0.000   0.000  |   0.016 /   7.984
+in-memory K=1    t51  3     0.250     0.000          72      24,576  |   0.000   0.000   0.000  |   0.016 /   0.234
+in-memory K=512  t0   3     7.635     0.000         271       4,096  |   0.000   0.000   0.000  |   0.136 /   7.499
+in-memory K=512  t51  3     7.941     0.000         776      24,576  |   0.000   0.000   0.000  |   0.288 /   7.653
+Stencil-24K      t0   3     4.260     0.000      27,876       2,198  |     nan     nan     nan  |   0.107 /   4.151
+Stencil-24K      t51  3     4.292     0.000      91,935      13,188  |     nan     nan     nan  |   0.270 /   4.022
+
+Expectations (reviewer, directional; operational definitions fixed before the run):
+  Y1 oversub K=1: HtoD at t0 >= 10x t51: HELD  (t0 129.801 GiB vs t51 3.960 GiB, ratio 32.78x)
+  Y2 oversub K=1 and K=8: t0 DtoH >= 1 GiB in each pass, t51 total <= 0.25 x t0: HELD  (K=1: t0 passes [32.805, 41.035, 40.822] GiB, total t0 114.605 vs t51 3.485 GiB, ok; K=8: t0 passes [32.789, 44.846, 45.109] GiB, total t0 122.736 vs t51 29.166 GiB, ok)
+  Y3 Stencil-24K: HtoD within 5% and fewer GPU faults at t0: HELD  (HtoD diff 0.74%; GPU faults t0 27,876 vs t51 91,935)
+  Y4 oversub K=1 at t51: DtoH eviction in both repeat passes (migration not zero): HELD  (DtoH GiB passes 2,3: [1.3085, 1.1516]; HtoD+DtoH GiB: [2.6169, 2.3032]; thrashing/remote-map events not observable in this nsys)

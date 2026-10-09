@@ -21,3 +21,14 @@ Phase 0 start: 2026-10-08 20:54:07 +03 (`e9/phase0_start.txt`). Cap 3.5 h = 00:2
 - 15:55:00 smoke runner exit 0
 - 15:55:05 push after smoke: ok
 - 15:55 Phase 4c smoke DONE: 14 runs, all exit 0, thresholds read back, no cell timed out (smoke walls 3-18 s, reports 0.4-40 MB). OBSERVATION: each traced run logged 1-2 new kernel lines 'NVRM: GPU0 refcntRequestReference_IMPL: Failed to enter state 1 (current state: 0, status: 0x00000056)' (15 lines, only while traced runs were active, none while idle; E8's untraced runs counted none). Not in the stop pattern; no run failed; attributed by timing to nsys, not established. Not a stop. Sweep starts.
+- 15:55:38 orchestrator sweep: anchor 2026-10-09 15:40:03 (cap_anchor.txt), now 15:55:38, session cap 2026-10-09 19:10:03, latest sweep end (cap - 25 min reserve) 2026-10-09 18:45:03
+- 15:55:38 block estimate 248 s
+- 15:58:27 block 1: idx 1-14: runner exit 0 (169 s)
+- 15:58:30 push after block 1: ok
+- 16:01:19 block 2: idx 15-28: runner exit 0 (169 s)
+- 16:01:22 push after block 2: ok
+- 16:04:11 block 3: idx 29-42: runner exit 0 (168 s)
+- 16:04:15 push after block 3: ok
+- 16:04:15 SWEEP COMPLETE; skipped blocks: none
+- 16:04 Phase 4c sweep DONE: 42 rows (3 blocks), no block skipped, no stop, pushed after every block. Phase 4d (analysis) starts.
+- 16:05 Phase 4d: analysis run; Y1-Y4 all HELD (Y1 32.8x; Y2 K=8 narrow: 0.24 vs 0.25; Y3 0.74% / -70% GPU faults; Y4 ~1.3/1.15 GiB DtoH in repeat passes). Unrequested finding: nsys CPU page faults are 6x higher at t51 than t0 in every cell (t0 = number of 2 MB blocks). Report: gate_e/GATE_E9_REPORT.md; figure e9_um_bytes. CS2-N10 interpretation/unexplained sentences do not exist in CLAIM_SCOPE (C3-APPLY not applied): flagged, not edited.
