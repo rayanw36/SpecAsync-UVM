@@ -80,3 +80,15 @@ Simulation (apt-get install --simulate --no-install-recommends): no other nvidia
 - Cause: the oversubscribed Stencil (N=48000: 2 x N^2 x 4 B = **17.17 GiB** managed memory) is populated in host RAM; this g4dn.xlarge has 15.4 GiB RAM and **no swap**. The 5070 Ti host had far more RAM. The pre-registered sizing check compared only VRAM ratios (1.144 vs 1.078) and did not consider host RAM: **a pre-registration gap, mine.** The workload as registered cannot run here at any threshold.
 - Per RUN-class rule: no retry, no workaround, no sweep. Changing N, dropping oversub, or adding swap are departures from the pre-registration and need a user decision / Amendment 2.
 - End state restored: `rmmod nvidia_uvm; modprobe nvidia_uvm` -> stock srcversion 6284DA42F15EDC3AB92332B, threshold 51; xrdp active; machine otherwise left as is (multi-user.target). Sweep and timeouts file: not produced. T6: not produced.
+- 12:03:31 orchestrator smoke: T0 12:02:31, now 12:03:31, session cap 16:02:31, latest sweep end (cap - 25 min reserve) 15:37:31
+- 12:03:31 smoke runner exit 0
+- 12:03:31 timeouts (3 x smoke median, ceil s): {"cufft": 9, "graphbfs": 163, "sgemm": 51, "stencil": 18, "stencil8k": 8, "stream": 12, "sweep16k": 11, "sweep4k": 7}
+- 12:03:34 orchestrator sweep: T0 12:02:31, now 12:03:34, session cap 16:02:31, latest sweep end (cap - 25 min reserve) 15:37:31
+- 12:03:34 Family B estimates (s): stencil8k 192, sweep4k 183, sweep16k 232, stream 241, sgemm 646, cufft 202, graphbfs 1747
+
+## Amendment 2 run (2026-10-09, start 12:02:31 UTC, cap 16:02:31, sweep end 15:37:31)
+- Preflight clean (kernel, holds 18+5, stock srcversion 6284DA42..., t51, empty driver diff, no processes, no STOP files). Cause of the 8 Oct 17:59 UTC poweroff: **not checked**.
+- Previous session ended because I ran `loginctl terminate-session` on the xrdp session containing it (my error); that action is forbidden from now on and was not repeated. At this preflight no graphical session remained.
+- xrdp + xrdp-sesman stopped; `systemctl isolate multi-user.target` **restarted xrdp/xrdp-sesman**; stopped again (xrdp inactive, sesman 'failed' = not running), 10 s later still stopped, 0 xrdp/Xorg processes, only a tty login session.
+- Launched ONE chain: `systemd-run --user --unit=e7t4-sweep` -> `e7t4_chain.sh` (smoke -> timeouts -> sweep), log `e7t4_chain.log`, halts on first failure. Smoke was already complete (24 rows), timeouts file written: {"cufft": 9, "graphbfs": 163, "sgemm": 51, "stencil": 18, "stencil8k": 8, "stream": 12, "sweep16k": 11, "sweep4k": 7}.
+- **Detachment verified:** chain main PID 11982 has PPID 741 = `systemd --user`; its cgroup is `.../user@1000.service/app.slice/e7t4-sweep.service`, whereas this Claude process is in `.../app.slice/tmux-spawn-*.scope`; `systemctl --user show`: Restart=no, KillMode=control-group; `Linger=yes`. So it has no process-tree or cgroup relation to the Claude session.
