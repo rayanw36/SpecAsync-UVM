@@ -26,7 +26,7 @@ REPO = os.environ.get("SPECASYNC_REPO") or os.path.dirname(os.path.dirname(os.pa
 os.environ["SPECASYNC_REPO"] = REPO
 RAW = f"{HERE}/raw"
 WL = ["stencil8k", "sweep4k", "sweep16k", "stream", "sgemm", "cufft", "graphbfs", "oversub"]
-CAP_S, RESERVE_S, OVERHEAD_S = 5 * 3600, 25 * 60, 4.0
+CAP_S, RESERVE_S, OVERHEAD_S = float(os.environ.get("T4_CAP_HOURS", 5)) * 3600, 25 * 60, 4.0
 ORDER = f"{HERE}/e7t4_order.csv"
 STATUS = f"{HERE}/T4_STATUS.md"
 
@@ -52,7 +52,8 @@ def runner(order, csv_path, out, lo, hi, msg):
 
 def main():
     mode = sys.argv[1]
-    start = dt.datetime.fromisoformat(open(f"{HERE}/phase0_start.txt").read().strip())
+    sf = sys.argv[sys.argv.index("--start-file") + 1] if "--start-file" in sys.argv else f"{HERE}/phase0_start.txt"
+    start = dt.datetime.fromisoformat(open(sf).read().strip())
     now = dt.datetime.now(start.tzinfo)
     cap = start + dt.timedelta(seconds=CAP_S)
     last_start = cap - dt.timedelta(seconds=RESERVE_S)
