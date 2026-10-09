@@ -103,3 +103,4 @@ Simulation (apt-get install --simulate --no-install-recommends): no other nvidia
 - 12:55:05 SWEEP COMPLETE; skipped Family B workloads: none
 
 ## A3 (2026-10-09): chain complete 12:55:08 UTC (240 rows, no skips, no STOP). Analysis, GATE_E7T4_REPORT.md and SESSION_SUMMARY.md written. End state: stock module srcversion 6284DA42F15EDC3AB92332B, threshold 51; xrdp + xrdp-sesman started again.
+- End-state check found threshold 25 (last sweep row); reloaded the stock module (rmmod/modprobe): srcversion 6284DA42F15EDC3AB92332B, threshold 51, prefetch_enable 1, refcnt 0. Verified after xrdp start.
