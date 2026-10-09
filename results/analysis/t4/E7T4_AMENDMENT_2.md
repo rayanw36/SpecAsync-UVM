@@ -6,7 +6,7 @@ The pre-registered oversubscribed Stencil (`bench_stencil_oversub 48000 1`, 2 x 
 (2026-10-09 08:05:52 UTC; `block_populate_pages_cpu`, file-rss 15.1 GB). The pre-registration checked the VRAM ratio (1.144 vs 1.078) but not host RAM.
 **No timed data exists**: the smoke CSV has the 24 rows of the other workloads, the sweep CSV does not exist, no timeouts file was written.
 Cause of the 2026-10-08 17:59 UTC poweroff: **not checked** (the field in the brief was left as a placeholder; journal shows a clean systemd-poweroff, not initiated by this session).
-Preflight at 2026-10-09T12:02:31+00:00:02:31+00:00: kernel 6.17.0-1017-aws, 18 nvidia-595 holds + 5 kernel holds, stock srcversion 6284DA42F15EDC3AB92332B, threshold 51,
+Preflight at 2026-10-09T12:02:31+00:00: kernel 6.17.0-1017-aws, 18 nvidia-595 holds + 5 kernel holds, stock srcversion 6284DA42F15EDC3AB92332B, threshold 51,
 `git diff ea1a262 HEAD -- driver/src` empty, MemAvailable 14.5 GiB, 82 GB free on EBS.
 
 ## Second reason: the previous session
