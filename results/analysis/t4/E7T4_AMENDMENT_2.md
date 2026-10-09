@@ -6,8 +6,14 @@ The pre-registered oversubscribed Stencil (`bench_stencil_oversub 48000 1`, 2 x 
 (2026-10-09 08:05:52 UTC; `block_populate_pages_cpu`, file-rss 15.1 GB). The pre-registration checked the VRAM ratio (1.144 vs 1.078) but not host RAM.
 **No timed data exists**: the smoke CSV has the 24 rows of the other workloads, the sweep CSV does not exist, no timeouts file was written.
 Cause of the 2026-10-08 17:59 UTC poweroff: **not checked** (the field in the brief was left as a placeholder; journal shows a clean systemd-poweroff, not initiated by this session).
-Preflight at 2026-10-09T11:41:11+00:00: kernel 6.17.0-1017-aws, 18 nvidia-595 holds + 5 kernel holds, stock srcversion 6284DA42F15EDC3AB92332B, threshold 51,
-`git diff ea1a262 HEAD -- driver/src` empty, MemAvailable 13.6 GiB, 82 GB free on EBS.
+Preflight at 2026-10-09T12:02:31+00:00:02:31+00:00: kernel 6.17.0-1017-aws, 18 nvidia-595 holds + 5 kernel holds, stock srcversion 6284DA42F15EDC3AB92332B, threshold 51,
+`git diff ea1a262 HEAD -- driver/src` empty, MemAvailable 14.5 GiB, 82 GB free on EBS.
+
+## Second reason: the previous session
+The previous Claude session ended because it ran `loginctl terminate-session` on the remote-desktop (xrdp/XFCE) session that contained it (my error; the session was then replaced by this one,
+which runs inside tmux under the user manager, `user@1000.service/app.slice/tmux-spawn-*.scope`, not inside any login session). **That action, and killing any login session or its processes, is now forbidden.**
+If a graphical session remains before launch: stop and ask the user to log out. (At this preflight no graphical session remains; xrdp and xrdp-sesman are inactive.) Start/cap were re-set because of the lost time:
+the earlier values in this file (start 11:41:11, cap 15:41:11) are superseded by the ones below; no run happened under them.
 
 ## Changes
 1. **Oversubscribed Stencil is removed from Family B.** Family B = 7 workloads (Stencil-8K, Sweep-4K, Sweep-16K, STREAM, SGEMM, cuFFT, GraphBFS-23), tests t0 and t25 vs t51 each,
@@ -17,7 +23,7 @@ Preflight at 2026-10-09T11:41:11+00:00: kernel 6.17.0-1017-aws, 18 nvidia-595 ho
 3. **New stop condition:** before each run (after the module insmod, before the benchmark), the benchmark's managed allocation must be below MemAvailable - 4 GiB; otherwise stop.
    Managed bytes from the benchmark sources: Stencil-24K 4.29 GiB, Stencil-8K 0.48, Sweep-4K 0.12, Sweep-16K 1.91, STREAM 3.00, SGEMM 6.44, cuFFT 1.00, GraphBFS-23 1.22 GiB (upper bound V x 156 B)
    (`MANAGED_BYTES` in `e7t4_runner.py`; tested: passes at 13 GiB available, stops at 9 GiB for SGEMM).
-4. **Cap:** session start 2026-10-09T11:41:11+00:00, cap = start + 4 h = **15:41:11 UTC**, latest sweep end (cap - 25 min reserve) **15:16:11 UTC** (`phase0_start_3.txt`, `T4_CAP_HOURS=4`); the orchestrator logs the computed deadlines and aborts if any is not later than now.
+4. **Cap:** session start 2026-10-09T12:02:31+00:00, cap = start + 4 h = **16:02:31 UTC**, latest sweep end (cap - 25 min reserve) **15:37:31 UTC** (`phase0_start_4.txt`, `T4_CAP_HOURS=4`); the orchestrator logs the computed deadlines and aborts if any is not later than now.
 5. **Orchestration:** the whole remainder (smoke, timeouts file, sweep) runs as ONE detached chain under `systemd-run --user --unit=e7t4-sweep`, logging to `e7t4_chain.log`, halting on the first failure.
 
 ## Not changed
