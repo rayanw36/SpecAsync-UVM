@@ -1,0 +1,269 @@
+2026-10-09T12:03:31Z chain start pid 11982 ppid 741 cgroup 0::/user.slice/user-1000.slice/user@1000.service/app.slice/e7t4-sweep.service
+2026-10-09T12:03:31Z orchestrate smoke
+- 12:03:31 orchestrator smoke: T0 12:02:31, now 12:03:31, session cap 16:02:31, latest sweep end (cap - 25 min reserve) 15:37:31
+COMPLETE None
+- 12:03:31 smoke runner exit 0
+- 12:03:31 timeouts (3 x smoke median, ceil s): {"cufft": 9, "graphbfs": 163, "sgemm": 51, "stencil": 18, "stencil8k": 8, "stream": 12, "sweep16k": 11, "sweep4k": 7}
+2026-10-09T12:03:33Z orchestrate smoke exit 0
+2026-10-09T12:03:33Z orchestrate sweep
+- 12:03:34 orchestrator sweep: T0 12:02:31, now 12:03:34, session cap 16:02:31, latest sweep end (cap - 25 min reserve) 15:37:31
+- 12:03:34 Family B estimates (s): stencil8k 192, sweep4k 183, sweep16k 232, stream 241, sgemm 646, cufft 202, graphbfs 1747
+done idx=1 stencil stock-t51 dmesg_new=0 mem_after=14736992 thr=51
+done idx=2 stencil stock-t0 dmesg_new=0 mem_after=14795040 thr=0
+done idx=3 stencil stock-t10 dmesg_new=0 mem_after=14818964 thr=10
+done idx=4 stencil stock-t0 dmesg_new=0 mem_after=14640144 thr=0
+done idx=5 stencil stock-t10 dmesg_new=0 mem_after=14548760 thr=10
+done idx=6 stencil stock-t51 dmesg_new=0 mem_after=14914216 thr=51
+done idx=7 stencil stock-t51 dmesg_new=0 mem_after=14855820 thr=51
+done idx=8 stencil stock-t0 dmesg_new=0 mem_after=14754456 thr=0
+done idx=9 stencil stock-t10 dmesg_new=0 mem_after=14605864 thr=10
+done idx=10 stencil stock-t51 dmesg_new=0 mem_after=14537980 thr=51
+done idx=11 stencil stock-t10 dmesg_new=0 mem_after=14794120 thr=10
+done idx=12 stencil stock-t0 dmesg_new=0 mem_after=14918680 thr=0
+done idx=13 stencil stock-t51 dmesg_new=0 mem_after=14741884 thr=51
+done idx=14 stencil stock-t10 dmesg_new=0 mem_after=14838056 thr=10
+done idx=15 stencil stock-t0 dmesg_new=0 mem_after=14585068 thr=0
+done idx=16 stencil stock-t51 dmesg_new=0 mem_after=14526452 thr=51
+done idx=17 stencil stock-t0 dmesg_new=0 mem_after=14595256 thr=0
+done idx=18 stencil stock-t10 dmesg_new=0 mem_after=14400464 thr=10
+done idx=19 stencil stock-t51 dmesg_new=0 mem_after=14353360 thr=51
+done idx=20 stencil stock-t0 dmesg_new=0 mem_after=14265956 thr=0
+done idx=21 stencil stock-t10 dmesg_new=0 mem_after=14731456 thr=10
+done idx=22 stencil stock-t0 dmesg_new=0 mem_after=14771320 thr=0
+done idx=23 stencil stock-t51 dmesg_new=0 mem_after=14612536 thr=51
+done idx=24 stencil stock-t10 dmesg_new=0 mem_after=14907380 thr=10
+done idx=25 stencil stock-t0 dmesg_new=0 mem_after=14606716 thr=0
+done idx=26 stencil stock-t10 dmesg_new=0 mem_after=14676040 thr=10
+done idx=27 stencil stock-t51 dmesg_new=0 mem_after=14513804 thr=51
+done idx=28 stencil stock-t10 dmesg_new=0 mem_after=14570008 thr=10
+done idx=29 stencil stock-t51 dmesg_new=0 mem_after=14691732 thr=51
+done idx=30 stencil stock-t0 dmesg_new=0 mem_after=14747292 thr=0
+COMPLETE None
+- 12:07:01 Family A: idx 1-30: runner exit 0 (207 s)
+done idx=31 stencil8k stock-t0 dmesg_new=0 mem_after=14772408 thr=0
+done idx=32 stencil8k stock-t25 dmesg_new=0 mem_after=14756644 thr=25
+done idx=33 stencil8k stock-t51 dmesg_new=0 mem_after=14756760 thr=51
+done idx=34 stencil8k stock-t0 dmesg_new=0 mem_after=14746764 thr=0
+done idx=35 stencil8k stock-t51 dmesg_new=0 mem_after=14719232 thr=51
+done idx=36 stencil8k stock-t25 dmesg_new=0 mem_after=14763956 thr=25
+done idx=37 stencil8k stock-t0 dmesg_new=0 mem_after=14606952 thr=0
+done idx=38 stencil8k stock-t25 dmesg_new=0 mem_after=14598056 thr=25
+done idx=39 stencil8k stock-t51 dmesg_new=0 mem_after=14639808 thr=51
+done idx=40 stencil8k stock-t51 dmesg_new=0 mem_after=14688348 thr=51
+done idx=41 stencil8k stock-t25 dmesg_new=0 mem_after=14693652 thr=25
+done idx=42 stencil8k stock-t0 dmesg_new=0 mem_after=14684064 thr=0
+done idx=43 stencil8k stock-t51 dmesg_new=0 mem_after=14682092 thr=51
+done idx=44 stencil8k stock-t25 dmesg_new=0 mem_after=14667596 thr=25
+done idx=45 stencil8k stock-t0 dmesg_new=0 mem_after=14693928 thr=0
+done idx=46 stencil8k stock-t51 dmesg_new=0 mem_after=14712016 thr=51
+done idx=47 stencil8k stock-t25 dmesg_new=0 mem_after=14719244 thr=25
+done idx=48 stencil8k stock-t0 dmesg_new=0 mem_after=14724832 thr=0
+done idx=49 stencil8k stock-t0 dmesg_new=0 mem_after=14766600 thr=0
+done idx=50 stencil8k stock-t51 dmesg_new=0 mem_after=14730008 thr=51
+done idx=51 stencil8k stock-t25 dmesg_new=0 mem_after=14726656 thr=25
+done idx=52 stencil8k stock-t51 dmesg_new=0 mem_after=14704976 thr=51
+done idx=53 stencil8k stock-t0 dmesg_new=0 mem_after=14698292 thr=0
+done idx=54 stencil8k stock-t25 dmesg_new=0 mem_after=14700432 thr=25
+done idx=55 stencil8k stock-t51 dmesg_new=0 mem_after=14677016 thr=51
+done idx=56 stencil8k stock-t25 dmesg_new=0 mem_after=14682984 thr=25
+done idx=57 stencil8k stock-t0 dmesg_new=0 mem_after=14675192 thr=0
+done idx=58 stencil8k stock-t25 dmesg_new=0 mem_after=14670104 thr=25
+done idx=59 stencil8k stock-t51 dmesg_new=0 mem_after=14668804 thr=51
+done idx=60 stencil8k stock-t0 dmesg_new=0 mem_after=14737808 thr=0
+COMPLETE None
+- 12:08:56 stencil8k: idx 31-60: runner exit 0 (109 s)
+done idx=61 sweep4k stock-t25 dmesg_new=0 mem_after=14806344 thr=25
+done idx=62 sweep4k stock-t0 dmesg_new=0 mem_after=14768312 thr=0
+done idx=63 sweep4k stock-t51 dmesg_new=0 mem_after=14720668 thr=51
+done idx=64 sweep4k stock-t0 dmesg_new=0 mem_after=14767720 thr=0
+done idx=65 sweep4k stock-t51 dmesg_new=0 mem_after=14873216 thr=51
+done idx=66 sweep4k stock-t25 dmesg_new=0 mem_after=14837944 thr=25
+done idx=67 sweep4k stock-t25 dmesg_new=0 mem_after=14858892 thr=25
+done idx=68 sweep4k stock-t51 dmesg_new=0 mem_after=14817104 thr=51
+done idx=69 sweep4k stock-t0 dmesg_new=0 mem_after=14808120 thr=0
+done idx=70 sweep4k stock-t25 dmesg_new=0 mem_after=14804804 thr=25
+done idx=71 sweep4k stock-t0 dmesg_new=0 mem_after=14798832 thr=0
+done idx=72 sweep4k stock-t51 dmesg_new=0 mem_after=14788904 thr=51
+done idx=73 sweep4k stock-t25 dmesg_new=0 mem_after=14809808 thr=25
+done idx=74 sweep4k stock-t51 dmesg_new=0 mem_after=14782068 thr=51
+done idx=75 sweep4k stock-t0 dmesg_new=0 mem_after=14782248 thr=0
+done idx=76 sweep4k stock-t51 dmesg_new=0 mem_after=14799672 thr=51
+done idx=77 sweep4k stock-t0 dmesg_new=0 mem_after=14824436 thr=0
+done idx=78 sweep4k stock-t25 dmesg_new=0 mem_after=14801552 thr=25
+done idx=79 sweep4k stock-t25 dmesg_new=0 mem_after=14820776 thr=25
+done idx=80 sweep4k stock-t0 dmesg_new=0 mem_after=14772396 thr=0
+done idx=81 sweep4k stock-t51 dmesg_new=0 mem_after=14791092 thr=51
+done idx=82 sweep4k stock-t25 dmesg_new=0 mem_after=14780352 thr=25
+done idx=83 sweep4k stock-t0 dmesg_new=0 mem_after=14783100 thr=0
+done idx=84 sweep4k stock-t51 dmesg_new=0 mem_after=14770300 thr=51
+done idx=85 sweep4k stock-t51 dmesg_new=0 mem_after=14791388 thr=51
+done idx=86 sweep4k stock-t25 dmesg_new=0 mem_after=14787796 thr=25
+done idx=87 sweep4k stock-t0 dmesg_new=0 mem_after=14788652 thr=0
+done idx=88 sweep4k stock-t25 dmesg_new=0 mem_after=14803608 thr=25
+done idx=89 sweep4k stock-t0 dmesg_new=0 mem_after=14806644 thr=0
+done idx=90 sweep4k stock-t51 dmesg_new=0 mem_after=14837016 thr=51
+COMPLETE None
+- 12:10:41 sweep4k: idx 61-90: runner exit 0 (100 s)
+done idx=91 sweep16k stock-t0 dmesg_new=0 mem_after=14757788 thr=0
+done idx=92 sweep16k stock-t25 dmesg_new=0 mem_after=14817040 thr=25
+done idx=93 sweep16k stock-t51 dmesg_new=0 mem_after=14823136 thr=51
+done idx=94 sweep16k stock-t0 dmesg_new=0 mem_after=14606812 thr=0
+done idx=95 sweep16k stock-t25 dmesg_new=0 mem_after=14624724 thr=25
+done idx=96 sweep16k stock-t51 dmesg_new=0 mem_after=14815096 thr=51
+done idx=97 sweep16k stock-t25 dmesg_new=0 mem_after=14972484 thr=25
+done idx=98 sweep16k stock-t51 dmesg_new=0 mem_after=14723400 thr=51
+done idx=99 sweep16k stock-t0 dmesg_new=0 mem_after=14813704 thr=0
+done idx=100 sweep16k stock-t0 dmesg_new=0 mem_after=14630796 thr=0
+done idx=101 sweep16k stock-t25 dmesg_new=0 mem_after=14825264 thr=25
+done idx=102 sweep16k stock-t51 dmesg_new=0 mem_after=14780164 thr=51
+done idx=103 sweep16k stock-t0 dmesg_new=0 mem_after=14811280 thr=0
+done idx=104 sweep16k stock-t51 dmesg_new=0 mem_after=14708636 thr=51
+done idx=105 sweep16k stock-t25 dmesg_new=0 mem_after=14624880 thr=25
+done idx=106 sweep16k stock-t0 dmesg_new=0 mem_after=14631468 thr=0
+done idx=107 sweep16k stock-t51 dmesg_new=0 mem_after=14597752 thr=51
+done idx=108 sweep16k stock-t25 dmesg_new=0 mem_after=14687488 thr=25
+done idx=109 sweep16k stock-t51 dmesg_new=0 mem_after=14639796 thr=51
+done idx=110 sweep16k stock-t0 dmesg_new=0 mem_after=14611516 thr=0
+done idx=111 sweep16k stock-t25 dmesg_new=0 mem_after=14596484 thr=25
+done idx=112 sweep16k stock-t0 dmesg_new=0 mem_after=14542612 thr=0
+done idx=113 sweep16k stock-t51 dmesg_new=0 mem_after=14559076 thr=51
+done idx=114 sweep16k stock-t25 dmesg_new=0 mem_after=14617452 thr=25
+done idx=115 sweep16k stock-t25 dmesg_new=0 mem_after=14480556 thr=25
+done idx=116 sweep16k stock-t51 dmesg_new=0 mem_after=14680940 thr=51
+done idx=117 sweep16k stock-t0 dmesg_new=0 mem_after=14631008 thr=0
+done idx=118 sweep16k stock-t51 dmesg_new=0 mem_after=14511400 thr=51
+done idx=119 sweep16k stock-t25 dmesg_new=0 mem_after=14670612 thr=25
+done idx=120 sweep16k stock-t0 dmesg_new=0 mem_after=14626100 thr=0
+COMPLETE None
+- 12:13:12 sweep16k: idx 91-120: runner exit 0 (146 s)
+done idx=121 stream stock-t25 dmesg_new=0 mem_after=14509092 thr=25
+done idx=122 stream stock-t51 dmesg_new=0 mem_after=14603564 thr=51
+done idx=123 stream stock-t0 dmesg_new=0 mem_after=14523348 thr=0
+done idx=124 stream stock-t51 dmesg_new=0 mem_after=14552916 thr=51
+done idx=125 stream stock-t25 dmesg_new=0 mem_after=14577520 thr=25
+done idx=126 stream stock-t0 dmesg_new=0 mem_after=14372560 thr=0
+done idx=127 stream stock-t51 dmesg_new=0 mem_after=14528680 thr=51
+done idx=128 stream stock-t0 dmesg_new=0 mem_after=14827040 thr=0
+done idx=129 stream stock-t25 dmesg_new=0 mem_after=14848480 thr=25
+done idx=130 stream stock-t51 dmesg_new=0 mem_after=14867824 thr=51
+done idx=131 stream stock-t25 dmesg_new=0 mem_after=14616576 thr=25
+done idx=132 stream stock-t0 dmesg_new=0 mem_after=14512740 thr=0
+done idx=133 stream stock-t25 dmesg_new=0 mem_after=14698036 thr=25
+done idx=134 stream stock-t51 dmesg_new=0 mem_after=14723936 thr=51
+done idx=135 stream stock-t0 dmesg_new=0 mem_after=14628908 thr=0
+done idx=136 stream stock-t0 dmesg_new=0 mem_after=14527672 thr=0
+done idx=137 stream stock-t25 dmesg_new=0 mem_after=14482136 thr=25
+done idx=138 stream stock-t51 dmesg_new=0 mem_after=14639724 thr=51
+done idx=139 stream stock-t51 dmesg_new=0 mem_after=14683396 thr=51
+done idx=140 stream stock-t25 dmesg_new=0 mem_after=14545072 thr=25
+done idx=141 stream stock-t0 dmesg_new=0 mem_after=14660808 thr=0
+done idx=142 stream stock-t25 dmesg_new=0 mem_after=14807496 thr=25
+done idx=143 stream stock-t0 dmesg_new=0 mem_after=14663696 thr=0
+done idx=144 stream stock-t51 dmesg_new=0 mem_after=14672540 thr=51
+done idx=145 stream stock-t0 dmesg_new=0 mem_after=14478688 thr=0
+done idx=146 stream stock-t25 dmesg_new=0 mem_after=14742288 thr=25
+done idx=147 stream stock-t51 dmesg_new=0 mem_after=14802368 thr=51
+done idx=148 stream stock-t51 dmesg_new=0 mem_after=14557364 thr=51
+done idx=149 stream stock-t25 dmesg_new=0 mem_after=14419012 thr=25
+done idx=150 stream stock-t0 dmesg_new=0 mem_after=14372760 thr=0
+COMPLETE None
+- 12:15:55 stream: idx 121-150: runner exit 0 (157 s)
+done idx=151 sgemm stock-t51 dmesg_new=0 mem_after=14935132 thr=51
+done idx=152 sgemm stock-t25 dmesg_new=0 mem_after=14881588 thr=25
+done idx=153 sgemm stock-t0 dmesg_new=0 mem_after=14838028 thr=0
+done idx=154 sgemm stock-t51 dmesg_new=0 mem_after=14856236 thr=51
+done idx=155 sgemm stock-t0 dmesg_new=0 mem_after=14844016 thr=0
+done idx=156 sgemm stock-t25 dmesg_new=0 mem_after=14847552 thr=25
+done idx=157 sgemm stock-t25 dmesg_new=0 mem_after=14913728 thr=25
+done idx=158 sgemm stock-t0 dmesg_new=0 mem_after=14872704 thr=0
+done idx=159 sgemm stock-t51 dmesg_new=0 mem_after=14902056 thr=51
+done idx=160 sgemm stock-t51 dmesg_new=0 mem_after=14927368 thr=51
+done idx=161 sgemm stock-t0 dmesg_new=0 mem_after=14952388 thr=0
+done idx=162 sgemm stock-t25 dmesg_new=0 mem_after=14980012 thr=25
+done idx=163 sgemm stock-t51 dmesg_new=0 mem_after=14884496 thr=51
+done idx=164 sgemm stock-t0 dmesg_new=0 mem_after=14870768 thr=0
+done idx=165 sgemm stock-t25 dmesg_new=0 mem_after=14959908 thr=25
+done idx=166 sgemm stock-t25 dmesg_new=0 mem_after=14853136 thr=25
+done idx=167 sgemm stock-t0 dmesg_new=0 mem_after=14913252 thr=0
+done idx=168 sgemm stock-t51 dmesg_new=0 mem_after=14893788 thr=51
+done idx=169 sgemm stock-t0 dmesg_new=0 mem_after=14952352 thr=0
+done idx=170 sgemm stock-t25 dmesg_new=0 mem_after=14869768 thr=25
+done idx=171 sgemm stock-t51 dmesg_new=0 mem_after=14861288 thr=51
+done idx=172 sgemm stock-t25 dmesg_new=0 mem_after=14867684 thr=25
+done idx=173 sgemm stock-t0 dmesg_new=0 mem_after=14905400 thr=0
+done idx=174 sgemm stock-t51 dmesg_new=0 mem_after=14972724 thr=51
+done idx=175 sgemm stock-t25 dmesg_new=0 mem_after=14918600 thr=25
+done idx=176 sgemm stock-t0 dmesg_new=0 mem_after=14840448 thr=0
+done idx=177 sgemm stock-t51 dmesg_new=0 mem_after=14799496 thr=51
+done idx=178 sgemm stock-t0 dmesg_new=0 mem_after=14874860 thr=0
+done idx=179 sgemm stock-t51 dmesg_new=0 mem_after=14916620 thr=51
+done idx=180 sgemm stock-t25 dmesg_new=0 mem_after=14838532 thr=25
+COMPLETE None
+- 12:25:05 sgemm: idx 151-180: runner exit 0 (544 s)
+done idx=181 cufft stock-t51 dmesg_new=0 mem_after=14922248 thr=51
+done idx=182 cufft stock-t0 dmesg_new=0 mem_after=14908744 thr=0
+done idx=183 cufft stock-t25 dmesg_new=0 mem_after=14871912 thr=25
+done idx=184 cufft stock-t51 dmesg_new=0 mem_after=14757020 thr=51
+done idx=185 cufft stock-t0 dmesg_new=0 mem_after=14731248 thr=0
+done idx=186 cufft stock-t25 dmesg_new=0 mem_after=14807092 thr=25
+done idx=187 cufft stock-t25 dmesg_new=0 mem_after=14757104 thr=25
+done idx=188 cufft stock-t51 dmesg_new=0 mem_after=14671872 thr=51
+done idx=189 cufft stock-t0 dmesg_new=0 mem_after=14658440 thr=0
+done idx=190 cufft stock-t51 dmesg_new=0 mem_after=14641796 thr=51
+done idx=191 cufft stock-t0 dmesg_new=0 mem_after=14638292 thr=0
+done idx=192 cufft stock-t25 dmesg_new=0 mem_after=14649320 thr=25
+done idx=193 cufft stock-t0 dmesg_new=0 mem_after=14622672 thr=0
+done idx=194 cufft stock-t51 dmesg_new=0 mem_after=14618340 thr=51
+done idx=195 cufft stock-t25 dmesg_new=0 mem_after=14749804 thr=25
+done idx=196 cufft stock-t25 dmesg_new=0 mem_after=14624056 thr=25
+done idx=197 cufft stock-t0 dmesg_new=0 mem_after=14692672 thr=0
+done idx=198 cufft stock-t51 dmesg_new=0 mem_after=14785396 thr=51
+done idx=199 cufft stock-t51 dmesg_new=0 mem_after=14779152 thr=51
+done idx=200 cufft stock-t25 dmesg_new=0 mem_after=14627920 thr=25
+done idx=201 cufft stock-t0 dmesg_new=0 mem_after=14604096 thr=0
+done idx=202 cufft stock-t51 dmesg_new=0 mem_after=14589160 thr=51
+done idx=203 cufft stock-t25 dmesg_new=0 mem_after=14758748 thr=25
+done idx=204 cufft stock-t0 dmesg_new=0 mem_after=14628340 thr=0
+done idx=205 cufft stock-t0 dmesg_new=0 mem_after=14598040 thr=0
+done idx=206 cufft stock-t51 dmesg_new=0 mem_after=14596360 thr=51
+done idx=207 cufft stock-t25 dmesg_new=0 mem_after=14599528 thr=25
+done idx=208 cufft stock-t0 dmesg_new=0 mem_after=14638060 thr=0
+done idx=209 cufft stock-t51 dmesg_new=0 mem_after=14610344 thr=51
+done idx=210 cufft stock-t25 dmesg_new=0 mem_after=14581916 thr=25
+COMPLETE None
+- 12:27:10 cufft: idx 181-210: runner exit 0 (119 s)
+done idx=211 graphbfs stock-t51 dmesg_new=0 mem_after=14758136 thr=51
+done idx=212 graphbfs stock-t25 dmesg_new=0 mem_after=14822664 thr=25
+done idx=213 graphbfs stock-t0 dmesg_new=0 mem_after=14804696 thr=0
+done idx=214 graphbfs stock-t51 dmesg_new=0 mem_after=14792460 thr=51
+done idx=215 graphbfs stock-t0 dmesg_new=0 mem_after=14864248 thr=0
+done idx=216 graphbfs stock-t25 dmesg_new=0 mem_after=14806912 thr=25
+done idx=217 graphbfs stock-t25 dmesg_new=0 mem_after=14815992 thr=25
+done idx=218 graphbfs stock-t51 dmesg_new=0 mem_after=14806704 thr=51
+done idx=219 graphbfs stock-t0 dmesg_new=0 mem_after=14800616 thr=0
+done idx=220 graphbfs stock-t0 dmesg_new=0 mem_after=14798636 thr=0
+done idx=221 graphbfs stock-t51 dmesg_new=0 mem_after=14827236 thr=51
+done idx=222 graphbfs stock-t25 dmesg_new=0 mem_after=14828292 thr=25
+done idx=223 graphbfs stock-t25 dmesg_new=0 mem_after=14792460 thr=25
+done idx=224 graphbfs stock-t0 dmesg_new=0 mem_after=14823940 thr=0
+done idx=225 graphbfs stock-t51 dmesg_new=0 mem_after=14778852 thr=51
+done idx=226 graphbfs stock-t0 dmesg_new=0 mem_after=14908012 thr=0
+done idx=227 graphbfs stock-t51 dmesg_new=0 mem_after=14811616 thr=51
+done idx=228 graphbfs stock-t25 dmesg_new=0 mem_after=14841408 thr=25
+done idx=229 graphbfs stock-t0 dmesg_new=0 mem_after=14793156 thr=0
+done idx=230 graphbfs stock-t51 dmesg_new=0 mem_after=14817860 thr=51
+done idx=231 graphbfs stock-t25 dmesg_new=0 mem_after=14821544 thr=25
+done idx=232 graphbfs stock-t25 dmesg_new=0 mem_after=14798436 thr=25
+done idx=233 graphbfs stock-t51 dmesg_new=0 mem_after=14835464 thr=51
+done idx=234 graphbfs stock-t0 dmesg_new=0 mem_after=14785908 thr=0
+done idx=235 graphbfs stock-t51 dmesg_new=0 mem_after=14799776 thr=51
+done idx=236 graphbfs stock-t0 dmesg_new=0 mem_after=14945444 thr=0
+done idx=237 graphbfs stock-t25 dmesg_new=0 mem_after=14806524 thr=25
+done idx=238 graphbfs stock-t0 dmesg_new=0 mem_after=14825368 thr=0
+done idx=239 graphbfs stock-t51 dmesg_new=0 mem_after=14806224 thr=51
+done idx=240 graphbfs stock-t25 dmesg_new=0 mem_after=14808108 thr=25
+COMPLETE None
+- 12:55:00 graphbfs: idx 211-240: runner exit 0 (1664 s)
+- 12:55:05 SWEEP COMPLETE; skipped Family B workloads: none
+2026-10-09T12:55:08Z orchestrate sweep exit 0
+2026-10-09T12:55:08Z CHAIN COMPLETE
