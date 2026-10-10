@@ -1,0 +1,5 @@
+csv,policy6_rows,I1_nonzero,I2_nonzero,rows_missing_counters
+results/analysis/gate_e/e4/e4_runs.csv,160,0,0,0
+results/analysis/gate_e/e5/e5_runs.csv,30,0,0,0
+results/analysis/gate_e/e6/e6_runs.csv,40,0,0,0
+results/analysis/gate_e/e7/e7_runs.csv,20,0,0,0

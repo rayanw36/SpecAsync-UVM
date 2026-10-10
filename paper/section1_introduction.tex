@@ -37,7 +37,8 @@
 %   [SRC]  verify from uvm_migrate.c that cudaMemPrefetchAsync to a GPU
 %          installs mappings (MAKE_RESIDENT_AND_MAP), before Section II
 %          relies on it.
-%   [CAT]  artifact count (25) to be confirmed against ARTIFACT_CATALOG.md.
+%   [CAT]  RESOLVED: 30 entries after C6 (ARTIFACT_CATALOG.md).
+%   [MDE]  MDEs quoted at the family alpha (MDE_AUDIT.md): E6 t0/t10 2.04/2.28%.
 %   [SEC]  section numbers in the roadmap follow the planned outline.
 % =====================================================================
 
@@ -101,8 +102,8 @@ be moved directly. Lowering it from the shipped 51 to 0, with no speculation,
 makes the stock driver 9.57\% faster on the same stencil workload (confirmatory
 test), and the oracle-driven speculation configuration at the shipped threshold
 is 6.4\% slower than it. At matched thresholds, speculation adds at most 2.8\%,
-and nothing detectable at threshold 0 or 10 (minimum detectable effects 1.8\%
-and 2.0\%). Across nine dense or streaming workloads, the lower threshold sped up
+and nothing detectable at threshold 0 or 10 (minimum detectable effects 2.0\%
+and 2.3\% at the family's corrected level). Across nine dense or streaming workloads, the lower threshold sped up
 four, by 2.5--17\%, and significantly slowed none.
 
 \paragraph{But the lever cuts both ways}
@@ -173,7 +174,7 @@ written before the measurement it tested.
   correction across pre-declared families, and reports outliers with and
   without removal.
 
-  \item \textbf{A catalog of UVM measurement artifacts.} Twenty-five artifacts
+  \item \textbf{A catalog of UVM measurement artifacts.} Thirty artifacts
   met in this study, each with the false conclusion it would have produced,
   including the misaligned oracle. One pattern stands out: errors arising from
   a mismatch of aggregation level (per batch versus per fault, per trial versus

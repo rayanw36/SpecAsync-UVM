@@ -1,0 +1,246 @@
+% =====================================================================
+% Section IV -- SpecAsync-UVM: design and the first-touch oracle
+% SpecAsync-UVM manuscript, draft 1 (2026-10-10)
+%
+% SCOPE: what was built and how it can be configured. No results here
+% (Sections VI-VII); numbers below are design constants or come from the
+% verification gates that established correctness (E0.9, E3b).
+%
+% SOURCES:
+%   hook, enqueue, queue cap, worker, trylock, THROTTLED:
+%     uvm_gpu_replayable_faults.c (driver/src), E1B_HANDOFF_COST.md §1,
+%     E3A_WIDTH_REVIEW.md §1-3, GATE_T4_REPORT.md §2 (cap 1024).
+%   worker never maps: E0.9a-2 §3 (uvm_va_block.c:4968-4995, :4886-4887).
+%   width W: E3A_WIDTH_REVIEW.md (power of two in [1,512], insmod rejects,
+%     region bounds, liveness re-check, W=1 identical to pre-E3a).
+%   first-touch table and cursor: GATE_E0_9_REPORT.md §3 (algorithm:
+%     monotonic cursor, skip-correction, lookahead L, held, exhausted,
+%     unknown page; sort at load, bsearch per fault; distinct-page assert).
+%   fast lookup: GATE_E3B_REPORT.md (ft_fast verified at load; nranges
+%     Stencil 2, GraphBFS 19; cas_giveup 0), E3B_ORACLE_COST.md.
+%   identities I1, I2: GATE_E3B_REPORT.md Steps 2-3 (exact on every run).
+%   E3a-2 = verified at W=1, fast=0: GATE_E3B_REPORT.md Step 2 (b) vs (a).
+%   fault_already_resident: E0.9a-2 (counter on the demand path); CS2-N7.
+%   decomposition overhead: CS2-16 (+0.331% 5070 Ti; +0.64% T4 UNCHECKED).
+%   review protocol: E3A_WIDTH_REVIEW.md §3, §5-6; catalog #22.
+%
+% OPEN -- design checks (read-only, Claude Code):
+%   [DC-1] same-region suppression: E3a used "last enqueued region"; the
+%          handoff says E3a-2 has an 8-slot region history. Confirm which
+%          the E3a-2 module (33FD42E6) implements and its exact rule.
+%   [DC-2] ft_fast mechanism: confirm "rank computed from a small set of
+%          contiguous address runs" and "cursor advanced by compare-and-swap
+%          with bounded retries (cas_giveup)"; state what happens when the
+%          load-time verification fails (fast disabled? load refused?).
+%   [DC-3] table collection: confirm it runs with ASLR disabled (setarch -R)
+%          and records once per coalesced fault after E0.5.
+%   [DC-4] depth semantics: depth 0 = lookup only (no make_resident),
+%          depth 1 = make_resident. Confirm.
+%   [FIG]  Fig. 2: fault path with the hook, queue, worker and table.
+% =====================================================================
+
+\section{SpecAsync-UVM}
+\label{sec:design}
+
+SpecAsync-UVM adds an off-path staging mechanism to NVIDIA's open-source UVM
+driver. Its purpose in this study is narrow: to let us measure what moving
+residency work off the fault-servicing thread can and cannot achieve. We
+therefore describe it as an instrument, with the parameters we vary and the
+checks that establish it does what it claims.
+
+\subsection{Structure}
+\label{sec:design-structure}
+
+The mechanism has three parts (Fig.~2).
+
+\paragraph{A prediction hook on the servicing thread}
+At the start of servicing each batch, before the address-space lock is
+taken, the driver walks the batch's coalesced faults and asks a
+\emph{policy} for one predicted page per fault. A policy may decline. When it
+returns a page, the hook allocates a small work item, takes a reference on the
+GPU, and queues the item on a kernel workqueue. The queue is capped at 1{,}024
+outstanding items; a prediction that arrives when the queue is full is
+dropped and counted. This hook is the only part of the mechanism that runs on
+the fault-servicing thread, and it runs on every fault, whether or not a
+prediction results. Section~VI measures its cost.
+
+\paragraph{A worker off the critical path}
+A kernel worker thread takes items from the queue. For each, it takes the
+address space's lock in read mode, finds the VA block containing the
+predicted page, and \emph{tries} to take that block's lock. It never waits:
+if the block is locked, typically because the servicing thread is working on
+it, the item is abandoned and counted as throttled. With the lock held, it
+calls the driver's \texttt{make\_resident} routine with the predicted region,
+the GPU as destination, and a prefetch cause. The worker therefore performs
+exactly the operation that Section~\ref{sec:bg-resident-mapped} showed cannot
+install a GPU mapping. This is a property of the driver's interfaces, not a
+choice we made to weaken the mechanism: the mapping step is part of fault
+service, and invoking it from outside a fault would require restructuring the
+driver's service path, which we leave to future work.
+
+\paragraph{Policies}
+A policy maps the fault being serviced to a page worth staging. Earlier
+phases of this project evaluated adjacent-page and stride heuristics and a
+trace-replay oracle; the last of these was misaligned
+(Section~VIII) and none of their results is used in this paper. Every
+speculation result reported here uses one policy, the first-touch oracle of
+Section~\ref{sec:design-oracle}, against a control with speculation disabled.
+
+A \emph{depth} parameter selects how much of the worker's work is done:
+depth~0 performs the lookup without migrating, and depth~1 migrates. All
+reported configurations use depth~1.
+
+\subsection{Staging Width}
+\label{sec:design-width}
+
+At one page per item the worker cannot keep pace with demand: with a fast
+predictor the queue overflows, and each item pays the full cost of a lock
+acquisition and a migration call for 4\,KB of data. A \emph{width} parameter
+$W$ addresses this. For a predicted page at index $i$ in its VA block, the
+worker stages the aligned region
+$[\,\lfloor i/W \rfloor W,\; \min(\lfloor i/W \rfloor W + W,\; n)\,)$, where $n$
+is the number of pages in the block; at $W = 512$ the region is the whole
+2\,MB block. On the prediction side, a prediction whose region was already
+enqueued recently is not enqueued again, so that one item covers a region
+rather than one item per page of it. % [DC-1] exact suppression rule.
+
+$W$ is a load-time module parameter, accepted only as a power of two from 1
+to 512; any other value makes the module load fail. Every region bound is
+checked explicitly before the worker builds its page mask, because the
+driver's own helpers check some of them only with assertions that are
+non-fatal in release builds, and one of them writes the mask without any
+check. The worker also re-checks, under the block lock, that the block has
+not been destroyed. At $W = 1$ every new code path is bypassed and the
+mechanism behaves exactly as it did before width was added; we verified this
+counter for counter against the previously verified module.
+
+\subsection{The First-Touch Oracle}
+\label{sec:design-oracle}
+
+To separate what off-path staging can achieve from how well a heuristic
+predicts, we give the worker knowledge of the future taken from the workload
+itself. In a collection run with address-space randomisation disabled, the
+driver records each coalesced fault's page in service order. A user-space
+tool reduces this record to its \emph{first-touch order}: the list of
+distinct pages in the order each was first faulted, ranked
+$0, 1, \ldots, N-1$. The table is loaded into the module before a measured
+run. % [DC-3]
+
+During the measured run the policy keeps a cursor $c$, the rank of the next
+page it may predict. On a fault to a page of rank $r$:
+\begin{itemize}
+  \item if $c \le r$, demand has caught up with the cursor, which skips to
+        $r + 1$;
+  \item if $c \le r + L$, the policy predicts the page of rank $c$ and
+        advances the cursor; otherwise it holds back, so that it never runs
+        more than $L$ ranks ahead of demand;
+  \item a fault to a page absent from the table, or a cursor past the end of
+        the table, produces no prediction.
+\end{itemize}
+Each table entry is predicted at most once per run, and the lookahead $L$
+bounds how far ahead staging can run.
+
+This oracle is as good as the workload's run-to-run stability allows, and
+no better. On our stencil workload, the first-touch order of 1{,}125{,}000
+pages differs between independent runs by at most 107 ranks, so the table is
+a near-perfect forecast. On graph traversal the order is much looser, and
+because the cursor skips forward whenever a fault arrives ahead of it, one
+out-of-order fault can jump the cursor past pages that have not yet been
+touched. The graph oracle therefore stages only part of the working set, and
+we report its results as those of a weakened oracle. An index-based replay
+of the raw fault stream, which we used in earlier phases, is not robust in
+the same way: the number of repeated faults per page varies from run to run,
+so positions drift even when the order of first touches does not.
+
+\paragraph{The lookup must be cheap}
+The original implementation found a page's rank by binary search over a
+sorted copy of the table and updated the cursor under a global spinlock with
+interrupts disabled, once for every coalesced fault. That cost falls on the
+servicing thread, so an oracle meant to bound speculation's benefit was
+itself reducing it. A second implementation computes the rank in constant
+time and advances the cursor without a lock. At load time the module checks
+the fast lookup against the original for every entry in the table, and
+records whether the check passed; every measured run with the fast lookup
+requires it to have passed. % [DC-2] mechanism and failure behaviour.
+
+\subsection{Telemetry}
+\label{sec:design-telemetry}
+
+The module exports counters through debugfs and records per-batch timing in
+fixed-size rings that drop rather than overwrite when full, and count their
+drops. Three kinds of record matter for the results.
+
+\paragraph{Accounting identities}
+Every coalesced fault is either predicted, held back, unknown, past the end
+of the table, or abandoned by the lock-free update; and every prediction is
+either suppressed as a repeat region, enqueued, or dropped at a full queue.
+Both identities are checked on every run, and held exactly on every run we
+report.
+
+\paragraph{Phase timing}
+Timestamps at the boundaries of Table~\ref{tab:phases} give the
+decomposition of each batch, together with the time the servicing thread
+spends in the prediction hook before the address-space lock. On the
+RTX~5070~Ti the decomposition instrumentation adds 0.33\% to kernel-loop time,
+which is not distinguishable from zero.
+
+\paragraph{Whether staging arrived first}
+A counter on the demand path records each fault whose page was already
+resident on the GPU when the servicing thread reached it, that is, faults
+for which the worker finished first. It measures that the worker won the
+race to make the page resident, not that the fault was avoided, since by
+Section~\ref{sec:bg-resident-mapped} it was not. An older counter of
+``hits'', faults on pages predicted within the previous 10\,ms, is not a
+measure of success and is not used.
+
+\subsection{Developing Kernel Code Safely}
+\label{sec:design-safety}
+
+The mechanism runs inside a production kernel module, where a mistake can
+crash the machine. One did: an instrumentation counter added during this
+study called a driver helper that returns a null pointer when the GPU has no
+state in a block, a case the helper guards only with a non-fatal assertion,
+and the kernel oopsed. Since then every change to kernel code follows the
+same protocol. The change is compiled but not loaded. A review document lists
+every driver function it calls, with the locks each requires, whether it can
+fail or return null, and every precondition that is checked only by
+assertion, and states how the new code guards each one. Invalid parameter
+values are rejected at load. The first load is attended, starts with the
+smallest probe, and checks the new module against the previously verified
+one at settings where they should be identical. The verified module is never
+overwritten, and every measured run checks the loaded module's source hash
+and parameters before it starts.
+
+\subsection{Configurations}
+\label{sec:design-configs}
+
+Table~\ref{tab:configs} lists the configurations used in Sections~VI
+and~VII. C0 is the comparison of record throughout: the stock prefetcher at
+its shipped threshold, with no speculation. C1 disables the prefetcher and is
+used only to isolate mechanisms, never as the baseline against which
+speculation is judged.
+
+\begin{table}[t]
+\centering
+\footnotesize
+\setlength{\tabcolsep}{3.5pt}
+\begin{tabular}{@{}l l l l l@{}}
+\toprule
+\textbf{Config} & \textbf{Speculation} & \textbf{Prefetcher} & $W$ & \textbf{Lookup} \\
+\midrule
+C0        & off                      & on (threshold $t$)  & --- & --- \\
+C1        & off                      & off                 & --- & --- \\
+C6-W$k$   & first-touch oracle       & off                 & $k$ & fast \\
+C7-W$k$   & first-touch oracle       & on (threshold $t$)  & $k$ & fast \\
+\bottomrule
+\end{tabular}
+\caption{Configurations. Unless stated, $t = 51$ (shipped), lookahead
+$L = 4096$, depth~1. ``Slow'' variants use the original binary-search lookup.
+Stock-$t$ denotes the unmodified driver at threshold $t$.}
+\label{tab:configs}
+\end{table}
+
+% [FIG] Fig. 2: Section III's fault-path figure extended with: the prediction
+% hook before the address-space lock (on the servicing thread), the bounded
+% queue, the worker (VA-space read lock -> block trylock -> make_resident,
+% no map), the first-touch table with cursor c and lookahead L.

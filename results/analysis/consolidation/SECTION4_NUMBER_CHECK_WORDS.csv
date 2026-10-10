@@ -1,0 +1,26 @@
+line,word,context
+54,three,The mechanism has three parts (Fig.~2).
+59,one,\emph{policy} for one predicted page per fault. A policy may
+86,one,"speculation result reported here uses one policy, the first-touch oracle of"
+86,first,"sult reported here uses one policy, the first-touch oracle of"
+96,one,At one page per item the worker cannot keep pa
+104,one,"recently is not enqueued again, so that one item covers a region"
+105,one,rather than one item per page of it.
+107,two,"parameter, accepted only as a power of two from 1"
+111,one,"non-fatal in release builds, and one of them writes the mask without any"
+117,First,\subsection{The First-Touch Oracle}
+124,first,tool reduces this record to its \emph{first-touch order}: the list of
+125,first,"distinct pages in the order each was first faulted, ranked"
+144,first,"no better. On our stencil workload, the first-touch order of 1{,}125{,}000"
+147,one,"d whenever a fault arrives ahead of it, one"
+153,first,positions drift even when the order of first touches does not.
+160,second,itself reducing it. A second implementation computes the rank in con
+171,Three,drops. Three kinds of record matter for the results.
+187,first,\paragraph{Whether staging arrived first}
+190,first,for which the worker finished first. It measures that the worker won the
+200,One,crash the machine. One did: an instrumentation counter added d
+207,one,and states how the new code guards each one. Invalid parameter
+208,first,"values are rejected at load. The first load is attended, starts with the"
+210,one,one at settings where they should be identi
+233,first,C6-W$k$ & first-touch oracle & off
+234,first,C7-W$k$ & first-touch oracle & on (threshold $t$)
