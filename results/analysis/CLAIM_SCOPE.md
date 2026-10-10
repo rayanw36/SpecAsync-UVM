@@ -5,7 +5,7 @@ from git history). Every claim in v1 is carried here as a block, with its status
 new claims N1–N7 and N9 and the retired explanations R1–R2 come from the Gate E series
 and the flag ledger (`results/analysis/consolidation/FLAG_LEDGER.md`).
 
-**Amended 2026-10-09 (Gate C4):** CS2-N10 replaced (two platforms, sparse access, mechanism); CS2-N11 added (PENDING-LIT); CS2-N1 item 4 extended; a `Platform scope` line added to every Gate E claim (N1-N7, N9, N10, N11).
+**Amended 2026-10-09 (Gate C4):** CS2-N10 replaced (two platforms, sparse access, mechanism); CS2-N11 added (PENDING-LIT; text replaced and marked checked 2026-10-10); CS2-N1 item 4 extended; a `Platform scope` line added to every Gate E claim (N1-N7, N9, N10, N11).
 
 Two standing rules apply throughout: every number cites an evidence id from
 `results/analysis/consolidation/EVIDENCE_EXTRACT.md`, or is marked PROSE-ONLY or
@@ -403,14 +403,14 @@ labels stay as they are. Every Gate E claim below is stated for **595.91.07** an
 - **What changed and why:** E6's descriptive Stencil result was confirmed pre-registered (E7), replicated on the T4 (E7-T4), shown to reverse for sparse oversubscribed access (E8) and explained by migration counts (E9). The previous text's claim that the generality "is E7 Family B and the T4 replication" is replaced by the measurements.
 
 ### CS2-N11 · Prior work on the threshold
-- **Current text:** new (Gate C4).
-- **Status:** new. **PENDING-LIT**: wording to be checked against the full paper.
-- **Proposed text:** "Go et al. (Early-Adaptor, ISPASS 2023) report, on an RTX 3090 with the open driver, that the prefetch threshold's impact varies across workloads, and they propose an adaptive scheme under oversubscription. This work does not claim the threshold's workload-dependence as new. Its distinct claims are CS2-N1 to N4 (speculation's gain runs through the density rule) and the pre-registered two-direction, two-platform measurement (CS2-N10). STATUS: PENDING-LIT; wording to be checked against the full paper."
+- **Current text:** new (Gate C4); text replaced 2026-10-10 on the author's instruction after checking the full paper.
+- **Status:** new. **Checked against the full paper 2026-10-10** (by the author; the PENDING-LIT marker is cleared).
+- **Proposed text:** "Go et al. (Early-Adaptor, ISPASS 2023; RTX 3090, open driver 515.65.01) report both directions of CS2-N10: in memory, a low threshold is at least as fast as 51 for every workload tested; at 150% oversubscription it hurts irregular workloads through thrashing. CS2-N10 is an independent pre-registered replication on driver 595.91.07 and two GPU generations, with migrated bytes traced (E9). This work's distinct claims are CS2-N1 to N4. STATUS: checked against the full paper 2026-10-10."
 - **Baseline:** n/a (literature positioning).
-- **Evidence:** literature (not a measurement): Go et al., Early-Adaptor, ISPASS 2023 (cited in `paper/section1_introduction.tex` as `go2023earlyadaptor`); **UNCHECKED** against the full paper.
-- **Scope:** positioning only. "Two-platform" refers to CS2-N10's dense-access part; the two-direction measurement on oversubscribed sparse access is RTX 5070 Ti only.
+- **Evidence:** literature (not a measurement): Go et al., Early-Adaptor, ISPASS 2023 (cited in `paper/section1_introduction.tex` as `go2023earlyadaptor`). The statements about that paper were checked against the full paper by the author on 2026-10-10; I have not read it. The statements about this work point to CS2-N10 and its evidence ids.
+- **Scope:** positioning only. "Two GPU generations" are the RTX 5070 Ti (Blackwell) and the Tesla T4 (Turing); the T4 covers CS2-N10's dense-access part only, and the sparse and oversubscribed parts and the traced mechanism (E9) are RTX 5070 Ti only.
 - **Platform scope:** not applicable (a statement about the literature); the measurements it points to are scoped in CS2-N1 to N4 and CS2-N10.
-- **What changed and why:** added so that the paper does not present the workload-dependence of the threshold as its own finding.
+- **What changed and why:** the earlier wording ("does not claim the threshold's workload-dependence as new", PENDING-LIT) is replaced by the checked comparison: the prior work already reports both directions, so CS2-N10's contribution is the replication on a newer driver and two GPU generations with traced bytes, and the distinct claims are CS2-N1 to N4.
 
 ---
 
@@ -441,7 +441,7 @@ labels stay as they are. Every Gate E claim below is stated for **595.91.07** an
 | narrowed | 5 | 7, 9, 12 (hit-rate part), 15, 17 |
 | superseded | 2 | 5, 6 |
 | retired | 3 | 10 (as an explanation), R1, R2 |
-| new | 10 | N1, N2, N3, N4, N5, N6, N7, N9, N10, N11 (N11 PENDING-LIT) |
+| new | 10 | N1, N2, N3, N4, N5, N6, N7, N9, N10, N11 |
 
 (No "N8" is used, to avoid a collision with "claim 8". CS2-12 stands as a legacy claim
 and is counted under narrowed, for its hit-rate part.)
