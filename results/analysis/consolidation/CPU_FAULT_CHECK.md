@@ -27,12 +27,12 @@ the existing E9 nsys reports and the committed E8 CSV were read. Scripts: `tests
 | 2 | `uvm_perf_prefetch_compute_ats(...)` at `uvm_ats_faults.c:440` (`uvm_perf_prefetch.c:466-486`) | the ATS fault path; it also ends in `compute_prefetch_mask` (`uvm_perf_prefetch.c:482`) and so uses the same threshold. Not exercised by the managed-memory benchmarks here (not established which path, if any, ATS takes on this host) |
 
 **What the threshold governs on a CPU fault.** Inside `uvm_perf_prefetch_get_hint_va_block` (`uvm_perf_prefetch.c:488`) the destination is the faulting processor. With the benchmarks' settings (no `cudaMemAdvise`, so the
-preferred location is unset), `should_apply_prefetch_logic` returns true ("No preferred location set - always allow prefetching", `uvm_perf_prefetch.c:326-328`), so the density path runs
+preferred location is unset), `should_apply_prefetch_logic` returns true ("No preferred location set - always allow prefetching", `uvm_perf_prefetch.c:329-330`), so the density path runs
 (`uvm_perf_prefetch.c:408-431`): a bitmap tree over the 2 MB block is built from the already-resident and faulting pages, and each faulted page expands to the largest subregion whose resident fraction exceeds the threshold.
 **At threshold 0 any one faulting page satisfies the test for the whole block** (`counter >= 1`, `0 * subregion_pages = 0`), so a single CPU fault can populate a whole 2 MB block; at 51 the region grows by successive faults.
 This is consistent with E9's 1 fault per block at t0 against 6.00 per block at t51; **the 6.00 is a measurement, the mechanism for the exact factor was not derived here.** The separate first-touch rule
 (whole block when the block is empty and the destination is the preferred location, `uvm_perf_prefetch.c:404-407`) is not used here because the preferred location is unset. `uvm_perf_prefetch_min_faults` (default 1, `:51`) is not a factor.
-The CPU-side exclusion of pages already CPU-mapped (`uvm_perf_prefetch.c:434-440`) does not change this.
+The CPU-side exclusion of pages already CPU-mapped (`uvm_perf_prefetch.c:440-445`) does not change this.
 
 ## 5b. E9: where in a run do the CPU faults occur?
 
