@@ -1,0 +1,230 @@
+% =====================================================================
+% Section III -- Background: the UVM fault path and its prefetcher
+% SpecAsync-UVM manuscript, draft 1 (2026-10-10)
+%
+% SCOPE: the STOCK driver only. SpecAsync's design (worker, queue, width,
+% oracle) belongs to Section IV; results belong to Sections VI-VII. This
+% section states only what the source and earlier gates establish, so that
+% Section I's mechanism sentences have a place to point to.
+%
+% SOURCES (function names are cited in prose; line numbers stay here):
+%   driver 595.91.07, kernel-open/nvidia-uvm (pristine DKMS copy):
+%     uvm_perf_prefetch.c  :42 default 51; :48 declaration; :60 module_param
+%       (0444); :94-100 subregion count; :102-146 compute_prefetch_region;
+%       :118 strict test counter*100 > subregion_pages*threshold; :148-219
+%       grow_fault_granularity (64 KB big-page fill, density bitmap only);
+%       :226-227 bitmap = resident_mask | faulted_pages; :396-397 destination
+%       resident mask; :404-407 first-touch whole-block rule; :552-561 range
+%       check (>100 silently -> 51)                        [E5_MECHANISM]
+%     uvm_va_block.c :11487 get_prefetch_hint; :11520 PREFETCH access type;
+%       :11532 prefetch mask OR'd into new_residency; :11926 service_finish;
+%       :11947 did_not_migrate (not removed); :11961 protection loop over all
+%       of new_residency; :11770/:11981 block_service_finish_map, the only
+%       mapping call on the fault path; :4968-4995 make_resident = copy +
+%       finish, no mapping; :4886-4887 "any move implies mappings removed"
+%                                              [E5_MECHANISM, E0.9a-2 §3]
+%     uvm_migrate.c :680 do_mappings for GPU destination; :698-699
+%       MAKE_RESIDENT_AND_MAP; :265-268/:152 block_migrate_add_mappings;
+%       :94-101 uvm_va_block_map RWA            [PREFETCH_ASYNC_MAPPING.md]
+%   D5 classification (CPU orchestration + async push via uvm_push_end, the
+%     only tracker wait gated on CPU destination): D5_CHARACTERIZATION.md,
+%     traced on 595.71.05; the classifying functions are byte-identical to
+%     v580.95.05; NOT re-traced on 595.91.07 -> [SRC-1].
+%   Phase shares: CS2-1 (63-74% T4; 52.1-76.9% 5070 Ti 595.84; UNCHECKED in
+%     C1, carried), CS2-3 (D3 <0.2%; 0.05-0.14% on 5070 Ti).
+%
+% OPEN:
+%   [SRC-1] re-confirm the D5 classification on 595.91.07 (read-only diff of
+%           service_copy / make_resident_copy / block_copy_end_push).
+%   [SRC-2] eviction granularity and policy (LRU over 2 MB root chunks) is
+%           cited from [go2023earlyadaptor, ganguly2019interplay], not read
+%           from the 595.91.07 source. Read uvm_pmm_gpu.c before submission.
+%   [SRC-3] whether CPU-destination faults run the same density rule with the
+%           same threshold (E9's CPU-fault counts suggest so; C4 step 5).
+%           The text below makes NO claim about it.
+%   [FIG]   Fig. 1 (fault path + where each mechanism acts) to be drawn.
+% =====================================================================
+
+\section{Background: The UVM Fault Path and Its Prefetcher}
+\label{sec:background}
+
+This section describes the parts of NVIDIA's open-source UVM driver that
+decide our results: how a GPU page fault is serviced, the distinction between
+making a page \emph{resident} and making it \emph{mapped}, and the in-path
+prefetcher's density rule. Everything here refers to the stock driver,
+release 595.91.07 unless stated otherwise; function names are those of that
+release.
+
+\subsection{Servicing a Replayable Fault}
+\label{sec:bg-fault-path}
+
+UVM manages memory in \emph{VA blocks}: aligned 2\,MB regions of virtual
+address space, each with its own lock and its own per-processor state. When a
+GPU warp touches a page that is not mapped in the GPU's page tables, the GPU
+records a replayable fault in a hardware fault buffer and the faulting warps
+stall. A driver bottom half drains that buffer and services the faults in
+\emph{batches}, which prior measurement identified as the basic unit of UVM
+fault-handling work \cite{allen2021indepth,allen2024finegrain}.
+
+We decompose one batch into the phases of Table~\ref{tab:phases}, measured by
+instrumentation added at their boundaries (Section~V). The batch is fetched
+(D1) and preprocessed (D2): entries are sorted, duplicates removed, and faults
+to the same page coalesced. The driver then takes the address-space lock in
+read mode (D3 is the wait, D4 the hold) and, inside the hold, dispatches the
+batch block by block (D5). For each VA block it takes the block's lock,
+classifies the faults, chooses where each page should reside, asks the
+prefetcher for a hint, migrates whatever is not yet at its destination, and
+finally maps the pages for the faulting GPU. Once all blocks are serviced the
+driver tells the GPU to replay the stalled accesses (D6).
+
+\begin{table}[t]
+\centering
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}l p{0.52\columnwidth} l@{}}
+\toprule
+\textbf{Phase} & \textbf{Work} & \textbf{Lock} \\
+\midrule
+D1 & Drain the fault buffer & --- \\
+D2 & Sort, de-duplicate, coalesce & --- \\
+D3 & Wait for the address-space lock & --- \\
+D4 & Hold the address-space lock (contains D5) & read \\
+D5 & Per-block dispatch: classify, select residency, prefetch hint,
+     copy, map & read + block \\
+D6 & Push the replay to the GPU & --- \\
+D7 & Residual & --- \\
+\bottomrule
+\end{tabular}
+\caption{Phases of one fault batch, as instrumented in this study.}
+\label{tab:phases}
+\end{table}
+
+Two properties of this path matter later. First, the lock is rarely
+contended in our single-stream workloads: lock \emph{wait} (D3) is below
+0.2\% of the batch in the typical case on both of our platforms, while the
+lock \emph{hold}, dominated by D5, is the largest phase (63--74\% of the
+batch window on the T4, 52--77\% on the RTX~5070~Ti with driver 595.84).
+Second, D5 is CPU work, not a wait for the GPU. Its cost is fault
+classification, residency bookkeeping, and the construction of copy commands,
+which are submitted asynchronously and tracked rather than waited on; the one
+blocking wait in this call chain applies only when the destination is the CPU,
+which is never the case for the GPU faults we measure. Moving a fault's
+discovery earlier does not, by itself, remove this work.
+
+\subsection{Residency Is Not Mapping}
+\label{sec:bg-resident-mapped}
+
+UVM tracks two separate facts about every page and processor. A page is
+\emph{resident} on a processor when that processor's memory holds the current
+copy of its data. It is \emph{mapped} for that processor when the processor's
+page tables contain a valid entry for it. A GPU access faults on the second
+condition, not the first: a page can be resident in GPU memory and still fault
+if the GPU has no entry for it.
+
+The driver changes these two states through different functions. Its
+\texttt{make\_resident} routine copies data to the destination and updates the
+residency masks; it installs no page-table entry, and its own documentation
+states that moving a page implies its existing GPU mappings have been removed.
+Mappings for faulting accesses are installed at one place on the fault path,
+the mapping step at the end of block service
+(\texttt{block\_service\_finish\_map}). Explicit migrations requested from
+user space take a third route: a prefetch to a GPU through the driver's
+migration interface runs in a make-resident-\emph{and}-map mode and installs
+read-write-atomic mappings for the destination GPU, so a page prefetched that
+way does not fault when first touched.
+
+This distinction is the hinge of our study. A mechanism that only makes pages
+resident ahead of demand can make the later fault \emph{cheaper}, since the
+copy inside D5 becomes a no-op, but it cannot make the fault disappear. Only
+a mapping step can do that, and on the fault path the mapping step belongs to
+the servicing thread.
+
+\subsection{The Density Prefetcher}
+\label{sec:bg-prefetcher}
+
+The servicing thread does not map only the faulting pages. Before migrating,
+it consults an in-path prefetcher that may enlarge the set of pages to be
+serviced. The prefetcher descends from the tree-based neighbourhood scheme
+studied by Ganguly \emph{et al.}\ \cite{ganguly2019interplay} and works within
+one VA block at a time.
+
+For a fault on a GPU, the prefetcher builds a bitmap over the block's pages.
+A page is set if it is \emph{already resident on the destination GPU} or is
+being faulted in this batch; faulted pages are first widened to their 64\,KB
+region. It then walks a binary tree of subregions upward from the faulting
+page and, at each level, compares the count of set pages with the
+subregion's size. The largest subregion for which
+\begin{equation}
+  100 \cdot \textit{count} \;>\; \textit{threshold} \cdot \textit{size}
+  \label{eq:density}
+\end{equation}
+becomes the prefetch region. Its non-resident pages are added to the batch's
+destination set and marked as prefetches.
+
+Three details of this rule drive Sections~VI and~VII.
+
+\paragraph{The rule counts residency, not mappings}
+The bitmap is the destination's resident mask combined with the faulted
+pages; mapping state does not enter it. A page made resident on the GPU by
+any means, including a mechanism outside the fault path, counts toward the
+density test exactly as a page brought in by an earlier fault does.
+
+\paragraph{Prefetched pages are mapped in the same step}
+The prefetch region is merged into the set of pages being serviced, and the
+mapping loop at the end of block service runs over that whole set, including
+pages that needed no copy because they were already resident. A region that
+passes the test is therefore mapped for the GPU during the fault that
+triggered it, which prevents the later faults on its other pages.
+
+\paragraph{The threshold is a load-time parameter}
+The threshold is the module parameter \texttt{uvm\_perf\_prefetch\_threshold},
+a percentage with default 51, set when the module is loaded. The test in
+(\ref{eq:density}) is strict. At 100 it can never pass, which disables the
+density rule; at 0 it passes for any subregion containing a single counted
+page, so the whole region the prefetcher considers is taken on the first
+fault in it. Values above 100 are rejected silently: the driver falls back to
+51 while the parameter file still reports the value that was written, a
+hazard our experiments guard against by keeping every setting within range
+and reading back the effective behaviour rather than the parameter.
+
+A second prefetch path populates an entire block on its first touch, but only
+when the block is resident nowhere and the faulting GPU is the block's
+preferred location. Our benchmarks initialise their data on the host and set
+no preferred location, so this path does not fire in our measurements; it
+can fire for applications that issue \texttt{cudaMemAdvise}.
+
+\subsection{Prefetch Aggressiveness Under Memory Pressure}
+\label{sec:bg-oversub}
+
+When GPU memory is full, servicing a fault requires evicting another block's
+data to the host, and the driver selects victims at block granularity
+\cite{go2023earlyadaptor,ganguly2019interplay}. The density threshold
+therefore trades one cost against another. A low threshold migrates large
+regions early, which reduces the number of faults when most of a region will
+be used. When only a few pages of each region are used, the same setting
+moves mostly data that is never touched; if the inflated footprint exceeds
+GPU memory, it also evicts data that will be needed again. Go
+\emph{et al.}\ measured both sides of this trade-off on an RTX~3090 and built
+an adaptive threshold controller on it \cite{go2023earlyadaptor}. Section~VII
+measures it on newer hardware and driver releases, and Section~VI shows that
+off-path speculation, as we built it, acts on performance only through this
+same rule.
+
+\subsection{Where Off-Path Work Can Act}
+\label{sec:bg-where}
+
+Combining the three subsections gives the frame for the rest of the paper.
+Work moved off the fault path, by a background thread that predicts upcoming
+faults, can touch only residency. It can therefore reduce the copy inside D5,
+and it can raise the count in (\ref{eq:density}) so that the in-path
+prefetcher maps a region sooner than it otherwise would. It cannot install a
+mapping itself, and it does not shorten the lock-held classification and
+bookkeeping that make up most of D5. Whatever it gains has to arrive through
+one of those two channels, and both are measurable: the first as a change in
+D5 per fault, the second as a change in the number of demand faults at a
+fixed threshold.
+
+% [FIG] Fig. 1: one fault batch D1-D6 on a timeline; inside D5, the steps
+% classify -> residency -> prefetch hint (Eq. 1) -> copy -> map; arrows marking
+% where (a) a resident-only stager acts (copy, Eq. 1 count) and (b) an explicit
+% migrate-and-map call acts (residency + mapping, outside the fault path).

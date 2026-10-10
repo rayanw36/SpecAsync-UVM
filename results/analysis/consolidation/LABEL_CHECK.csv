@@ -1,0 +1,7 @@
+file,line,command,key,resolves,defined_at
+section3_background.tex,69,ref,tab:phases,yes,section3_background.tex:99
+section3_background.tex,182,ref,eq:density,yes,section3_background.tex:159
+section3_background.tex,219,ref,eq:density,yes,section3_background.tex:159
+section2_related_work.tex,125,ref,sec:squeeze,NO,
+section2_related_work.tex,226,ref,sec:pitfalls,NO,
+section2_related_work.tex,243,ref,tab:prior-work,yes,section2_related_work.tex:389

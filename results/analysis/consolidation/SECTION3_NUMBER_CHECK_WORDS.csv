@@ -1,0 +1,27 @@
+line,word,context
+65,half,stall. A driver bottom half drains that buffer and services the fau
+69,one,"We decompose one batch into the phases of Table~ , measu"
+98,one,"\caption{Phases of one fault batch, as instrumented in this st"
+102,Two,Two properties of this path matter later. F
+102,First,"o properties of this path matter later. First, the lock is rarely"
+107,Second,"Second, D5 is CPU work, not a wait for the GPU"
+109,one,and tracked rather than waited on; the one
+117,two,UVM tracks two separate facts about every page and pro
+120,second,ntry for it. A GPU access faults on the second
+121,first,"condition, not the first: a page can be resident in GPU memory a"
+124,two,The driver changes these two states through different functions. Its
+128,one,"for faulting accesses are installed at one place on the fault path,"
+131,third,user space take a third route: a prefetch to a GPU through the
+134,first,way does not fault when first touched.
+149,one,one VA block at a time.
+153,first,"aulted in this batch; faulted pages are first widened to their 64\,KB"
+164,Three,Three details of this rule drive Sections~VI
+184,first,he prefetcher considers is taken on the first
+190,second,A second prefetch path populates an entire block
+190,first,"h path populates an entire block on its first touch, but only"
+202,one,therefore trades one cost against another. A low threshold m
+216,three,Combining the three subsections gives the frame for the res
+223,one,"one of those two channels, and both are mea"
+223,two,"one of those two channels, and both are measurable: the"
+223,first,"channels, and both are measurable: the first as a change in"
+224,second,"D5 per fault, the second as a change in the number of demand fau"
