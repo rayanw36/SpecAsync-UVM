@@ -411,18 +411,113 @@ Appended from `results/analysis/consolidation/ARTIFACT_CATALOG_ADDITIONS_PROPOSE
 - **Family:** Aggregation-level mismatch (a component-level time used as a
   whole-process bound).
 
+### #26 · A status log asserting a state the primary record contradicts, and times typed as estimates *(appended C6, 2026-10-10)*
+- **What happened (instance 1, E6):** `e6/E6_STATUS.md` at 19:36:53 on 2026-10-05 recorded
+  "loaded stock 6284DA42 (refcnt 0)" and "Phase 4: isolated to multi-user.target (exit 0)".
+  The systemd journal shows the verified specasync module was loaded at 17:48:16 with no
+  unload before 19:36:53, and **no `systemctl isolate` command anywhere between 17:48:07
+  and 20:06:04** (the machine had been in `multi-user.target` since an isolate at 17:48:07
+  killed the session running E6). The "(exit 0)" matches no journal record.
+  **Instance 2 (E7, E8):** log lines whose time was typed from memory instead of printed by
+  `date` or a script ran later than the real times (E7: "14:20 Phase 3" and "14:05 Phase 2
+  DONE"; Phase 2 ended about 14:00 and the Phase 3 push was at 14:04:37 by `date`). E8's
+  were corrected to the real clock; E7's were left (git commit times are authoritative).
+- **False conclusion it would have produced:** that the stock module was resident at the
+  start of E6's table collection and that the isolate ran as logged, i.e. that the status
+  log is a primary record of platform state; and a session timeline (and cap arithmetic)
+  reconstructed from typed times. Neither is supported. The orchestrators compute their
+  deadlines in-script from `phase0_start.txt`, so no decision was affected; only the narrative.
+- **How caught:** by a read-only re-account of the gap against the persisted journal
+  (`E6_GAP_ACCOUNT.md`; instance 1), and at the E8 review by comparing the log with `date`
+  and commit times (instance 2). Neither by the gate's own analysis. No effect on any E6
+  datum: every run reloads and verifies srcversion and parameters.
+- **Evidence:** `results/analysis/gate_e/e7/E6_GAP_ACCOUNT.md` §1, §2, §4;
+  `results/analysis/gate_e/e8/E8_STATUS.md:8`; `results/analysis/gate_e/e7/E7_STATUS.md`.
+  Unresolved from the journal: whether E6's second "isolate" ran as a non-journaled no-op or not at all.
+  The same hand-typed-time error recurred in C5's own log (the Step 2 line, corrected to its commit time).
+- **Family:** Record integrity (new, C6).
+
+### #27 · A helper with a hard-coded multiplicity correction reused across gates *(appended C6)*
+- **What happened (E0.9b helper; E1, E4, E5, E6, E7, E8):** `tests/e09b_analyze.py:18` fixes
+  `Z_MDE_BONF` for alpha = 0.05/16, E0.9b's family size, and writes it as `mde_bonf_s`. Later
+  gates import the helper unchanged. E4 (18) and E5 (3) overwrite the constant before use
+  (`e4_analyze.py:21`, `e5_analyze.py:28`); E7 and E8 compute `mde_family_s` instead and say
+  why; **E6's CSVs carry the 16-test value for families of 3, 4 and 2**; E1 was not audited.
+- **False conclusion it would have produced:** an MDE labelled "at the family alpha" that is
+  not at that family's alpha: too small for families larger than 16, too large for smaller ones, so a
+  null result would look better or worse powered than it was.
+- **How caught:** by the author of E7 reading the helper while writing the pre-registration
+  (a later gate, not the one that used it). **Audit result (C6 step 2, `MDE_AUDIT.md`):**
+  recomputing from the run CSVs, **all 21 E4 and E5 rows equal their reported MDE and
+  family-alpha MDE** (to 5e-5 s), so the E4 and E5 reports are not affected; E6's `mde_bonf_s`
+  column is wrong for E6's families but is quoted nowhere. What *is* off is a related
+  reporting choice: MDEs quoted in prose (CLAIM_SCOPE, Section I, the E4 report text) are the
+  unadjusted alpha 0.05 values while the tests are Holm-corrected, so the stated detection
+  limit is smaller than the family-alpha limit (E4 GraphBFS: 0.28-0.43% quoted, 0.38-0.59% at
+  alpha/18; E6 t0/t10: 1.8%/2.0% quoted, 2.0%/2.3% at alpha/3). Corrections are proposed, not applied.
+- **Reached a reported result?** No wrong number reached a report; an unqualified alpha did.
+- **Evidence:** `tests/e09b_analyze.py:18`, `tests/e7_analyze.py:13`, `e7/E7_STATUS.md:21`,
+  `E7_PREREGISTRATION.md:32-33`, `consolidation/MDE_AUDIT.md`, `consolidation/mde_audit.csv`.
+- **Family:** Aggregation-level mismatch (a constant tied to one family's size applied to another's).
+
+### #28 · A build script that swallows a failure when a Git-LFS patch is only a pointer *(appended C6)*
+- **What happened (E3a-2 build on the T4, 2026-10-09; earlier on the 5070 Ti):** `driver/patches/*.patch`
+  are stored in Git LFS (`.gitattributes: *.patch filter=lfs`). Without git-lfs they are ~130-byte pointer
+  files. `driver/scripts/reconstruct_build_tree.sh` ran `patch -p0 --forward -N < specasync_selective_apply.patch || true`;
+  `patch` printed "Only garbage was found in the patch input", `|| true` discarded the status, and the tree was
+  assembled without the glue changes. The first verified build failed in the compiler
+  (`uvm_va_space_t has no member named specasync_pred`, 5 errors).
+- **False conclusion it would have produced:** a misdiagnosed driver-source problem; had a build succeeded without the
+  glue, a module with a different srcversion would have been mistaken for the verified one. The srcversion check is what
+  stands between the two.
+- **How caught:** by the failing compile, then by reading the script output; the same hazard on the 5070 Ti was handled by
+  hand ("3 `.patch` files show LFS-pointer-vs-real-content diffs", `GPU_FREE_REPORT_2.md`). **Fixed in C5 step 7a:** the script now exits 2
+  with install instructions if the glue patch is a pointer.
+- **Evidence:** `results/analysis/t4/E3A2_T4_BUILD_REVIEW.md` "Setup problems" #1; `driver/scripts/reconstruct_build_tree.sh`;
+  `.gitattributes`; `MIGRATION_NOTES.md`; `T4_REPORT.md:22`.
+- **Family:** Operational hazards (loud failure, but at the wrong place; `|| true` made the step unable to fail).
+
+### #29 · A session that ended itself by killing the login session containing it, and an orchestrator that died with its session *(appended C6)*
+- **What happened (E7-T4, 2026-10-08/09; E6 on the 5070 Ti):** (i) the previous Claude session ran
+  `loginctl terminate-session` on the remote-desktop (xrdp/XFCE) session that contained it, which ended that session
+  (E7-T4 Amendment 2). (ii) The instance was powered off during the smoke pass, killing the orchestrator, and the
+  pre-registered cap had to be re-set (Amendment 1); the cause of that poweroff is **not established**. (iii) The same class on
+  the 5070 Ti: `systemctl isolate multi-user.target` stopped `user@1000.service`, which SIGKILLed the tmux server holding
+  the E6 session (`E6_GAP_ACCOUNT.md`, 17:48:23). Mitigation since: `loginctl enable-linger`, a detached `systemd-run --user`
+  unit, and a rule that killing a login session is forbidden.
+- **False conclusion it would have produced:** none in a data result (no timed run was in flight in the T4 cases); the hazard is
+  lost time, a changed cap, and a half-run gate read as complete or as a stop-condition outcome.
+- **How caught:** by the failure itself; recorded as amendments before any timed run.
+- **Evidence:** `results/analysis/t4/E7T4_AMENDMENT_1.md`, `E7T4_AMENDMENT_2.md`; `results/analysis/gate_e/e7/E6_GAP_ACCOUNT.md`;
+  `e7/E7_STATUS.md` ("enable-linger").
+- **Family:** Operational hazards.
+
+### #30 · A pre-registration that checked VRAM but not host RAM *(appended C6)*
+- **What happened (E7-T4, smoke row 25):** the pre-registered oversubscribed Stencil (`bench_stencil_oversub 48000 1`, 17.17 GiB
+  managed) was sized by the VRAM ratio (1.144 on the T4 vs 1.078 on the 5070 Ti). The g4dn.xlarge has 15.4 GiB of RAM and no swap;
+  UVM CPU-side population exhausted host RAM and the kernel OOM-killed the process (`block_populate_pages_cpu`, file-rss 15.1 GB)
+  at 2026-10-09 08:05:52 UTC.
+- **False conclusion it would have produced:** none reached a result (no timed data existed). With a larger timeout or a swap file, a
+  thrashing-on-host run could have been timed as an "oversubscription" measurement.
+- **How caught:** by the pre-registered smoke pass, as a kernel OOM kill; Amendment 2 removed the cell and added a stop condition
+  (managed bytes < MemAvailable - 4 GiB). The E8 pre-registration (24 GiB array) checked host RAM (minimum `MemAvailable` 30.4 GiB).
+- **Evidence:** `results/analysis/t4/E7T4_AMENDMENT_2.md`; `e7t4_smoke.csv`; `e7t4_runner.py` `MANAGED_BYTES`; `E8_PREREGISTRATION.md`.
+  The earlier near-OOM from a host leak is #11.
+- **Family:** Operational hazards (peer of #11).
+
 ---
 
 ## Families and synthesis
 
-Each entry, old (#1–#11) and new (#12–#25), is assigned one primary family.
+Each entry, old (#1–#11) and new (#12–#30), is assigned one primary family. **C6 update (2026-10-10):** #26–#30 appended (30 entries in all); a new family, **Record integrity**, holds #26 and #23, and **#23 was moved into it from Operational hazards** (the original assignment is recorded in the amendment at the end of this file).
 
 | family | entries | caught by the original analysis | caught only by a later, independent pass or review | caught by a pre-registered test | caught by the failure itself (crash / loud harness / preflight) |
 |---|---|---|---|---|---|
-| **Aggregation-level mismatch** | #7, #8, #9, #13, #16, #17, #18, #25 | — | #7, #8, #9, #13, #16, #17, #18 (E0.7 → E0.8; E0.8's recurrence → external review) | #25 | — |
+| **Aggregation-level mismatch** | #7, #8, #9, #13, #16, #17, #18, #25, #27 | — | #7, #8, #9, #13, #16, #17, #18 (E0.7 → E0.8; E0.8's recurrence → external review), #27 (a later gate's author) | #25 | — |
 | **Validation that could not fail** | #1, #2, #12, #14, #15 | #14 (instance 3, group_probe) | #1, #2 (Gate B re-investigation), #12 (verification pass mandated by the trigger policy), #14 (instances 1–2), #15 | — | — |
 | **Instrument cost and instrument blindness** | #4, #5, #19, #20, #21 | #5 (Phase C's same-session accounting-closure check), #20 (a second counter disagreed in the same table) | #4, #19, #21 (E1b, forced by review) | #21 (E3b) | — |
-| **Operational hazards** | #3, #10, #11, #22, #23, #24 | — | #3 (interleaved re-run) | #10 (A2b was pre-registered to test it) | #11 (near-OOM forced a stop), #22 (crash), #23 (preflight), #24 (loud harness failure) |
+| **Operational hazards** | #3, #10, #11, #22, #24, #28, #29, #30 | — | #3 (interleaved re-run) | #10 (A2b was pre-registered to test it), #30 (the pre-registered smoke pass) | #11 (near-OOM forced a stop), #22 (crash), #24 (loud harness failure), #28 (failed compile), #29 (the session ended) |
+| **Record integrity** *(new, C6)* | #23, #26 | — | #26 (journal re-account; E8 review) | — | #23 (preflight) |
 | *(uncategorised: a genuine outlier)* | #6 | — | #6 (Task T2 reproduction) | — | — |
 
 ### Aggregation-level mismatch
@@ -493,12 +588,15 @@ the original analysis, and in both a *redundant measurement* disagreed:
 the gate, what independent verification did later for the aggregation family.
 
 ### Operational hazards
-Crashes, drift and harness failures:
+Crashes, drift and harness failures (#23, silent upgrades, moved to Record integrity in C6):
 - host-ordering noise (#3);
 - the `setarch -R` regime (#10);
 - a host memory leak (#11);
 - a kernel oops (#22);
-- silent driver and kernel upgrades (#23);
+- *(silent driver and kernel upgrades, #23: moved to Record integrity)*;
+- a build script whose failure `|| true` hid when a Git-LFS patch was a pointer (#28);
+- a session ending by killing the login session that held it (#29);
+- a pre-registration that sized an array by VRAM and not host RAM (#30);
 - a dmesg diff broken by a rotating log (#24).
 
 These were mostly caught because they *failed loudly*: a crash, a module that would
@@ -508,6 +606,17 @@ not load, a test that stopped. The dangerous members are the quiet ones:
 
 The response in this project has been procedural: preflight records, stop
 conditions, and compile-only review before the first load.
+
+### Record integrity *(new in C6)*
+The record of what happened, written by the person or session that did it, disagrees with the primary record:
+- a status log that asserted a module state and an isolate the journal does not show, and times typed as estimates (#26);
+- a platform description that went stale between sessions through silent upgrades (#23, moved here from Operational hazards: the
+  upgrade itself was an operational hazard, but the false conclusion it would have produced is that a record of the platform
+  (the manuscript's platform table) was current).
+
+Both were caught by a comparison with a primary record (the journal, preflight output, commit times), not by the analysis. Neither
+affected a measured datum, because every run re-verifies its own platform state; they would have affected a *narrative*. Sample: n = 2,
+one of them (#23) moved from another family; read as a candidate family, not a finding.
 
 ### Does "#7–#9 were all caught by independent verification" generalise?
 **Only within its own family.**
@@ -526,7 +635,7 @@ conditions, and compile-only review before the first load.
 ---
 
 
-## Amendments to existing entries (C1-APPLY, 2026-10-05)
+## Amendments to existing entries (C1-APPLY, 2026-10-05; C6 note appended below)
 
 These amend text in `ARTIFACT_CATALOG.md`'s existing rows. They are appended here, and
 the original rows are left unchanged, so the amendment is auditable.
@@ -545,3 +654,10 @@ therefore does not establish that the counter measures wins.
 
 
 **Decision on the averted-hazard candidate (D5, 2026-10-05):** a methodology note, not a catalog entry (`consolidation/OPEN_DECISIONS.md`).
+
+**Amendment C (C6, 2026-10-10) — #23 moved.** #23 ("Silent platform drift from unattended upgrades") was assigned to
+*Operational hazards* in the families table. It is moved to the new family *Record integrity* (with #26). The entry text is unchanged. The
+families table, the Operational hazards and "loud failure" lists were updated; "caught by the failure itself (preflight)" still applies to it.
+Totals after C6: **30 entries** (#1-#30; #6 remains uncategorised): Aggregation-level mismatch 9 (#7, #8, #9, #13, #16, #17, #18, #25, #27),
+Validation that could not fail 5 (#1, #2, #12, #14, #15), Instrument cost and instrument blindness 5 (#4, #5, #19, #20, #21),
+Operational hazards 8 (#3, #10, #11, #22, #24, #28, #29, #30), Record integrity 2 (#23, #26), uncategorised 1 (#6).
