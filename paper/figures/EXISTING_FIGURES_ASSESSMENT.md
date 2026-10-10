@@ -1,0 +1,19 @@
+# Existing figures F1-F11 (`results/figures/`, scripts in `tools/figures/`) against `consolidation/SUPERSEDED_VALUES.md`
+
+Nothing is deleted or edited. Verdicts are proposals for review. "SV" = a row of `SUPERSEDED_VALUES.md`. The F-number is the one in each script's docstring; only F1-F5 are `\includegraphics` in `paper/main.tex` (lines 126-187).
+
+| fig | file | content (script docstring) | verdict | reason |
+|---|---|---|---|---|
+| F1 | `policy_matrix(_v2)` | Phase B policy sweep: runtime delta and hit rate, p0-p4, pre Gate-B-fix | **REGENERATE** | Wall-clock deltas are measurements and stand; the hit-rate panel is `spec_hits`-based (SV `intro_revisions` hit-rate rows, CS2-N7) and the p4 oracle was misaligned (AC-13, SV `main.tex:114,128`). Re-draw the delta panel only, drop or relabel the hit-rate panel |
+| F2 | `decisive_c0c3(_interleaved)` | Gate 3 C0-C3 wall-time distributions (120 runs; 176 interleaved) | **REGENERATE** | Timings stand (SV standing distinction) but the caption/title "decisive upper bound" for C3 is superseded (SV `main.tex:215,231-240`, CLAIM_SCOPE row 7). Keep the data, relabel C3 as the pre-E0.5 misaligned oracle, and state that E4 changes the conclusion |
+| F3 | `the_squeeze(_v2)` | Panel A hit rate probe ON/OFF vs real benchmarks; panel B cost of turning the prefetcher off | **REGENERATE** | Panel A is not like-for-like (SV `main.tex:150-151`) and uses `spec_hits`; the "squeeze" thesis (prefetcher off costs more than speculation recovers) is partly superseded by E4/E5/E6 (speculation needs the prefetcher density rule). Panel B (cost of prefetcher off) stands |
+| F4 | `oversub_collapse` | oracle hit rate collapses under 1.6x oversubscription | **RETIRE** | Built on the State-1 misaligned oracle and hit rates (SV `main.tex:158-165`); the mechanism it illustrates is retired. The E8/E9 migrated-bytes and threshold figures (F-E8, F-E9) replace its role |
+| F5 | `fault_density_sweep(_v2)` | per-batch dispatch-window cost D1-D6 across 4K/8K/16K/24K | **KEEP** (v2) | Phase decomposition from batch rings; not touched by any SV row. Check its D5 share against CS2-1 before use (carried UNCHECKED, see Section III header) |
+| F6 | `pipelining_ceiling` | pipelining ceiling = (D1+D2 share) x (window / wall-clock) | **RETIRE** or **REGENERATE** | The "9-30% D1+D2 bound is structural" reading is overreach (SV CLAIM_SCOPE row 15; E1 Part B shows pre-staging offloads D5). Regenerate as a descriptive window-share figure with the "ceiling" wording removed, or replace with F-PH |
+| F7 | `dispatch_latency_race` | worker dispatch time vs the interval to beat, both platforms | **KEEP** | Latency measurements (recovered, cross-checked); SV only supersedes the rate-mismatch *explanation* (CS2-10/R1), not the latencies. Its caption must not claim the mechanism is established |
+| F8 | `decomposition_crossplatform` | D1-D7 decomposition, 7 workloads x 2 platforms | **KEEP** | Phase shares, no SV row; D5 is nested in D4 and is already labelled so. Numbers carried from CS2-1/CS2-3 |
+| F9 | `bandwidth_scaling_ladder` | four bars: fault path benefits least from 8x interconnect | **KEEP** | Measurement-only; one input is flagged "still unverified" in `RECOVERY_F7_F9_F11.md` and is marked in the figure. No SV row |
+| F10 | `oversub_threeway` | C0/C1/C3 median wall-clock vs iterations under 1.078x oversubscription | **REGENERATE** | Wall-clock stands but C3 is the misaligned oracle (same relabel as F2); show C0/C1 only, or relabel |
+| F11 | `hitrate_vs_speedup` | hit rate vs wall-clock delta across configurations | **RETIRE** | Its x-axis is `spec_hits`-based hit rate, superseded as a prediction-success measure (SV standing distinction, CS2-N7); the "no relationship" point is better made by the E4/E5 demand-fault reduction D(t) (F-E5) |
+
+New figures F-E4..F-E9 and F-PH (see `FIGURES.md`) cover the post-E0.5 results; none of the retired figures is needed for them.
