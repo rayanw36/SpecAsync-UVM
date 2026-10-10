@@ -33,11 +33,11 @@ line,token,category,status,evidence_ids_first3,n_matching_ids,context,intended_i
 115,64,small/other,exact,E8.range.dense_K64plus;E8.range.dense_K64plus,2,"e effects are small and mixed, and with 64 or more pages touched per",,
 121,3090,quantity,not found,,0,threshold on an RTX 3090 with release 515.65.01 of the,,
 121,515.65.01,identifier,n/a (version),,0,threshold on an RTX 3090 with release 515.65.01 of the open driver. With memo,,
-123,150,quantity,not found,,0,"every workload they tested; at 150\% oversubscription, the ratio",,
-159,54,small/other,exact,E4.mech.graphbfs.C7-W512;E4.mech.graphbfs.C7-W512;E1b.stencil.C64096-C1,4,"(54--75\,ns per enqueue, on the c",,
-159,75,quantity,exact,E1b.stencil.C74096-C0;E1b.stencil.C74096-C0,2,"(54--75\,ns per enqueue, on the criti",,
+123,150,quantity,not found,,0,"every workload they tested; at 150\% oversubscription, the ratio","LIT: Go et al., Early-Adaptor, ISPASS 2023, Sec. III-C and Fig. 4b",REVIEWER-CHECKED 2026-10-10 (literature figure; not in the evidence extract)
+159,54,small/other,exact,E4.mech.graphbfs.C7-W512;E4.mech.graphbfs.C7-W512;E1b.stencil.C64096-C1,4,"(54--75\,ns per enqueue, on the c",E1b.stencil.C64096-C1,OK (E1b.stencil.C64096-C1: 54.0)
+159,75,quantity,exact,E1b.stencil.C74096-C0;E1b.stencil.C74096-C0,2,"(54--75\,ns per enqueue, on the criti",E1b.stencil.C74096-C0,OK (E1b.stencil.C74096-C0: 75.0)
 190,5.1,quantity,rounded,E09b.graphbfs.C6-L4096_vs_C0;E4.mech.stencil.C6-W64;E7.session.E7_block_2,6,sla T4 (Turing) with the same driver: $-5.1\%$ on the stencil,T4.A.stencil.stock-t0_vs_stock-t51,OK (T4.A.stencil.stock-t0_vs_stock-t51: 5.07)
 191,12,small/other,exact,T4.B.count;T4.B.count,2,"workload, and 12 of 14 further tests faster wi",T4.B.count,OK (T4.B.count: 12.0)
 191,14,small/other,exact,T4.B.count;T4.B.count,2,"workload, and 12 of 14 further tests faster with non",T4.B.count,OK (T4.B.count: 14.0)
 192,5070,quantity,not found,,0,ersubscription results are from the RTX 5070 Ti alone. The,,
-198,1.48,quantity,not found,,0,reporting speedups of up to $1.48\times$ on A100 and V100 GPUs,,
+198,1.48,quantity,not found,,0,reporting speedups of up to $1.48\times$ on A100 and V100 GPUs,"LIT: Shen and Nikolopoulos, ISMM 2026, abstract and Sec. 5.5",REVIEWER-CHECKED 2026-10-10 (literature figure; not in the evidence extract)

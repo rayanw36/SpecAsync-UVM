@@ -54,7 +54,15 @@ INTENDED = {
     ("2.5", "2.5--17"): ["E7.B.sgemm.stock-t0_vs_stock-t51"], ("17", "2.5--17"): ["E7.B.oversub.stock-t0_vs_stock-t51"],
     ("41", "41--85"): ["E8.range.ov_sparse_t0"], ("85", "41--85"): ["E8.range.ov_sparse_t0"],
     ("130", "130"): ["E9.cell.ov_k1.t0"], ("4", "against 4"): ["E9.cell.ov_k1.t51"],
+    ("54", "54--75"): ["E1b.stencil.C64096-C1"], ("75", "54--75"): ["E1b.stencil.C74096-C0"],
     ("5.1", "-5.1"): ["T4.A.stencil.stock-t0_vs_stock-t51"], ("12", "12 of 14"): ["T4.B.count"], ("14", "12 of 14"): ["T4.B.count"],
+}
+
+
+# Literature figures: not measurements of this work, so they have no evidence-extract row. Recorded as checked by the reviewer (2026-10-10).
+LITERATURE = {
+    ("150", "150"): "Go et al., Early-Adaptor, ISPASS 2023, Sec. III-C and Fig. 4b",
+    ("1.48", "1.48"): "Shen and Nikolopoulos, ISMM 2026, abstract and Sec. 5.5",
 }
 
 
@@ -117,6 +125,9 @@ def main():
                 ic = (("9.57", ""), INTENDED[("9.57", "9.57")])
             iid = ";".join(ic[1]) if ic else ""
             ichk = intended_check(tok, ctx, ic[1], evt) if ic else ""
+            lit = next((v for k, v in LITERATURE.items() if k[0] == tok and k[1] in line), None)
+            if lit:
+                iid, ichk = "LIT: " + lit, "REVIEWER-CHECKED 2026-10-10 (literature figure; not in the evidence extract)"
             rows.append([ln, tok, cat, status, ";".join(ids[:3]), len(ids), ctx, iid, ichk])
         for m in WORDS.finditer(line):
             words.append([ln, m.group(0), re.sub(r"\s+", " ", line[max(0, m.start() - 40):m.end() + 40]).strip()])
@@ -133,8 +144,8 @@ def main():
     print(f"{len(rows)} numeric tokens ({len(words)} word numbers listed separately)")
     for k in sorted(c):
         print(f"  {k[0]:12s} {k[1]:14s} {c[k]}")
-    ok = sum(1 for r in rows if r[8].startswith("OK")); bad = [r for r in rows if r[8].startswith("FAIL")]
-    print(f"intended-id check: {ok} OK, {len(bad)} FAIL" + "".join(f"\n  FAIL line {r[0]} {r[1]}: {r[8]}" for r in bad))
+    ok = sum(1 for r in rows if r[8].startswith("OK")); lit_n = sum(1 for r in rows if r[8].startswith("REVIEWER")); bad = [r for r in rows if r[8].startswith("FAIL")]
+    print(f"intended-id check: {ok} OK, {lit_n} literature figures recorded as reviewer-checked, {len(bad)} FAIL" + "".join(f"\n  FAIL line {r[0]} {r[1]}: {r[8]}" for r in bad))
     nf = [r for r in rows if r[3] == "not found" and r[2] == "quantity"]
     print(f"quantities NOT found in {EV}: {len(nf)}")
     for r in nf:
