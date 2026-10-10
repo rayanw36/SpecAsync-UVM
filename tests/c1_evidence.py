@@ -320,7 +320,7 @@ _slow = [r for r in _b if r["holm_sig"] == "True" and float(r["delta_s"]) > 0]
 rec("T4.B.count", f"tests={len(_b)} holm_significant_faster={len(_fast)} holm_significant_slower={len(_slow)} not_significant={len(_b) - len(_fast) - len(_slow)}",
     T4 + "family_b.csv", "count of rows by (holm_sig, sign of delta_s)")
 _g = [r for r in _b if r["workload"] == "graphbfs"]
-rec("T4.B.graphbfs.vs_mde", " ".join(f"{r['arm']}: delta={float(r['delta_pct']):+.2f}% mde_pct={float(r['mde_pct']):.2f}% holm_sig={r['holm_sig']}" for r in _g),
+rec("T4.B.graphbfs.vs_mde", " ".join(f"{r['arm']}: delta={float(r['delta_pct']):+.2f}% mde_pct={float(r['mde_pct']):.2f}% (unadjusted) mde_family_pct={float(r['mde_family_pct']):.2f}% (family alpha, m = 14) holm_sig={r['holm_sig']}" for r in _g),
     T4 + "family_b.csv", "GraphBFS-23 rows: delta against the MDE (the effect is below the MDE although Holm-significant)")
 _a = [r for r in load(T4 + "family_a.csv") if r["arm"] == "stock-t0"][0]
 rec("T4.cross_version.stencil_t51", f"this session stock-t51 median={f(_a['median_base'])} s (driver 595.91.07); the old T4 C0 median 4.185 s (595.71.05) is PROSE-ONLY (GATE_T1_REPORT.md) and not in a committed CSV",

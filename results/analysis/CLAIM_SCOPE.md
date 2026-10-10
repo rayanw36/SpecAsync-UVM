@@ -5,7 +5,11 @@ from git history). Every claim in v1 is carried here as a block, with its status
 new claims N1–N7 and N9 and the retired explanations R1–R2 come from the Gate E series
 and the flag ledger (`results/analysis/consolidation/FLAG_LEDGER.md`).
 
+**Amended 2026-10-10 (Gate C7):** the MDEs quoted in CS2-N1 items 5 and 6 and in CS2-N10 are restated at the family alpha (see the MDE convention below); no other text changed.
+
 **Amended 2026-10-09 (Gate C4):** CS2-N10 replaced (two platforms, sparse access, mechanism); CS2-N11 added (PENDING-LIT; text replaced and marked checked 2026-10-10); CS2-N1 item 4 extended; a `Platform scope` line added to every Gate E claim (N1-N7, N9, N10, N11).
+
+**MDE convention (Gate C7, 2026-10-10):** every minimum detectable effect cited for a Holm-tested null is quoted **at the family alpha** (the Holm family's alpha divided by its number of tests: E4 18, E6 secondary wall 3, E6 GraphBFS 2, E7-T4 family B 14), from `results/analysis/consolidation/MDE_AUDIT.md`. The unadjusted alpha = 0.05 value is quoted only where it is the pre-registered quantity (E4's falsification trigger) and is then labelled unadjusted.
 
 Two standing rules apply throughout: every number cites an evidence id from
 `results/analysis/consolidation/EVIDENCE_EXTRACT.md`, or is marked PROSE-ONLY or
@@ -242,17 +246,17 @@ labels stay as they are. Every Gate E claim below is stated for **595.91.07** an
   2. Its only route to fault prevention is indirect: staged residency pushes regions over the prefetcher's density threshold, and the demand path maps them (CS2-N3).
   3. Against the driver as shipped (threshold 51), whole-block staging with a near-perfect first-touch table beats C0 on Stencil-24K: −4.93% (E4), −5.26% (E5), −3.36% (E6), all significant. The magnitude varies across sessions.
   4. The same gain is available without speculation, by lowering the threshold, a setting whose effect is workload-dependent and reverses for sparse oversubscribed access (CS2-N10). C0 at threshold 0 or 10 is significantly faster than C7W512-t51 (E6: +6.39%, +4.72%); C0-t25 is indistinguishable from it (+2.11%, n.s.).
-  5. At matched thresholds, speculation adds at most 2.76% (t25, significant), and nothing detectable at t0 or t10 (MDE 1.8% at t0 and 2.0% at t10 at achieved n).
-  6. GraphBFS-23: no detected effect of speculation (E4; MDE 0.28–0.43% of the C0 median) or of threshold 0–51 (E6; MDE 0.41–0.49% of the C0-t51 median).
+  5. At matched thresholds, speculation adds at most 2.76% (t25, significant), and nothing detectable at t0 or t10 (MDE at the family alpha, achieved n: 2.0% at t0 and 2.3% at t10).
+  6. GraphBFS-23: no detected effect of speculation (E4; MDE at the family alpha 0.38–0.59% of the C0 median) or of threshold 0–51 (E6; MDE at the family alpha 0.45–0.54% of the C0-t51 median).
   7. Scope: RTX 5070 Ti, 595.91.07, kernel 7.0.0-34; two workloads; near-perfect table (Stencil), weakened-cursor table (GraphBFS); not a practical predictor."
 - **Reading the signs:** in items 4–5 the E6 deltas are (arm − baseline) ÷ baseline with C7W512-t51 as the arm in item 4, so a positive value means the C7W512 arm is slower than that C0 baseline.
 - **Limitation:** C0 below the shipped threshold is **not** the shipped driver. Item 4 compares C7W512-t51 with C0 at tuned thresholds; the generality of tuning is addressed in CS2-N10.
 - **Baseline:** named at each item: C0 at threshold 51 (the driver as shipped) in item 3; C0-t0 / C0-t10 / C0-t25 (not the shipped driver) in item 4; C0 at the same threshold in item 5.
 - **Evidence:**
-  - item 3: `E4.F1.stencil.C7-W512_vs_C0` (−4.93%, p 1.08e-5, MDE 0.0144 s, trigger True); `E5.wall.t51` (−5.26%); `E6.F1.C7W512-t51_vs_C0-t51` (−3.36%, p 3.25e-4);
+  - item 3: `E4.F1.stencil.C7-W512_vs_C0` (−4.93%, p 1.08e-5, unadjusted MDE 0.0144 s, the pre-registered trigger quantity; 0.0197 s at the family alpha; trigger True); `E5.wall.t51` (−5.26%); `E6.F1.C7W512-t51_vs_C0-t51` (−3.36%, p 3.25e-4);
   - item 4: `E6.F1.C7W512-t51_vs_C0-t0` (+6.39%, p 1.08e-5, Holm-sig); `E6.F1.C7W512-t51_vs_C0-t10` (+4.72%, p 2.06e-4, Holm-sig); `E6.F1.C7W512-t51_vs_C0-t25` (+2.11%, p 0.28, n.s.);
-  - item 5: `E6.wall.C7W512-t25_vs_C0-t25` (−2.76%, Holm-sig); `E6.wall.C7W512-t0_vs_C0-t0` (−0.85%, n.s., MDE 0.0181 s of a 1.0262 s median = 1.8%); `E6.wall.C7W512-t10_vs_C0-t10` (−0.28%, n.s., MDE 0.0205 s of 1.0426 s = 2.0%);
-  - item 6: `E4.F1.graphbfs.C7-W1_vs_C0` / `C7-W64` / `C7-W512` (−0.28%, −0.10%, −0.06%, n.s.; MDE 0.0873–0.1351 s, 0.28–0.43% of the C0 median); `E6.F2.C0-t0_vs_C0-t51` and `E6.F2.C0-t25_vs_C0-t51` (−0.06%, +0.12%, n.s.; `mde_pct_of_base` 0.49%, 0.41%);
+  - item 5: `E6.wall.C7W512-t25_vs_C0-t25` (−2.76%, Holm-sig); `E6.wall.C7W512-t0_vs_C0-t0` (−0.85%, n.s., MDE at the family alpha 0.0209 s of a 1.0262 s median = 2.0%, `E6.mde_family.stencil_wall`); `E6.wall.C7W512-t10_vs_C0-t10` (−0.28%, n.s., MDE at the family alpha 0.0237 s of 1.0426 s = 2.3%, `E6.mde_family.stencil_wall`);
+  - item 6: `E4.F1.graphbfs.C7-W1_vs_C0` / `C7-W64` / `C7-W512` (−0.28%, −0.10%, −0.06%, n.s.; MDE at the family alpha 0.1194–0.1848 s, 0.38–0.59% of the C0 median, `E4.mde_family.graphbfs.F1`); `E6.F2.C0-t0_vs_C0-t51` and `E6.F2.C0-t25_vs_C0-t51` (−0.06%, +0.12%, n.s.; MDE at the family alpha 0.54%, 0.45% of the C0-t51 median, `E6.mde_family.graphbfs`);
   - supporting: `E4.F1.stencil.C7-W1_vs_C0` (+5.87%, Holm-sig; page-granularity speculation does not beat C0); `E5.D(51)` (+0.4009); `E6.D(t51)` (+0.4017).
 - **Scope:** RTX 5070 Ti, driver 595.91.07, kernel 7.0.0-34 (E4, E5, E6); near-perfect first-touch table (Stencil) and weakened-cursor table (GraphBFS, coverage 0.22–0.81 across the C6 arms); cheap oracle `specasync_ft_fast=1`; E3a-2 module for the speculation arms.
 - **Platform scope:** RTX 5070 Ti only (everything from E0.5 onward, including all speculation results; the E3a-2 module was compiled on the T4 and never loaded).
@@ -383,7 +387,7 @@ labels stay as they are. Every Gate E claim below is stated for **595.91.07** an
     - Tesla T4, same driver (595.91.07): Stencil-24K −5.07% (Holm-significant); 12 of 14 Family B tests faster, none slower (E7-T4). The direction replicates; the magnitude is smaller.
   - Sparse access (K <= 8) on a 1.5x oversubscribed array is much slower at lower thresholds: +41.15% to +84.96% (E8, 5070 Ti only).
   - Sparse access in memory: small, mixed effects (−2.32% to +3.95%).
-  - GraphBFS-23: no effect beyond the MDE on either platform.
+  - GraphBFS-23: no effect beyond the MDE (at the family alpha) on either platform.
   The shipped default (51) is therefore not dominated by any fixed lower threshold.
   Mechanism (E9, nsys tracing, n = 3, descriptive):
   - At t0, sparse oversubscribed access migrates whole regions on every pass (K = 1: 129.8 GiB in, 114.6 GiB evicted, against 4.0 / 3.5 GiB at t51).
@@ -396,7 +400,7 @@ labels stay as they are. Every Gate E claim below is stated for **595.91.07** an
   - dense, 5070 Ti: `E7.A.stencil.stock-t0_vs_stock-t51` (−9.57%); `E7.B.oversub.stock-t0_vs_stock-t51` (−16.95%); `E7.B.stream.stock-t0_vs_stock-t51` (−12.37%); `E7.B.sweep16k.stock-t0_vs_stock-t51` (−8.02%); `E7.B.sgemm.stock-t0_vs_stock-t51` (−2.49%); `E8.range.dense_K64plus` (−5.57% to −9.69%, K >= 64, both sizes, t0 and t25);
   - dense, T4: `T4.A.stencil.stock-t0_vs_stock-t51` (−5.07%); `T4.B.count` (14 tests, 12 Holm-significantly faster, 0 slower);
   - sparse: `E8.range.ov_sparse_t0` (+41.15% to +84.96%); `E8.ov.K1.stock-t0_vs_stock-t51` (+84.96%); `E8.ov.K8.stock-t0_vs_stock-t51` (+41.15%); `E8.range.in_sparse` (−2.32% to +3.95%);
-  - GraphBFS-23: `E7.B.graphbfs.stock-t0_vs_stock-t51` and `E7.B.graphbfs.stock-t25_vs_stock-t51` (5070 Ti); `T4.B.graphbfs.vs_mde` (T4: −0.14% and −0.11%, both below their MDEs of 0.26% and 0.22%);
+  - GraphBFS-23: `E7.B.graphbfs.stock-t0_vs_stock-t51` and `E7.B.graphbfs.stock-t25_vs_stock-t51` (5070 Ti); `T4.B.graphbfs.vs_mde` (T4: −0.14% and −0.11%, both below their MDEs at the family alpha of 0.35% and 0.30%, `T4.B.graphbfs.stock-t0_vs_stock-t51`, `T4.B.graphbfs.stock-t25_vs_stock-t51`);
   - mechanism: `E9.cell.ov_k1.t0` (129.8 GiB in, 114.6 GiB out); `E9.cell.ov_k1.t51` (4.0 / 3.5 GiB; repeat passes 1.31 and 1.15 GiB in and out); `E9.ratio.stencil` (HtoD within 0.74%; 27,876 vs 91,935 GPU faults); `E9.cell.stencil.t0`, `E9.cell.stencil.t51` (4.26, 4.29 GiB); `E9.ratio.cpu_faults_t51_over_t0` (6.00x in all seven workloads); `E9.cpu_phase.t0_block_count` (t0 CPU faults = 12,288 and 4,096 blocks for the 24 GiB and 8 GiB arrays); `E9.cpu_phase.fill_only` (42 of 42 traced runs: all CPU faults in host initialisation); `E8.outside_kernels.t0` (8 of 8 lower, 34-191 ms); `E8.outside_kernels.share_dense` (17-23%); `E8.outside_kernels.sparse_ov` (slowdown entirely in the kernels).
 - **Scope:** oversubscription and sparse access on the RTX 5070 Ti only; one synthetic sparse benchmark; one oversubscription ratio (1.5x); crossover between K = 8 and K = 64 not located. Stock module throughout (E9 counts are under nsys tracing).
 - **Platform scope:** **two platforms** (RTX 5070 Ti and Tesla T4, both driver 595.91.07) for the dense-access part only; RTX 5070 Ti only for the sparse-access, oversubscription and mechanism parts.
