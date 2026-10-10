@@ -249,7 +249,7 @@ def fig_e7():
                 pts(ax, i + dx, [pct(x, base) for x in v], col, mk, jitter=0.08)
                 src = fa if fam == "A" else fb
                 c = next(c for c in src if c["workload"] == wl and c["arm"] == arm)
-                state = "ns" if c["holm_sig"] != "True" else ("sigmde" if abs(fl(c["delta_s"])) < fl(c["mde_s"]) else "sig")
+                state = "ns" if c["holm_sig"] != "True" else ("sigmde" if (wl == "graphbfs" and abs(fl(c["delta_s"])) < fl(c["mde_s"])) else "sig")
                 med_marker(ax, i + dx, fl(c["delta_pct"]), col, mk, state, size=18)
             n_t4 += 1
         counts[name] = n_t4
@@ -266,7 +266,7 @@ def fig_e7():
                         Line2D([], [], marker="o", ls="", mfc="k", mec="k", ms=3.5, label="filled: Holm-significant"), Line2D([], [], marker="o", ls="", mfc="w", mec="k", ms=3.5, label="hollow: not significant"),
                         (Line2D([], [], marker="o", ls="", mfc="k", mec="k", ms=4.5), Line2D([], [], marker="x", ls="", color="white", ms=3.2, mew=0.9))],
                labels=["threshold 0", "threshold 25", "threshold 51 (shipped baseline)", "filled: Holm-significant", "hollow: not significant",
-                       "filled with white x: Holm-significant, |delta| below achieved-n MDE"],
+                       "filled with white x: GraphBFS-23, Holm-significant but |delta| below its MDE"],
                handler_map={tuple: HandlerTuple(ndivide=1, pad=0)},
                frameon=False, loc="lower center", ncol=3, bbox_to_anchor=(0.5, -0.12), fontsize=6.5, handletextpad=0.3)
     save(fig, "fig_e7_threshold_by_workload_two_platforms")
@@ -274,15 +274,15 @@ def fig_e7():
     ta = {c["arm"]: c for c in rd("results/analysis/t4/family_a.csv")}
     tb = rd("results/analysis/t4/family_b.csv")
     nf = sum(1 for c in tb if c["holm_sig"] == "True" and fl(c["delta_s"]) < 0)
-    below = [c for c in tb if c["holm_sig"] == "True" and abs(fl(c["delta_s"])) < fl(c["mde_s"])]
-    names = {"stencil8k": "Stencil-8K", "sweep4k": "Sweep-4K", "sweep16k": "Sweep-16K", "stream": "STREAM", "sgemm": "SGEMM", "cufft": "cuFFT", "graphbfs": "GraphBFS-23"}
-    below_wl = sorted({names[c["workload"]] for c in below})
-    below_txt = ", ".join(below_wl[:-1]) + (" and " if len(below_wl) > 1 else "") + below_wl[-1]
+    gb = [c for c in tb if c["workload"] == "graphbfs"]
+    gb_pct = max(abs(fl(c["delta_pct"])) for c in gb)
+    gb_base = st.median(fl(c["median_base"]) for c in gb)
+    assert all(c["holm_sig"] == "True" and abs(fl(c["delta_s"])) < fl(c["mde_s"]) for c in gb), "GraphBFS-23 rule no longer holds"
     META["e7"] = dict(csv=f"{GE}/e7/e7_runs.csv; {GE}/e7/family_a.csv; {GE}/e7/family_b.csv; results/analysis/t4/e7t4_runs.csv; results/analysis/t4/family_a.csv; results/analysis/t4/family_b.csv",
         fn="fig_e7", n="10 runs per cell on each platform (separate analyses, never pooled)",
         cap=(f"Stock driver 595.91.07, prefetcher on, no speculation: wall-clock change of threshold 0 and 25 against the shipped threshold 51 (each cell's own median), per workload, on the RTX 5070 Ti (left) and the Tesla T4 (right); the two platforms are analysed separately and not pooled. "
              f"Each run is a point; markers are medians, filled when Holm-significant (two-sided Mann-Whitney U, n = 10 per cell; Stencil-24K shows threshold 0 only, from family A). The oversubscribed Stencil cell was not run on the T4. "
-             f"On Stencil-24K the change at threshold 0 is {fl(ra['stock-t0']['delta_pct']):+.2f}% on the RTX 5070 Ti and {fl(ta['stock-t0']['delta_pct']):+.2f}% on the T4, and {nf} of {len(tb)} T4 family-B tests are significantly faster, {len(below)} of them ({below_txt}) by less than the achieved-n minimum detectable effect (white x)."))
+             f"On Stencil-24K the change at threshold 0 is {fl(ra['stock-t0']['delta_pct']):+.2f}% on the RTX 5070 Ti and {fl(ta['stock-t0']['delta_pct']):+.2f}% on the T4, and {nf} of {len(tb)} T4 family-B tests are significantly faster; GraphBFS-23's changes ({gb_pct:.1f}% of a {gb_base:.0f} s run) are below its minimum detectable effect (white x)."))
 
 
 # ------------------------------------------------------------------ F-E8
