@@ -23,7 +23,12 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 os.chdir(ROOT)
 OUT = "paper/figures"
 GE = "results/analysis/gate_e"
-BLUE, ORANGE, AQUA, INK, MUTED, GRID = "#2a78d6", "#eb6834", "#1baf7a", "#0b0b0b", "#52514e", "#d8d8d4"
+# ONE colour map for the whole paper (defined once; every figure uses it). Workloads are distinguished by marker shape only.
+THR = {0: "#2a78d6", 10: "#8fbce8", 25: "#12a39a", 51: "#8a8a85", 75: "#52514e", 100: "#000000"}  # blue, light blue, teal, grey (shipped), dark grey, black
+C0_COL, SPEC_COL = THR[0], "#eb6834"   # C0 (no speculation) blue; speculation arms orange
+BLUE, ORANGE = C0_COL, SPEC_COL
+INK, MUTED, GRID = "#0b0b0b", "#52514e", "#d8d8d4"
+MK = {"stencil": "o", "graphbfs": "s"}
 COL1, COL2 = 3.5, 7.16
 GIB = 1073741824.0
 META = {}
@@ -54,8 +59,11 @@ def pts(ax, x, ys, color, marker="o", jitter=0.0, size=5, alpha=0.45):
 
 
 def med_marker(ax, x, y, color, marker="o", state="sig", size=22):
-    """state: sig -> filled, ns -> hollow, untested -> plus."""
-    if state == "untested":
+    """state: sig -> filled, ns -> hollow, untested -> plus, sigmde -> filled with a white x (Holm-significant but |delta| below the achieved-n MDE)."""
+    if state == "sigmde":
+        ax.scatter([x], [y], s=size, marker=marker, facecolor=color, edgecolor=color, linewidths=1.0, zorder=5)
+        ax.scatter([x], [y], s=size * 0.55, marker="x", color="white", linewidths=0.9, zorder=6)
+    elif state == "untested":
         ax.scatter([x], [y], s=size * 1.2, marker="P", facecolor="white", edgecolor=color, linewidths=1.0, zorder=5)
     elif state == "sig":
         ax.scatter([x], [y], s=size, marker=marker, facecolor=color, edgecolor=color, linewidths=1.0, zorder=5)
@@ -74,12 +82,15 @@ def save(fig, name):
     plt.close(fig)
 
 
-def legend_state(ax, loc="best"):
+def legend_state(ax, loc="best", fig=None):
     from matplotlib.lines import Line2D
     h = [Line2D([], [], marker="o", ls="", mfc="k", mec="k", ms=4, label="Holm-significant"),
          Line2D([], [], marker="o", ls="", mfc="w", mec="k", ms=4, label="not significant"),
          Line2D([], [], marker="o", ls="", mfc="k", alpha=0.45, mec="none", ms=2.5, label="one run")]
-    ax.legend(handles=h, frameon=False, loc=loc, handletextpad=0.3, borderaxespad=0.2)
+    if fig is not None:   # outside the axes, below, so no data point is covered
+        fig.legend(handles=h, frameon=False, loc="lower center", ncol=3, bbox_to_anchor=(0.5, -0.07), handletextpad=0.3)
+    else:
+        ax.legend(handles=h, frameon=False, loc=loc, handletextpad=0.3, borderaxespad=0.2)
 
 
 # ------------------------------------------------------------------ F-E4
@@ -98,9 +109,9 @@ def fig_e4():
         base = st.median(wall(wl, "C0"))
         for i, arm in enumerate(("C7-W1", "C7-W64", "C7-W512")):
             w = wall(wl, arm)
-            pts(ax, i, [pct(v, base) for v in w], BLUE, jitter=0.12)
+            pts(ax, i, [pct(v, base) for v in w], SPEC_COL, MK[wl], jitter=0.12)
             c = row("F1", wl, arm)
-            med_marker(ax, i, fl(c["delta_pct"]), BLUE, "o", "sig" if c["holm_sig"] == "True" else "ns")
+            med_marker(ax, i, fl(c["delta_pct"]), SPEC_COL, MK[wl], "sig" if c["holm_sig"] == "True" else "ns")
             n_cell[(wl, arm)] = len(w)
         ax.axhline(0, color=MUTED, lw=0.6)
         ax.set_xticks(range(3)); ax.set_xticklabels(["W=1", "W=64", "W=512"])
@@ -108,12 +119,14 @@ def fig_e4():
     axes[0].set_ylabel("wall-clock vs C0 median (%)")
     legend_state(axes[0], "upper right")
     ax = axes[2]
-    for i, (wl, col, mk) in enumerate((("stencil", BLUE, "o"), ("graphbfs", ORANGE, "s"))):
+    for i, (wl, col, mk) in enumerate((("stencil", SPEC_COL, MK["stencil"]), ("graphbfs", SPEC_COL, MK["graphbfs"]))):
         base = st.median(wall(wl, "C0"))
         w = wall(wl, "C6-W512")
         pts(ax, i, [pct(v, base) for v in w], col, marker=mk, jitter=0.1)
         c = row("F4", wl, "C6-W512")
         med_marker(ax, i, fl(c["delta_pct"]), col, mk, "sig" if c["holm_sig"] == "True" else "ns")
+        ax.annotate(f"{fl(c['delta_pct']):+.1f}%", (i, fl(c["delta_pct"])), xytext=(8, 7), textcoords="offset points", fontsize=7, ha="left", va="center")
+    ax.set_xlim(-0.5, 1.9)
     ax.axhline(0, color=MUTED, lw=0.6)
     ax.set_xticks([0, 1]); ax.set_xticklabels(["Stencil\n24K", "GraphBFS\n23"])
     ax.set_xlabel("perfect staging, prefetcher off\n(C6-W512, family F4)")
@@ -138,19 +151,19 @@ def fig_e5():
     fig, axes = plt.subplots(1, 2, figsize=(COL2 * 0.62, 2.35))
     for i, t in enumerate((51, 75, 100)):
         c0f = st.median(vals("C0", t, "demand_faults"))
-        pts(axes[0], i, [1 - v / c0f for v in vals("C7W512", t, "demand_faults")], BLUE, jitter=0.1)
-        med_marker(axes[0], i, fl(fr[t]["D"]), BLUE, "o", "sig" if fr[t]["holm_sig"] == "True" else "ns")
+        pts(axes[0], i, [1 - v / c0f for v in vals("C7W512", t, "demand_faults")], SPEC_COL, jitter=0.1)
+        med_marker(axes[0], i, fl(fr[t]["D"]), SPEC_COL, "o", "sig" if fr[t]["holm_sig"] == "True" else "ns")
         c0w = st.median(vals("C0", t, "wall_s"))
-        pts(axes[1], i, [pct(v, c0w) for v in vals("C7W512", t, "wall_s")], ORANGE, "s", jitter=0.1)
-        med_marker(axes[1], i, fl(wc[t]["delta_pct"]), ORANGE, "s", "sig" if wc[t]["holm_sig"] == "True" else "ns")
+        pts(axes[1], i, [pct(v, c0w) for v in vals("C7W512", t, "wall_s")], SPEC_COL, "o", jitter=0.1)
+        med_marker(axes[1], i, fl(wc[t]["delta_pct"]), SPEC_COL, "o", "sig" if wc[t]["holm_sig"] == "True" else "ns")
     for ax in axes:
         ax.axhline(0, color=MUTED, lw=0.6)
         ax.set_xticks(range(3)); ax.set_xticklabels(["51\n(shipped)", "75", "100\n(rule off)"])
         ax.set_xlabel("uvm_perf_prefetch_threshold")
     axes[0].set_ylabel("demand-fault reduction D(t)")
     axes[1].set_ylabel("C7W512 wall-clock vs C0 at the same t (%)")
-    legend_state(axes[0], "upper right")
     fig.tight_layout(w_pad=0.8)
+    legend_state(axes[0], fig=fig)
     save(fig, "fig_e5_threshold_dose_response")
     META["e5"] = dict(csv=f"{GE}/e5/e5_runs.csv; {GE}/e5/fault_reduction.csv; {GE}/e5/wallclock_comparisons.csv", fn="fig_e5", n="10 runs per cell",
         cap=(f"RTX 5070 Ti, stock prefetcher, Stencil-24K: D(t) = 1 - (median demand faults of C7W512) / (median of C0 at the same threshold) and the wall-clock change of C7W512 against C0 at the same threshold. "
@@ -167,8 +180,11 @@ def fig_e6():
     f1 = {r["base"]: r for r in rd(f"{GE}/e6/family1_primary.csv")}
     ts = (0, 10, 25, 51)
     fig, axes = plt.subplots(1, 2, figsize=(COL2 * 0.68, 2.35))
+    c7t51_med = st.median(fl(r["wall_s"]) for r in runs if r["label"] == "stencil C7W512-t51")
+    axes[0].axhline(c7t51_med, color=SPEC_COL, ls="--", lw=0.8, zorder=1)
+    axes[0].text(0, c7t51_med + 0.003, "C7W512 at shipped threshold", color=SPEC_COL, fontsize=6, va="bottom", ha="left")
     for ax, key, ylab, secd in ((axes[0], "wall_s", "process wall-clock (s)", sw), (axes[1], "demand_faults", "demand faults per run", sd)):
-        for arm, col, mk, dx in (("C0", BLUE, "o", -0.9), ("C7W512", ORANGE, "s", 0.9)):
+        for arm, col, mk, dx in (("C0", C0_COL, "o", -0.9), ("C7W512", SPEC_COL, "s", 0.9)):
             med_x, med_y = [], []
             for t in ts:
                 v = [fl(r[key]) for r in runs if r["label"] == f"stencil {arm}-t{t}"]
@@ -188,10 +204,14 @@ def fig_e6():
         ax.set_xticks(ts); ax.set_xticklabels(["0", "10", "25", "51"])
         ax.set_xlabel("uvm_perf_prefetch_threshold"); ax.set_ylabel(ylab)
     from matplotlib.lines import Line2D
-    axes[0].legend(handles=[Line2D([], [], marker="o", ls="-", color=BLUE, ms=3.5, lw=0.8, label="C0 (speculation off)"),
-                            Line2D([], [], marker="s", ls="-", color=ORANGE, ms=3.5, lw=0.8, label="C7W512 (oracle, W = 512)"),
-                            Line2D([], [], marker="P", ls="", mfc="w", mec=MUTED, ms=4.5, label="not tested")], frameon=False, loc="upper left", fontsize=6.3)
     fig.tight_layout(w_pad=0.8)
+    fig.legend(handles=[Line2D([], [], marker="o", ls="-", color=C0_COL, ms=3.5, lw=0.8, label="C0 (speculation off)"),
+                        Line2D([], [], marker="s", ls="-", color=SPEC_COL, ms=3.5, lw=0.8, label="C7W512 (oracle, W = 512)"),
+                        Line2D([], [], marker="o", ls="", mfc="k", mec="k", ms=3.5, label="filled: Holm-significant"),
+                        Line2D([], [], marker="o", ls="", mfc="w", mec="k", ms=3.5, label="hollow: not significant"),
+                        Line2D([], [], marker="P", ls="", mfc="w", mec="k", ms=4.5, label="plus: not tested"),
+                        Line2D([], [], marker="o", ls="", mfc="k", alpha=0.45, mec="none", ms=2.5, label="one run")],
+               frameon=False, loc="lower center", ncol=3, bbox_to_anchor=(0.5, -0.12), fontsize=6.5, handletextpad=0.3)
     save(fig, "fig_e6_threshold_baseline")
     c0t0 = st.median(fl(r["wall_s"]) for r in runs if r["label"] == "stencil C0-t0")
     c0t51 = st.median(fl(r["wall_s"]) for r in runs if r["label"] == "stencil C0-t51")
@@ -222,35 +242,47 @@ def fig_e7():
                 ax.text(i, -12, "not run", rotation=90, ha="center", va="center", fontsize=6.5, color=MUTED)
                 continue
             base = st.median(fl(r["wall_s"]) for r in sub if r["label"].endswith("stock-t51"))
-            for arm, col, mk, dx in (("stock-t0", BLUE, "o", -0.17), ("stock-t25", ORANGE, "s", 0.17)):
+            for arm, col, mk, dx in (("stock-t0", THR[0], "o", -0.17), ("stock-t25", THR[25], "s", 0.17)):
                 v = [fl(r["wall_s"]) for r in sub if r["label"].endswith(arm)]
                 if not v:
                     continue
                 pts(ax, i + dx, [pct(x, base) for x in v], col, mk, jitter=0.08)
                 src = fa if fam == "A" else fb
                 c = next(c for c in src if c["workload"] == wl and c["arm"] == arm)
-                med_marker(ax, i + dx, fl(c["delta_pct"]), col, mk, "sig" if c["holm_sig"] == "True" else "ns", size=18)
+                state = "ns" if c["holm_sig"] != "True" else ("sigmde" if abs(fl(c["delta_s"])) < fl(c["mde_s"]) else "sig")
+                med_marker(ax, i + dx, fl(c["delta_pct"]), col, mk, state, size=18)
             n_t4 += 1
         counts[name] = n_t4
-        ax.axhline(0, color=MUTED, lw=0.6)
+        ax.axhline(0, color=THR[51], lw=0.8)
         ax.set_xticks(range(len(WL7))); ax.set_xticklabels([w[1] for w in WL7], fontsize=5.6)
         ax.set_xlabel(name)
     axes[0].set_ylabel("wall-clock vs threshold 51 (%)")
     from matplotlib.lines import Line2D
-    axes[0].legend(handles=[Line2D([], [], marker="o", ls="", color=BLUE, ms=3.5, label="threshold 0"), Line2D([], [], marker="s", ls="", color=ORANGE, ms=3.5, label="threshold 25"),
-                            Line2D([], [], marker="o", ls="", mfc="k", mec="k", ms=3.5, label="filled: Holm-significant"), Line2D([], [], marker="o", ls="", mfc="w", mec="k", ms=3.5, label="hollow: not significant")],
-                   frameon=False, loc="lower left", ncol=2, columnspacing=0.8)
     fig.tight_layout(w_pad=0.6)
+    from matplotlib.lines import Line2D
+    from matplotlib.legend_handler import HandlerTuple
+    fig.legend(handles=[Line2D([], [], marker="o", ls="", color=THR[0], ms=3.5, label="threshold 0"), Line2D([], [], marker="s", ls="", color=THR[25], ms=3.5, label="threshold 25"),
+                        Line2D([], [], ls="-", color=THR[51], lw=0.8, label="threshold 51 (shipped baseline)"),
+                        Line2D([], [], marker="o", ls="", mfc="k", mec="k", ms=3.5, label="filled: Holm-significant"), Line2D([], [], marker="o", ls="", mfc="w", mec="k", ms=3.5, label="hollow: not significant"),
+                        (Line2D([], [], marker="o", ls="", mfc="k", mec="k", ms=4.5), Line2D([], [], marker="x", ls="", color="white", ms=3.2, mew=0.9))],
+               labels=["threshold 0", "threshold 25", "threshold 51 (shipped baseline)", "filled: Holm-significant", "hollow: not significant",
+                       "filled with white x: Holm-significant, |delta| below achieved-n MDE"],
+               handler_map={tuple: HandlerTuple(ndivide=1, pad=0)},
+               frameon=False, loc="lower center", ncol=3, bbox_to_anchor=(0.5, -0.12), fontsize=6.5, handletextpad=0.3)
     save(fig, "fig_e7_threshold_by_workload_two_platforms")
     ra = {c["arm"]: c for c in rd(f"{GE}/e7/family_a.csv")}
     ta = {c["arm"]: c for c in rd("results/analysis/t4/family_a.csv")}
     tb = rd("results/analysis/t4/family_b.csv")
     nf = sum(1 for c in tb if c["holm_sig"] == "True" and fl(c["delta_s"]) < 0)
+    below = [c for c in tb if c["holm_sig"] == "True" and abs(fl(c["delta_s"])) < fl(c["mde_s"])]
+    names = {"stencil8k": "Stencil-8K", "sweep4k": "Sweep-4K", "sweep16k": "Sweep-16K", "stream": "STREAM", "sgemm": "SGEMM", "cufft": "cuFFT", "graphbfs": "GraphBFS-23"}
+    below_wl = sorted({names[c["workload"]] for c in below})
+    below_txt = ", ".join(below_wl[:-1]) + (" and " if len(below_wl) > 1 else "") + below_wl[-1]
     META["e7"] = dict(csv=f"{GE}/e7/e7_runs.csv; {GE}/e7/family_a.csv; {GE}/e7/family_b.csv; results/analysis/t4/e7t4_runs.csv; results/analysis/t4/family_a.csv; results/analysis/t4/family_b.csv",
         fn="fig_e7", n="10 runs per cell on each platform (separate analyses, never pooled)",
         cap=(f"Stock driver 595.91.07, prefetcher on, no speculation: wall-clock change of threshold 0 and 25 against the shipped threshold 51 (each cell's own median), per workload, on the RTX 5070 Ti (left) and the Tesla T4 (right); the two platforms are analysed separately and not pooled. "
              f"Each run is a point; markers are medians, filled when Holm-significant (two-sided Mann-Whitney U, n = 10 per cell; Stencil-24K shows threshold 0 only, from family A). The oversubscribed Stencil cell was not run on the T4. "
-             f"On Stencil-24K the change at threshold 0 is {fl(ra['stock-t0']['delta_pct']):+.2f}% on the RTX 5070 Ti and {fl(ta['stock-t0']['delta_pct']):+.2f}% on the T4, and {nf} of {len(tb)} T4 family-B tests are significantly faster."))
+             f"On Stencil-24K the change at threshold 0 is {fl(ra['stock-t0']['delta_pct']):+.2f}% on the RTX 5070 Ti and {fl(ta['stock-t0']['delta_pct']):+.2f}% on the T4, and {nf} of {len(tb)} T4 family-B tests are significantly faster, {len(below)} of them ({below_txt}) by less than the achieved-n minimum detectable effect (white x)."))
 
 
 # ------------------------------------------------------------------ F-E8
@@ -260,7 +292,7 @@ def fig_e8():
     fig, axes = plt.subplots(1, 2, figsize=(COL2 * 0.78, 2.45))
     Ks = (1, 8, 64, 512)
     for ax, size, fam, lab in ((axes[0], "in", "IN", "in memory (8 GiB)"), (axes[1], "ov", "OV", "oversubscribed (24 GiB)")):
-        for arm, col, mk, dx in (("stock-t0", BLUE, "o", -0.14), ("stock-t25", ORANGE, "s", 0.14)):
+        for arm, col, mk, dx in (("stock-t0", THR[0], "o", -0.14), ("stock-t25", THR[25], "s", 0.14)):
             mx, my = [], []
             for i, K in enumerate(Ks):
                 wl = f"{size}_k{K}"
@@ -271,12 +303,12 @@ def fig_e8():
                 med_marker(ax, i + dx, fl(c["delta_pct"]), col, mk, "sig" if c["holm_sig"] == "True" else "ns", size=18)
                 mx.append(i + dx); my.append(fl(c["delta_pct"]))
             ax.plot(mx, my, color=col, lw=0.8, zorder=4)
-        ax.axhline(0, color=MUTED, lw=0.6)
+        ax.axhline(0, color=THR[51], lw=0.8)
         ax.set_xticks(range(4)); ax.set_xticklabels([f"{K}" for K in Ks])
         ax.set_xlabel(f"pages touched per 2 MB block, {lab}")
     axes[0].set_ylabel("wall-clock vs threshold 51 (%)")
     from matplotlib.lines import Line2D
-    axes[0].legend(handles=[Line2D([], [], marker="o", ls="-", color=BLUE, ms=3.5, lw=0.8, label="threshold 0"), Line2D([], [], marker="s", ls="-", color=ORANGE, ms=3.5, lw=0.8, label="threshold 25")], frameon=False, loc="upper right")
+    axes[0].legend(handles=[Line2D([], [], marker="o", ls="-", color=THR[0], ms=3.5, lw=0.8, label="threshold 0"), Line2D([], [], marker="s", ls="-", color=THR[25], ms=3.5, lw=0.8, label="threshold 25"), Line2D([], [], ls="-", color=THR[51], lw=0.8, label="threshold 51 (shipped baseline)")], frameon=False, loc="upper right")
     fig.tight_layout(w_pad=0.8)
     save(fig, "fig_e8_sparse_access")
     g = {(t["size"], int(t["K"]), t["arm"]): fl(t["delta_pct"]) for t in tests}
@@ -292,7 +324,7 @@ def fig_e9():
     wls = [("ov_k1", "oversub\nK=1"), ("ov_k8", "oversub\nK=8"), ("ov_k64", "oversub\nK=64"), ("ov_k512", "oversub\nK=512"), ("in_k1", "in-mem\nK=1"), ("in_k512", "in-mem\nK=512"), ("stencil", "Stencil\n24K")]
     fig, axes = plt.subplots(1, 2, figsize=(COL2, 2.45))
     for ax, key, lab in ((axes[0], "htod_bytes", "host to device migrated (GiB)"), (axes[1], "dtoh_bytes", "device to host migrated (GiB)")):
-        for t, col, dx in ((0, BLUE, -0.2), (51, ORANGE, 0.2)):
+        for t, col, dx in ((0, THR[0], -0.2), (51, THR[51], 0.2)):
             xs, ys = [], []
             for i, (wl, _) in enumerate(wls):
                 v = [fl(r[key]) / GIB for r in runs if r["workload"] == wl and int(r["threshold"]) == t]
@@ -318,7 +350,7 @@ def fig_ph():
     ph = ["D1", "D2", "D3", "D4", "D5", "D6", "D7"]
     fig, ax = plt.subplots(figsize=(COL1, 2.35))
     n = {}
-    for arm, col, dx, lab in (("C1", BLUE, -0.19, "C1 (no speculation, prefetcher off)"), ("C64096", ORANGE, 0.19, "C6, L = 4096 (oracle, prefetcher off)")):
+    for arm, col, dx, lab in (("C1", C0_COL, -0.19, "C1 (no speculation, prefetcher off)"), ("C64096", SPEC_COL, 0.19, "C6, L = 4096 (oracle, prefetcher off)")):
         xs, ys = [], []
         for i, p in enumerate(ph):
             v = [fl(r[p]) / 1e9 for r in rows if r["arm"] == arm]
@@ -326,10 +358,11 @@ def fig_ph():
             pts(ax, i + dx, v, col, jitter=0.04, size=6, alpha=0.8)
             xs.append(i + dx); ys.append(st.median(v))
         ax.bar(xs, ys, width=0.34, color=col, alpha=0.75, zorder=2, label=lab)
-    ax.set_yscale("log")
+        ax.annotate(f"{ys[ph.index('D5')]:.3f} s", (xs[ph.index("D5")], ys[ph.index("D5")]), xytext=(0, 3), textcoords="offset points", ha="center", va="bottom", fontsize=6.5, color=col)
     ax.set_xticks(range(len(ph))); ax.set_xticklabels(ph)
     ax.set_xlabel("dispatch-window phase"); ax.set_ylabel("median time per run (s)")
-    ax.legend(frameon=False, loc="upper right", fontsize=6.3)
+    ax.set_ylim(0, ax.get_ylim()[1] * 1.08)
+    ax.legend(frameon=False, loc="upper center", bbox_to_anchor=(0.5, -0.28), ncol=1, fontsize=6.5)
     fig.tight_layout()
     save(fig, "fig_ph_phase_medians")
     med = lambda arm, p: st.median(fl(r[p]) / 1e9 for r in rows if r["arm"] == arm)  # noqa: E731
