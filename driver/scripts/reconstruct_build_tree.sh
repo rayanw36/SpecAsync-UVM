@@ -25,6 +25,23 @@ REPO="$(cd "$(dirname "$0")/../.." && pwd)"
 : "${NV_KERNEL_MODULES:=nvidia-uvm}"
 UVM="$WORK/nvidia-uvm"
 
+# The patches are stored in Git LFS (.gitattributes: *.patch). Without git-lfs a checkout holds
+# ~130-byte pointer files; `patch` then prints "Only garbage was found" and the `|| true` below
+# would hide it, producing a tree without the glue changes and a confusing compile error.
+GLUE_PATCH="$REPO/driver/patches/specasync_selective_apply.patch"
+if [ ! -f "$GLUE_PATCH" ]; then
+    echo "[reconstruct] ERROR: $GLUE_PATCH not found" >&2
+    exit 1
+fi
+if [ "$(head -n 1 "$GLUE_PATCH")" = "version https://git-lfs.github.com/spec/v1" ] \
+   || head -n 1 "$GLUE_PATCH" | grep -q '^version https://git-lfs'; then
+    echo "[reconstruct] ERROR: $GLUE_PATCH is a Git-LFS pointer file, not the patch." >&2
+    echo "[reconstruct] Install git-lfs (e.g. 'sudo apt install git-lfs'), then run, from $REPO:" >&2
+    echo "[reconstruct]     git lfs install && git lfs pull --include='driver/patches/*'" >&2
+    echo "[reconstruct] and re-run this script. Nothing was changed." >&2
+    exit 2
+fi
+
 echo "[reconstruct] rsync $SRC -> $WORK (--delete: make dest exactly pristine)"
 mkdir -p "$WORK"
 rsync -a --delete "$SRC/" "$WORK/"
