@@ -1,26 +1,24 @@
 line,word,context
-36,one,"through one pointer space, migrating pages on deman"
-56,first,\emph{first-touch oracle}: a table of the run's own
-62,four,"The answer has four parts, and the last two concern the dri"
-62,two,"The answer has four parts, and the last two concern the driver's own"
-68,first,faults when the GPU first touches it. We confirmed this from sour
-78,four,"a stencil workload by 3.4--5.3\% across four independent sessions,"
-94,nine,"and 2.0\%). Across nine dense or streaming workloads, the lower"
-95,four,"four, by 2.5--17\%, and significantly slowed"
-99,one,"benchmark that touches only one or eight pages per 2\,MB block, the low"
-99,eight,"benchmark that touches only one or eight pages per 2\,MB block, the low"
-102,one,set that would fit into one that does not. With the array in memory
-104,one,d lower threshold dominates the shipped one.
-128,first,lock-free first-touch oracle and a configurable staging
-130,first,"for every driver call, and an attended first load."
-139,first,per-fault overhead in our first oracle was its own lookup.
-141,two,\item \textbf{A two-directional measurement of the prefetch
-149,Two,ger in a committed file before running. Two triggers fired and changed the
-150,two,"er's conclusion. Analysis uses medians, two-sided Mann--Whitney $U$, Holm"
-154,Twenty,catalog of UVM measurement artifacts.} Twenty-five artifacts
-154,five,g of UVM measurement artifacts.} Twenty-five artifacts
-156,One,including the misaligned oracle. One pattern stands out: errors arising from
-166,one,"weaker one on graph traversal, so they bound what"
-167,one,ictor. All Gate-series results are from one
-169,one,The sparse-access counterexample uses one synthetic benchmark at one
-169,one,example uses one synthetic benchmark at one
+47,one,"through one pointer space, migrating pages on deman"
+67,first,\emph{first-touch oracle}: a table of the run's own
+73,four,"The answer has four parts, and the last two concern the dri"
+73,two,"The answer has four parts, and the last two concern the driver's own"
+79,first,faults when the GPU first touches it. We confirmed this from sour
+89,four,"a stencil workload by 3.4--5.3\% across four independent sessions,"
+105,nine,"and 2.0\%). Across nine dense or streaming workloads, the lower"
+106,four,"four, by 2.5--17\%, and significantly slowed"
+110,one,"benchmark that touches only one or eight pages per 2\,MB block, the low"
+110,eight,"benchmark that touches only one or eight pages per 2\,MB block, the low"
+117,one,shipped one.
+149,first,lock-free first-touch oracle and a configurable staging
+151,first,"for every driver call, and an attended first load."
+160,first,per-fault overhead in our first oracle was its own lookup.
+165,two,"dense and streaming access, on two GPU generations, and the loss on sparse"
+171,Two,ger in a committed file before running. Two triggers fired and changed the
+172,two,"er's conclusion. Analysis uses medians, two-sided Mann--Whitney $U$, Holm"
+176,Twenty,catalog of UVM measurement artifacts.} Twenty-five artifacts
+176,five,g of UVM measurement artifacts.} Twenty-five artifacts
+178,One,including the misaligned oracle. One pattern stands out: errors arising from
+188,one,"weaker one on graph traversal, so they bound what"
+193,one,sparse-access counterexample uses one synthetic benchmark at one
+193,one,example uses one synthetic benchmark at one

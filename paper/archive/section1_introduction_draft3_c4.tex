@@ -22,21 +22,10 @@
 % E8 primary. Platform for all Gate E numbers: RTX 5070 Ti, driver
 % 595.91.07 (kernel 7.0.0-31 for E0.5-E0.9, 7.0.0-34 from E0.9a-2 on).
 %
-% LIT CHECKED 2026-10-10 against the full papers:
-%   go2023earlyadaptor: RTX 3090, open driver 515.65.01, CUDA 11.7; thresholds
-%     1-100%; in memory (Fig. 4a) 1% >= 51% for every workload; at 150%
-%     oversubscription (Fig. 4b) low thresholds hurt irregular workloads
-%     (ATA, BIC, NW), explained by thrashing (Sec. III-C/D). Pages 248-258.
-%   shen2026stride: user-space LD_PRELOAD layer, CUPTI fault events,
-%     cudaMemAdvise + cudaMemPrefetchAsync; A100/V100, CUDA 12.8; up to 1.48x
-%     measured vs a "no-prefetch baseline" (driver prefetcher state not
-%     stated). ISMM '26 pp. 52-65.
-% [T4] filled from GATE_E7T4_REPORT.md (dense-access threshold result only).
-%
 % OPEN before submission:
-%   [SRC]  verify from uvm_migrate.c that cudaMemPrefetchAsync to a GPU
-%          installs mappings (MAKE_RESIDENT_AND_MAP), before Section II
-%          relies on it.
+%   [T4]   cross-platform sentence in the scope paragraph waits on the T4
+%          replication (quota pending).
+%   [LIT]  Go et al. sentence to be checked against the full paper (CS2-N11).
 %   [CAT]  artifact count (25) to be confirmed against ARTIFACT_CATALOG.md.
 %   [SEC]  section numbers in the roadmap follow the planned outline.
 % =====================================================================
@@ -108,26 +97,16 @@ four, by 2.5--17\%, and significantly slowed none.
 \paragraph{But the lever cuts both ways}
 The shipped threshold is a compromise, not an oversight. On a synthetic
 benchmark that touches only one or eight pages per 2\,MB block, the low
-threshold is 41--85\% \emph{slower} once the array exceeds GPU memory. Tracing
-shows why: at threshold 0 the prefetcher brings in whole regions for a few
-useful pages, and on the oversubscribed array a traced run migrates about
-130\,GiB into the GPU, against 4\,GiB at the shipped threshold. With the array
-in memory the effects are small and mixed, and with 64 or more pages touched per
-block the low threshold is faster again. No fixed lower threshold dominates the
-shipped one.
-
-\paragraph{Relation to prior work on the threshold}
-Neither direction of this effect is new. Go \emph{et al.} varied the same
-threshold on an RTX 3090 with release 515.65.01 of the open driver. With memory
-not oversubscribed, a low threshold was at least as fast as the default for
-every workload they tested; at 150\% oversubscription, the ratio our sparse
-test also uses, it hurt irregular workloads through thrashing. They proposed an
-adaptive threshold on that basis \cite{go2023earlyadaptor}. Our threshold
-measurements replicate both directions on later GPU generations and a later
-driver, under pre-registered tests, with access density isolated by a synthetic
-benchmark and the migrated bytes measured. What is new is the link to
-speculation: the measured value of off-path staging is a side effect of the same
-density rule.
+threshold is 41--85\% \emph{slower} once the array exceeds GPU memory: the
+prefetcher brings in whole blocks for a few useful pages, inflating a working
+set that would fit into one that does not. With the array in memory the
+effects are small and mixed, and with 64 or more pages touched per block the low
+threshold is faster again. No fixed lower threshold dominates the shipped one.
+This agrees with Go \emph{et al.}, who found the threshold's impact to vary
+across workloads under oversubscription \cite{go2023earlyadaptor}; our
+contribution is to show that off-path speculation's measured value is a
+side effect of the same rule, and to measure the rule's effect in both
+directions under a pre-registered protocol.
 
 \medskip
 The result reverses this study's own earlier conclusion, and how it was
@@ -159,12 +138,11 @@ written before the measurement it tested.
   (54--75\,ns per enqueue, on the critical path) and show that most of the
   per-fault overhead in our first oracle was its own lookup.
 
-  \item \textbf{An independent replication of the threshold trade-off.}
-  Pre-registered tests on the stock driver reproduce Go \emph{et al.}'s finding
-  in both directions on a newer driver: the gain from a lower threshold on
-  dense and streaming access, on two GPU generations, and the loss on sparse
-  access to an oversubscribed array, with the migrated bytes traced and minimum
-  detectable effects reported for every null.
+  \item \textbf{A two-directional measurement of the prefetch threshold.}
+  Pre-registered tests on the stock driver showing both the gain from a lower
+  threshold on dense and streaming access and the loss on sparse access to an
+  oversubscribed array, with minimum detectable effects reported for every
+  null.
 
   \item \textbf{A falsifiable measurement protocol, exercised.} Every gate fixed
   its families, statistic, test, minimum detectable effect, and falsification
@@ -186,17 +164,13 @@ written before the measurement it tested.
 
 Our speculation results use a near-perfect oracle on the stencil workload and a
 weaker one on graph traversal, so they bound what off-path staging can achieve
-and do not evaluate a practical predictor. The dense-access threshold gain
-replicates on a Tesla T4 (Turing) with the same driver: $-5.1\%$ on the stencil
-workload, and 12 of 14 further tests faster with none slower. The speculation,
-sparse-access and oversubscription results are from the RTX 5070 Ti alone. The
-sparse-access counterexample uses one synthetic benchmark at one
-oversubscription ratio. Prefetching issued from user space is a different
-mechanism, and we make no claim about it: Shen and Nikolopoulos predict faults
-from profiler events and issue explicit prefetch calls, which the driver
-services on its own migration path rather than through an off-path worker,
-reporting speedups of up to $1.48\times$ on A100 and V100 GPUs
-\cite{shen2026stride}. Section~II discusses the difference.
+and do not evaluate a practical predictor. All Gate-series results are from one
+platform. % [T4] replace with the T4 replication result when available.
+The sparse-access counterexample uses one synthetic benchmark at one
+oversubscription ratio. We make no claim about prefetching performed above the
+driver, which operates differently and has reported gains
+\cite{shen2026stride}; Section~II discusses it.
+% [LIT] check the shen2026stride wording against the paper.
 
 Section~II reviews related work. Section~III describes the UVM fault path and
 the prefetcher's density rule. Section~IV presents SpecAsync-UVM and the oracle,
