@@ -1,0 +1,40 @@
+PASS  managed unchanged [bench_sparse 64MiB K=1] rc=0,0,0
+PASS  managed unchanged [bench_sparse 64MiB K=8] rc=0,0,0
+PASS  managed unchanged [bench_sparse 64MiB K=64] rc=0,0,0
+PASS  managed unchanged [bench_sparse 64MiB K=512] rc=0,0,0
+PASS  managed unchanged [bench_sparse 1GiB K=1] rc=0,0,0
+PASS  managed unchanged [bench_sparse 1GiB K=8] rc=0,0,0
+PASS  managed unchanged [bench_sparse 1GiB K=64] rc=0,0,0
+PASS  managed unchanged [bench_sparse 1GiB K=512] rc=0,0,0
+PASS  managed unchanged [bench_stencil N=2048] (stdout and stderr, timing and pointers masked) 
+PASS  (a) checksum == host reference [malloc 64MiB K=1] checksum=000000105d969038
+PASS  (b) pages_touched = K x blocks [malloc 64MiB K=1] 32 = 1 x 32
+PASS  (a) checksum == host reference [malloc 64MiB K=8] checksum=000000868205d9da
+PASS  (b) pages_touched = K x blocks [malloc 64MiB K=8] 256 = 8 x 32
+PASS  (a) checksum == host reference [malloc 64MiB K=64] checksum=00000401cc55a424
+PASS  (b) pages_touched = K x blocks [malloc 64MiB K=64] 2048 = 64 x 32
+PASS  (a) checksum == host reference [malloc 64MiB K=512] checksum=00001fdf33321218
+PASS  (b) pages_touched = K x blocks [malloc 64MiB K=512] 16384 = 512 x 32
+PASS  (d) K=512 touches every page exactly once per pass [malloc 64MiB K=512] 
+PASS  (c) same seed -> same page_list_hash [malloc 64MiB] cadb089e31a7ed3e
+PASS  (c) different seed -> different page_list_hash [malloc 64MiB] 
+PASS  (e) off-by-one host reference is detected [malloc 64MiB] 
+PASS  malloc checksum equals managed checksum [64MiB K=8] 000000868205d9da vs 000000868205d9da
+PASS  (a) checksum == host reference [malloc 1GiB K=1] checksum=000000fae789ab55
+PASS  (b) pages_touched = K x blocks [malloc 1GiB K=1] 512 = 1 x 512
+PASS  (a) checksum == host reference [malloc 1GiB K=8] checksum=0000081a00a8cddd
+PASS  (b) pages_touched = K x blocks [malloc 1GiB K=8] 4096 = 8 x 512
+PASS  (a) checksum == host reference [malloc 1GiB K=64] checksum=00003fe0c9634492
+PASS  (b) pages_touched = K x blocks [malloc 1GiB K=64] 32768 = 64 x 512
+PASS  (a) checksum == host reference [malloc 1GiB K=512] checksum=0001ff8a2003f125
+PASS  (b) pages_touched = K x blocks [malloc 1GiB K=512] 262144 = 512 x 512
+PASS  (d) K=512 touches every page exactly once per pass [malloc 1GiB K=512] 
+PASS  (c) same seed -> same page_list_hash [malloc 1GiB] 03115d610e56a59e
+PASS  (c) different seed -> different page_list_hash [malloc 1GiB] 
+PASS  (e) off-by-one host reference is detected [malloc 1GiB] 
+PASS  malloc checksum equals managed checksum [1GiB K=8] 0000081a00a8cddd vs 0000081a00a8cddd
+PASS  bench_stencil checksum: malloc == managed == CPU reference [N=2048] {'managed': (0, '000fae9066d4c042', '000fae9066d4c042'), 'malloc': (0, '000fae9066d4c042', '000fae9066d4c042')}
+PASS  bench_stencil checksum: malloc == managed == CPU reference [N=4096] {'managed': (0, '003ebf4c07281bf6', '003ebf4c07281bf6'), 'malloc': (0, '003ebf4c07281bf6', '003ebf4c07281bf6')}
+PASS  GPU residency in malloc mode: memory.used rose during a 2 GiB K=512 run baseline 571 MiB, peak 2859 MiB, rise 2288 MiB (array 2048 MiB)
+NOTE  no UVM fault counter exists on the stock module (/proc/driver/nvidia-uvm has no per-GPU statistics); GPU residency above is the evidence that faults/migration occur in malloc mode.
+OVERALL: PASS

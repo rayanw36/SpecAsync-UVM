@@ -1,0 +1,11 @@
+idx,label,workload,module,policy,depth,prefetch,L,W,fast,trace_faults,dump_rings,threshold,family,block
+1,stencil stock-t0,stencil,stock,,,1,,,,0,0,0,IN,
+2,stencil stock-t51,stencil,stock,,,1,,,,0,0,51,IN,
+3,in_k1 stock-t0,in_k1,stock,,,1,,,,0,0,0,IN,
+4,in_k1 stock-t51,in_k1,stock,,,1,,,,0,0,51,IN,
+5,in_k512 stock-t0,in_k512,stock,,,1,,,,0,0,0,IN,
+6,in_k512 stock-t51,in_k512,stock,,,1,,,,0,0,51,IN,
+7,ov_k1 stock-t0,ov_k1,stock,,,1,,,,0,0,0,OV,
+8,ov_k1 stock-t51,ov_k1,stock,,,1,,,,0,0,51,OV,
+9,ov_k512 stock-t0,ov_k512,stock,,,1,,,,0,0,0,OV,
+10,ov_k512 stock-t51,ov_k512,stock,,,1,,,,0,0,51,OV,

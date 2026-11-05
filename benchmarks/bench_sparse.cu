@@ -1,7 +1,7 @@
 /*
  * bench_sparse.cu — adversarial sparse-access benchmark (Gate E8). Userspace only.
  *
- * Usage: ./bench_sparse <GiB> <K> <passes> <seed>
+ * Usage: ./bench_sparse <GiB> <K> <passes> <seed> [--alloc managed|malloc]   (default managed; malloc: aligned_alloc, 2 MiB aligned, MADV_NOHUGEPAGE; Gate H1)
  *   GiB     size of the one cudaMallocManaged array (fractions allowed, e.g. 0.0625 = 64 MiB)
  *   K       distinct 4 KB pages touched in EACH 2 MB block (1..512)
  *   passes  number of kernel launches; every pass uses the SAME page list
@@ -43,6 +43,7 @@
 #include <algorithm>
 #include <random>
 #include <vector>
+#include <sys/mman.h>
 #include <cuda_runtime.h>
 
 #define CUDA_CHECK(call)                                                       \
@@ -54,6 +55,42 @@
             exit(2);                                                           \
         }                                                                      \
     } while (0)
+
+
+/* ---- H1 (Gate C9): --alloc {managed,malloc}. Default managed = the behaviour of every earlier gate, unchanged. malloc mode allocates the
+ * same bytes with aligned_alloc (2 MiB alignment, size rounded up to 2 MiB) and madvise(MADV_NOHUGEPAGE); everything else (host
+ * initialisation, kernels, checksum) is identical. The option is removed from argv before the positional arguments are parsed. ---- */
+static int g_alloc_malloc = 0;
+static void strip_alloc_flag(int *argc, char **argv)
+{
+    int w = 1;
+    for (int r = 1; r < *argc; r++) {
+        if (strcmp(argv[r], "--alloc") == 0 && r + 1 < *argc) {
+            const char *m = argv[++r];
+            if (strcmp(m, "malloc") == 0) g_alloc_malloc = 1;
+            else if (strcmp(m, "managed") == 0) g_alloc_malloc = 0;
+            else { fprintf(stderr, "--alloc must be managed or malloc\n"); exit(2); }
+        } else {
+            argv[w++] = argv[r];
+        }
+    }
+    *argc = w;
+}
+static void *alloc_array(size_t bytes)
+{
+    void *p = NULL;
+    if (!g_alloc_malloc) { CUDA_CHECK(cudaMallocManaged(&p, bytes)); return p; }
+    const size_t A = (size_t)2 << 20;
+    size_t b = (bytes + A - 1) & ~(A - 1);
+    p = aligned_alloc(A, b);
+    if (!p) { fprintf(stderr, "aligned_alloc failed\n"); exit(2); }
+    if (madvise(p, b, MADV_NOHUGEPAGE) != 0) { fprintf(stderr, "madvise(MADV_NOHUGEPAGE) failed\n"); exit(2); }
+    return p;
+}
+static void free_array(void *p)
+{
+    if (g_alloc_malloc) free(p); else CUDA_CHECK(cudaFree(p));
+}
 
 static const uint64_t BLOCK_BYTES = 2ull << 20;      /* 2 MB UVM block */
 static const uint32_t PAGES_PER_BLOCK = 512;         /* 4 KB pages per block */
@@ -74,6 +111,7 @@ __global__ void sparse_pass(uint32_t *arr, const uint64_t *idx, uint64_t n, unsi
 
 int main(int argc, char **argv)
 {
+    strip_alloc_flag(&argc, argv);
     if (argc != 5) {
         fprintf(stderr, "Usage: %s <GiB> <K> <passes> <seed>\n", argv[0]);
         return 2;
@@ -136,7 +174,7 @@ int main(int argc, char **argv)
 
     /* ---- device memory ---- */
     uint32_t *arr = NULL;
-    CUDA_CHECK(cudaMallocManaged(&arr, bytes));               /* the only managed allocation */
+    arr = (uint32_t *)alloc_array(bytes);                     /* the only managed (or, with --alloc malloc, malloc'd) array */
     uint64_t *d_idx = NULL;
     CUDA_CHECK(cudaMalloc(&d_idx, n * sizeof(uint64_t)));     /* NOT managed: never faults */
     unsigned long long *d_acc = NULL;
@@ -176,7 +214,7 @@ int main(int argc, char **argv)
     CUDA_CHECK(cudaEventDestroy(e1));
     CUDA_CHECK(cudaFree(d_acc));
     CUDA_CHECK(cudaFree(d_idx));
-    CUDA_CHECK(cudaFree(arr));
+    free_array(arr);
     if (got != expected) { printf("CHECKSUM MISMATCH\n"); return 1; }
     printf("CHECKSUM OK\n");
     return 0;

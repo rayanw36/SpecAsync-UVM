@@ -2,7 +2,7 @@
  * bench_stencil.cu — 2D 5-point stencil benchmark
  * new[i,j] = 0.25 * (old[i-1,j] + old[i+1,j] + old[i,j-1] + old[i,j+1])
  *
- * Usage: ./bench_stencil <N>
+ * Usage: ./bench_stencil <N> [--alloc managed|malloc]   (default managed; malloc: aligned_alloc, 2 MiB aligned, MADV_NOHUGEPAGE; Gate H1)
  *   e.g. ./bench_stencil 8192   (8192x8192 float grid)
  *
  * Runs 20 ping-pong stencil iterations between two managed grids.
@@ -20,6 +20,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <string.h>
+#include <stdint.h>
+#include <sys/mman.h>
 #include <cuda_runtime.h>
 
 #define ITERS 20
@@ -36,6 +39,42 @@
             exit(EXIT_FAILURE);                                                \
         }                                                                     \
     } while (0)
+
+
+/* ---- H1 (Gate C9): --alloc {managed,malloc}. Default managed = the behaviour of every earlier gate, unchanged. malloc mode allocates the
+ * same bytes with aligned_alloc (2 MiB alignment, size rounded up to 2 MiB) and madvise(MADV_NOHUGEPAGE); everything else (host
+ * initialisation, kernels, checksum) is identical. The option is removed from argv before the positional arguments are parsed. ---- */
+static int g_alloc_malloc = 0;
+static void strip_alloc_flag(int *argc, char **argv)
+{
+    int w = 1;
+    for (int r = 1; r < *argc; r++) {
+        if (strcmp(argv[r], "--alloc") == 0 && r + 1 < *argc) {
+            const char *m = argv[++r];
+            if (strcmp(m, "malloc") == 0) g_alloc_malloc = 1;
+            else if (strcmp(m, "managed") == 0) g_alloc_malloc = 0;
+            else { fprintf(stderr, "--alloc must be managed or malloc\n"); exit(2); }
+        } else {
+            argv[w++] = argv[r];
+        }
+    }
+    *argc = w;
+}
+static void *alloc_array(size_t bytes)
+{
+    void *p = NULL;
+    if (!g_alloc_malloc) { CUDA_CHECK(cudaMallocManaged(&p, bytes)); return p; }
+    const size_t A = (size_t)2 << 20;
+    size_t b = (bytes + A - 1) & ~(A - 1);
+    p = aligned_alloc(A, b);
+    if (!p) { fprintf(stderr, "aligned_alloc failed\n"); exit(2); }
+    if (madvise(p, b, MADV_NOHUGEPAGE) != 0) { fprintf(stderr, "madvise(MADV_NOHUGEPAGE) failed\n"); exit(2); }
+    return p;
+}
+static void free_array(void *p)
+{
+    if (g_alloc_malloc) free(p); else CUDA_CHECK(cudaFree(p));
+}
 
 /* ------------------------------------------------------------------ */
 /* Kernel: 16×16 thread blocks                                          */
@@ -71,6 +110,7 @@ static double now_sec(void)
 /* ------------------------------------------------------------------ */
 int main(int argc, char **argv)
 {
+    strip_alloc_flag(&argc, argv);
     if (argc < 2) {
         fprintf(stderr, "Usage: %s <N>\n", argv[0]);
         return EXIT_FAILURE;
@@ -85,8 +125,8 @@ int main(int argc, char **argv)
     long long elems = (long long)N * N;
 
     float *grid0, *grid1;
-    CUDA_CHECK(cudaMallocManaged(&grid0, elems * sizeof(float)));
-    CUDA_CHECK(cudaMallocManaged(&grid1, elems * sizeof(float)));
+    grid0 = (float *)alloc_array(elems * sizeof(float));
+    grid1 = (float *)alloc_array(elems * sizeof(float));
     /* Task A2 (AWS final work block): allocation base address, for H1
      * (page-alignment vs bimodal cluster) correlation. Printed to stderr so
      * it never interferes with [RESULT]-line stdout parsers. */
@@ -131,8 +171,35 @@ int main(int argc, char **argv)
 
     printf("[RESULT] Time: %.2f ms\nBandwidth: %.2f GB/s\n", time_ms, bw_gbs);
 
-    CUDA_CHECK(cudaFree(grid0));
-    CUDA_CHECK(cudaFree(grid1));
+
+    /* Validation only (Gate H1): STENCIL_CHECKSUM=1 prints a 64-bit sum of the bit patterns of the final grid (after the timed region), and for
+     * N <= 4096 a CPU reference of the same ping-pong computation. Unset = no extra work and no extra output. */
+    if (getenv("STENCIL_CHECKSUM")) {
+        auto bits = [](float f) { uint32_t u; memcpy(&u, &f, 4); return (uint64_t)u; };
+        uint64_t sum = 0;
+        for (long long i = 0; i < elems; i++) sum += bits(src[i]);
+        printf("[CHECKSUM] %016llx\n", (unsigned long long)sum);
+        if (N <= 4096) {
+            float *a = (float *)malloc(elems * sizeof(float)), *b = (float *)malloc(elems * sizeof(float));
+            for (long long i = 0; i < elems; i++) { a[i] = (float)(i % 1024) / 1024.0f; b[i] = 0.0f; }
+            float *s0 = a, *d0 = b;
+            for (int it = 0; it < ITERS; it++) {
+                for (int r = 1; r < N - 1; r++)
+                    for (int c = 1; c < N - 1; c++) {
+                        long long k = (long long)r * N + c;
+                        d0[k] = 0.25f * (s0[k - N] + s0[k + N] + s0[k - 1] + s0[k + 1]);
+                    }
+                float *t = s0; s0 = d0; d0 = t;
+            }
+            uint64_t ref = 0;
+            for (long long i = 0; i < elems; i++) ref += bits(s0[i]);
+            printf("[CHECKSUM_REF] %016llx\n", (unsigned long long)ref);
+            free(a); free(b);
+        }
+    }
+
+    free_array(grid0);
+    free_array(grid1);
 
     return EXIT_SUCCESS;
 }
