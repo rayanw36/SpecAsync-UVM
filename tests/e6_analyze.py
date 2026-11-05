@@ -4,7 +4,7 @@ from tests/e09b_analyze.py (H.mwu, H.holm, H.compare, H.tukey_keep). Refuses to 
 fewer rows than pre-registered: 110 rows, or 80 rows when Family 2 was skipped under the
 skip rule (then e6/family2_skipped.txt must exist).
 
-  e6_analyze.py --control              positive control on E5's committed e5_runs.csv
+  e6_analyze.py --control [SCRATCH_DIR]  positive control on E5's committed e5_runs.csv (writes only to a scratch directory)
   e6_analyze.py [DATA_DIR [FIG_PREFIX]] the pre-registered analysis
 """
 import csv, os, statistics as st, struct, sys
@@ -52,7 +52,10 @@ def demand_ratio(rows, t_arm, t_base, wl="stencil"):
     return 1 - arm / base, base, arm
 
 
-def control():
+def control(scratch=None):
+    """C8: writes ONLY to a scratch directory (never the committed e6/analyzer_positive_control.txt)."""
+    import tempfile
+    scratch = scratch or tempfile.mkdtemp(prefix="e6_control_")
     rows = load(E5_RUNS)
     rows = [r for r in rows if r["wl"] == "stencil"]
     c = compare(rows, "C0-t51", "C7W512-t51")
@@ -68,8 +71,8 @@ def control():
         f"CONTROL: {'PASS — reproduces E5' if ok else 'FAIL — does not reproduce E5'}",
     ]
     out = "\n".join(lines) + "\n"
-    os.makedirs(OUTDIR, exist_ok=True)
-    open(f"{OUTDIR}/analyzer_positive_control.txt", "w").write(out)
+    os.makedirs(scratch, exist_ok=True)
+    open(f"{scratch}/analyzer_positive_control.txt", "w").write(out)
     print(out)
     return 0 if ok else 3
 
@@ -209,7 +212,8 @@ def analyze(data_dir, fig):
 
 if __name__ == "__main__":
     if "--control" in sys.argv:
-        sys.exit(control())
+        _k = sys.argv.index("--control")
+        sys.exit(control(sys.argv[_k + 1] if len(sys.argv) > _k + 1 else None))
     dd = sys.argv[1] if len(sys.argv) > 1 else OUTDIR
     ff = sys.argv[2] if len(sys.argv) > 2 else FIG
     sys.exit(analyze(dd, ff))

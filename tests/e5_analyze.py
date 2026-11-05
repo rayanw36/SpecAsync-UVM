@@ -186,5 +186,41 @@ def main():
         fig.savefig(f"{FIG}.{ext}", dpi=150)
 
 
+
+def control(scratch=None, perturb=False):
+    """Positive control (C8): recompute D(t) and the wall-clock comparison from the COMMITTED e5_runs.csv with the same helpers, in memory (no ring dumps),
+    and check the committed headline: D(51) = +0.4009, D(75) = +0.5337, D(100) = -0.0215 and C7W512-t51 vs C0-t51 = -5.26%.
+    perturb=True multiplies every C7W512-t51 demand-fault count and wall-clock by 1.10 (one median shifted by 10%); the check must then FAIL."""
+    import tempfile
+    scratch = scratch or tempfile.mkdtemp(prefix="e5_control_")
+    rows = list(csv.DictReader(open("results/analysis/gate_e/e5/e5_runs.csv")))
+    df, wall = {}, {}
+    for r in rows:
+        arm, tn = r["label"].split(" ", 1)[1].rsplit("-", 1)
+        f_, w_ = float(r["demand_faults"]), float(r["wall_s"])
+        if perturb and arm == "C7W512" and tn == "t51":
+            f_, w_ = f_ * 1.10, w_ * 1.10
+        df.setdefault((arm, tn), []).append(f_)
+        wall.setdefault((arm, tn), []).append(w_)
+    D = {t: 1 - st.median(df[("C7W512", tn)]) / st.median(df[("C0", tn)]) for tn, t in TS}
+    c51 = H.compare(wall[("C0", "t51")], wall[("C7W512", "t51")])
+    ok = (f"{D[51]:+.4f}" == "+0.4009" and f"{D[75]:+.4f}" == "+0.5337" and f"{D[100]:+.4f}" == "-0.0215" and f"{c51['delta_pct']:+.2f}" == "-5.26")
+    out = [f"# E5 analyzer positive control ({'PERTURBED copy: C7W512-t51 demand faults and wall-clock x 1.10' if perturb else 'committed e5_runs.csv'})",
+           f"D(51) = {D[51]:+.4f}  D(75) = {D[75]:+.4f}  D(100) = {D[100]:+.4f}   (committed: +0.4009, +0.5337, -0.0215)",
+           f"C7W512-t51 vs C0-t51: delta = {c51['delta_pct']:+.2f}%   (committed: -5.26%)",
+           "CONTROL: PASS - reproduces the committed E5 headline" if ok else "CONTROL: FAIL - does not reproduce the committed E5 headline"]
+    os.makedirs(scratch, exist_ok=True)
+    open(f"{scratch}/e5_control{'_perturbed' if perturb else ''}.txt", "w").write("\n".join(out) + "\n")
+    print("\n".join(out))
+    return ok
+
+
 if __name__ == "__main__":
+    if "--control" in _argv:
+        k = _argv.index("--control")
+        sc = _argv[k + 1] if len(_argv) > k + 1 else None
+        good = control(sc)
+        bad = control(sc, perturb=True)      # the control must be able to fail
+        print("control can fail:", not bad)
+        sys.exit(0 if (good and not bad) else 1)
     main()

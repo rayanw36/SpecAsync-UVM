@@ -178,5 +178,48 @@ def main():
         fig.savefig(f"{FIG}.{ext}", dpi=150)
 
 
+
+def control(scratch=None, perturb=False):
+    """Positive control (C8): recompute the E4 primary comparisons from the COMMITTED e4_runs.csv with the same helpers and family, entirely in memory
+    (no ring dumps, nothing written outside `scratch`), and check the committed headline: F1 Stencil-24K C7-W512 vs C0 = -4.93%, p = 1.08e-05.
+    perturb=True multiplies every Stencil-24K C7-W512 wall-clock by 1.10 (one median shifted by 10%); the check must then FAIL."""
+    import tempfile
+    scratch = scratch or tempfile.mkdtemp(prefix="e4_control_")
+    rows = list(csv.DictReader(open("results/analysis/gate_e/e4/e4_runs.csv")))
+    wall = {}
+    for r in rows:
+        arm = r["label"].split(" ", 1)[1]
+        v = float(r["wall_s"])
+        if perturb and r["workload"] == "stencil" and arm == "C7-W512":
+            v *= 1.10
+        wall.setdefault((r["workload"], arm), []).append(v)
+    comps = []
+    for wl in WLS:
+        for fam, arm, base in FAMILY:
+            d = dict(family=fam, workload=wl, arm=arm, baseline=base)
+            d.update(H.compare(wall[(wl, base)], wall[(wl, arm)]))
+            comps.append(d)
+    thr, sig = H.holm([c["p"] for c in comps])
+    for c, t, sg in zip(comps, thr, sig):
+        c.update(holm_threshold=t, holm_sig=sg)
+    c = next(c for c in comps if (c["family"], c["workload"], c["arm"]) == ("F1", "stencil", "C7-W512"))
+    ok = f"{c['delta_pct']:+.2f}" == "-4.93" and f"{c['p']:.2e}" == "1.08e-05" and c["holm_sig"]
+    out = [f"# E4 analyzer positive control ({'PERTURBED copy: C7-W512 Stencil wall-clock x 1.10' if perturb else 'committed e4_runs.csv'})",
+           f"F1 stencil C7-W512 vs C0: delta = {c['delta_pct']:+.2f}%  p = {c['p']:.2e}  Holm-significant = {c['holm_sig']}   (committed: -4.93%, 1.08e-05)",
+           f"comparisons in the family: {len(comps)} (expected 18)",
+           "CONTROL: PASS - reproduces the committed E4 headline" if ok else "CONTROL: FAIL - does not reproduce the committed E4 headline"]
+    os.makedirs(scratch, exist_ok=True)
+    open(f"{scratch}/e4_control{'_perturbed' if perturb else ''}.txt", "w").write("\n".join(out) + "\n")
+    print("\n".join(out))
+    return ok and len(comps) == 18
+
+
 if __name__ == "__main__":
+    if "--control" in _argv:
+        k = _argv.index("--control")
+        sc = _argv[k + 1] if len(_argv) > k + 1 else None
+        good = control(sc)
+        bad = control(sc, perturb=True)      # the control must be able to fail
+        print("control can fail:", not bad)
+        sys.exit(0 if (good and not bad) else 1)
     main()
