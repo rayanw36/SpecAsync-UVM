@@ -1,3 +1,7 @@
 # Gate H1 status
 
 - 21:47:23 Phase 4 preflight: branch manuscript-prep, 0 unpushed, tree clean; kernel 7.0.0-34-generic; driver 595.91.07; stock srcversion 6284DA42F15EDC3AB92332B, refcnt 0, threshold 51; upgrade timers inactive; `git diff ea1a262 HEAD -- driver/src` empty; MemAvailable 58455904 kB; no GPU compute processes; THP enabled=madvise; Linger=yes; this session runs under `user@1000.service` (tmux scope), not a login session; no xrdp.
+- 21:47:39 Phase 4: isolate multi-user.target exit 0, session survived (user state lingering). Launching the chain as a detached user unit.
+- 21:47:39 orchestrator smoke: phase0 21:39:44, now 21:47:39, session cap 01:39:44, latest sweep end (cap - 25 min reserve) 01:14:44
+- 21:47:39 STOP (run-class) in smoke: see /home/rayenchikhaoui/SpecAsync-UVM/results/phaseB1/gate_h1/smoke/STOP; no retry
+- 21:48:17 PRE-RUN HARNESS DEFECT (not a stop condition): the first orchestrate smoke exited 4 (runner refused: the SHA-256 of h1_smoke_order.csv was not in h1_order.sha256; the file held only the sweep order's hash, E8's held both). No module was reloaded and no benchmark ran (dmesg shows only the console messages of the isolate; refcnt 0). Corrected by adding the smoke order's hash to h1_order.sha256 (the sweep order and its hash c9270e39... are unchanged); the refusal log is kept as CHAIN_STOP.pre_run_refusal_2026-11-05. Recorded as a departure-free harness correction before any timed run; relaunching the chain once.
