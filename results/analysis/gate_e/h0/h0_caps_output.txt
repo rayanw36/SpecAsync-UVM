@@ -1,0 +1,5 @@
+device 0: NVIDIA GeForce RTX 5070 Ti (sm_120)
+cudaDevAttrPageableMemoryAccess = 1
+cudaDevAttrPageableMemoryAccessUsesHostPageTables = 0
+cudaDevAttrConcurrentManagedAccess = 1
+CUDA driver version = 13020, runtime version = 13000
