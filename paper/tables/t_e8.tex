@@ -1,0 +1,23 @@
+\begin{tabular}{@{}lrlrrrrcr@{}}
+\toprule
+Array & $K$ & Thr. & Median $t51$ (s) & Median arm (s) & $\Delta$ (\%) & MWU $p$ & Sig. & MDE (\%) \\
+\midrule
+In memory (8 GiB) & 1 & t0 & 1.579 & 1.641 & +3.95 & 1.08e-5 & yes & 0.95 \\ % E8.in.K1.stock-t0_vs_stock-t51
+ & 1 & t25 & 1.579 & 1.569 & $-$0.60 & 4.33e-2 & yes & 1.06 \\ % E8.in.K1.stock-t25_vs_stock-t51
+ & 8 & t0 & 1.693 & 1.654 & $-$2.32 & 1.08e-5 & yes & 0.87 \\ % E8.in.K8.stock-t0_vs_stock-t51
+ & 8 & t25 & 1.693 & 1.706 & +0.78 & 6.84e-3 & yes & 1.13 \\ % E8.in.K8.stock-t25_vs_stock-t51
+ & 64 & t0 & 1.847 & 1.668 & $-$9.69 & 1.08e-5 & yes & 0.69 \\ % E8.in.K64.stock-t0_vs_stock-t51
+ & 64 & t25 & 1.847 & 1.710 & $-$7.41 & 1.08e-5 & yes & 0.71 \\ % E8.in.K64.stock-t25_vs_stock-t51
+ & 512 & t0 & 1.967 & 1.819 & $-$7.54 & 1.08e-5 & yes & 1.41 \\ % E8.in.K512.stock-t0_vs_stock-t51
+ & 512 & t25 & 1.967 & 1.844 & $-$6.26 & 1.08e-5 & yes & 2.13 \\ % E8.in.K512.stock-t25_vs_stock-t51
+\midrule
+Oversubscribed (24 GiB) & 1 & t0 & 5.054 & 9.347 & +84.96 & 1.08e-5 & yes & 1.71 \\ % E8.ov.K1.stock-t0_vs_stock-t51
+ & 1 & t25 & 5.054 & 5.149 & +1.88 & 4.33e-5 & yes & 1.04 \\ % E8.ov.K1.stock-t25_vs_stock-t51
+ & 8 & t0 & 6.777 & 9.565 & +41.15 & 1.08e-5 & yes & 1.49 \\ % E8.ov.K8.stock-t0_vs_stock-t51
+ & 8 & t25 & 6.777 & 9.942 & +46.71 & 1.08e-5 & yes & 0.80 \\ % E8.ov.K8.stock-t25_vs_stock-t51
+ & 64 & t0 & 7.669 & 6.927 & $-$9.67 & 1.08e-5 & yes & 0.52 \\ % E8.ov.K64.stock-t0_vs_stock-t51
+ & 64 & t25 & 7.669 & 7.135 & $-$6.96 & 1.08e-5 & yes & 0.52 \\ % E8.ov.K64.stock-t25_vs_stock-t51
+ & 512 & t0 & 7.934 & 7.326 & $-$7.66 & 1.08e-5 & yes & 0.76 \\ % E8.ov.K512.stock-t0_vs_stock-t51
+ & 512 & t25 & 7.934 & 7.492 & $-$5.57 & 1.08e-5 & yes & 0.75 \\ % E8.ov.K512.stock-t25_vs_stock-t51
+\bottomrule
+\end{tabular}

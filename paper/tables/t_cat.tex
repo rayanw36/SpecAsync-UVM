@@ -1,0 +1,36 @@
+\begin{tabular}{@{}rp{2.3cm}p{4.2cm}p{2.2cm}p{2.2cm}@{}}
+\toprule
+\# & Artifact & False conclusion it would have produced & How caught & Family \\
+\midrule
+\#1 & Oracle cursor desync & Even a perfect predictor yields no benefit, so speculation is useless. & independent re-investigation (Gate B) & Validation that could not fail \\ % ARTIFACT_CATALOG.md#1
+\#2 & ASLR address instability & Oracle scores zero even after the cursor fix; speculation is useless. & independent re-investigation (Gate B) & Validation that could not fail \\ % ARTIFACT_CATALOG.md#2
+\#3 & STREAM host-ordering noise & Prefetch speculation gives STREAM a real speedup (a false positive). & interleaved re-run & Operational hazards \\ % ARTIFACT_CATALOG.md#3
+\#4 & Timer collapse (T2 = T3) & Metadata is nearly all of service time, so offload should target it. & later independent pass & Instrument cost and blindness \\ % ARTIFACT_CATALOG.md#4
+\#5 & Ring read byte-offset drift & Garbled phase decompositions read as noisy but plausible data. & same-session accounting-closure check & Instrument cost and blindness \\ % ARTIFACT_CATALOG.md#5
+\#6 & cuFFT hit-rate outlier & Stride prediction works on cuFFT, the one favourable real workload. & reproduction (Task T2) & Uncategorised \\ % ARTIFACT_CATALOG.md#6
+\#7 & Ring saturation without wraparound & Capped ring counts were read as true per-repetition totals. & later independent pass & Aggregation-level mismatch \\ % ARTIFACT_CATALOG.md#7
+\#8 & Rate-arithmetic aggregation error & Overstated fault rates made the worker's race loss look decisive. & verification pass & Aggregation-level mismatch \\ % ARTIFACT_CATALOG.md#8
+\#9 & Ceiling units mismatch & A large wall-clock share could be recovered by hiding D1+D2. & later independent pass & Aggregation-level mismatch \\ % ARTIFACT_CATALOG.md#9
+\#10 & setarch -R regime effect & Fixed-address results were read as general platform noise. & pre-registered test (A2b) & Operational hazards \\ % ARTIFACT_CATALOG.md#10
+\#11 & Host memory leak confound & A live leak could be mistaken for a settled platform property. & near-OOM forced a stop & Operational hazards \\ % ARTIFACT_CATALOG.md#11
+\#12 & Crippled-baseline comparison & Speculation gives a large oversubscription speedup, reversing the central negative claim. & independent verification pass & Validation that could not fail \\ % ARTIFACT_CATALOG.md#12
+\#13 & Recording/consumption granularity mismatch & Every oracle result read as a maximally favourable, aligned predictor. & independent source audit (E0) & Aggregation-level mismatch \\ % ARTIFACT_CATALOG.md#13
+\#14 & Positive control that could not fail & The fix and hit accounting were sound; the width path was tested. & later passes; one caught in-gate & Validation that could not fail \\ % ARTIFACT_CATALOG.md#14
+\#15 & Improvement without an absolute ceiling & The oracle fix was verified, licensing every later oracle result. & independent pass (E0.5) & Validation that could not fail \\ % ARTIFACT_CATALOG.md#15
+\#16 & Denominator mismatch & One prediction per batch caps the hit rate at the reciprocal coalesce factor. & independent pass (E0.5) & Aggregation-level mismatch \\ % ARTIFACT_CATALOG.md#16
+\#17 & Index drift & Stencil is closer to genuine divergence, so trace replay was abandoned. & independent analysis-only pass (E0.8) & Aggregation-level mismatch \\ % ARTIFACT_CATALOG.md#17
+\#18 & Forward-only metric asymmetry & A real residual disagreement in first-touch order exists (withdrawn). & next pass, then external review & Aggregation-level mismatch \\ % ARTIFACT_CATALOG.md#18
+\#19 & Circular ring read in slot order & Residency-accumulation mechanism and oracle-arm wall-clock read as oracle behaviour. & independent source audit (E0) & Instrument cost and blindness \\ % ARTIFACT_CATALOG.md#19
+\#20 & spec\_hits counts a window, not wins & Hit rate read as prediction success; near-zero meant speculation never wins. & a second counter disagreed & Instrument cost and blindness \\ % ARTIFACT_CATALOG.md#20
+\#21 & Upper-bound instrument with its own cost & Cannot beat C0 read as a property of speculation, not the oracle. & reviewer challenge, then pre-registered test & Instrument cost and blindness \\ % ARTIFACT_CATALOG.md#21
+\#22 & Helper returned NULL under a non-fatal assert & None about data; a kernel oops changed the development protocol. & a crash & Operational hazards \\ % ARTIFACT_CATALOG.md#22
+\#23 & Silent platform drift & Older-driver and Gate-E results are one platform; the platform table is current. & preflight (a module would not load) & Record integrity \\ % ARTIFACT_CATALOG.md#23
+\#24 & Line-count dmesg diff & Rejection printed nothing; a real oops line could scroll out unseen. & loud harness failure & Operational hazards \\ % ARTIFACT_CATALOG.md#24
+\#25 & Pilot ceiling failed its own test & Servicing-window time maps onto wall-clock, so the ceiling bounds the saving. & pre-registered prediction test & Aggregation-level mismatch \\ % ARTIFACT_CATALOG.md#25
+\#26 & Status log vs primary record & The status log is a primary record of platform state and timing. & journal re-account; E8 review & Record integrity \\ % ARTIFACT_CATALOG.md#26
+\#27 & Hard-coded multiplicity correction & An MDE labelled at the family alpha is not at that alpha. & author of a later gate & Aggregation-level mismatch \\ % ARTIFACT_CATALOG.md#27
+\#28 & LFS pointer patch swallowed & A driver-source problem was misdiagnosed; a wrong module could pass as verified. & failed compile & Operational hazards \\ % ARTIFACT_CATALOG.md#28
+\#29 & Session killed by its own session kill & None in data; lost time, and a half-run gate read as complete. & the session ended & Operational hazards \\ % ARTIFACT_CATALOG.md#29
+\#30 & VRAM-only sizing, no host-RAM check & An out-of-memory thrashing run timed as an oversubscription measurement. & pre-registered smoke pass (OOM kill) & Operational hazards \\ % ARTIFACT_CATALOG.md#30
+\bottomrule
+\end{tabular}

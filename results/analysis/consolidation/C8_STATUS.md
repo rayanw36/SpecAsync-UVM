@@ -8,3 +8,4 @@ Start 2026-11-05T20:54:48 (+03). Cap 4 h. Branch manuscript-prep, HEAD 96a2300 a
 - 20:54 Phase 0 done.
 - 20:57 Phase 1 done: H0_REPORT.md (verdict A with a CPU-side caveat), tests/h0_caps.cu run once -> h0_caps_output.txt (PageableMemoryAccess 1, UsesHostPageTables 0, ConcurrentManagedAccess 1).
 - 21:00 Phase 2 done: paper/support/PROTOCOL_FACTS.md (3 tables).
+- 21:03 Phase 3 tables generated (9 tables, script-checked; no TeX toolchain).

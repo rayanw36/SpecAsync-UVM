@@ -1,0 +1,20 @@
+\begin{tabular}{@{}lrrrrrrr@{}}
+\toprule
+Cell & Thr. & HtoD (GiB) & DtoH (GiB) & GPU faults & CPU faults & Host fill (s) & Kernels (s) \\
+\midrule
+Oversub. $K{=}1$ & 0 & 129.80 & 114.61 & 626 & 12{,}288 & 4.43 & 5.63 \\ % E9.cell.ov_k1.t0;csv:results/analysis/derived/c4_e9_phase_split.csv#ov_k1.t0
+ & 51 & 3.96 & 3.49 & 526 & 73{,}728 & 4.84 & 1.17 \\ % E9.cell.ov_k1.t51;csv:results/analysis/derived/c4_e9_phase_split.csv#ov_k1.t51
+Oversub. $K{=}8$ & 0 & 138.31 & 122.74 & 1{,}634 & 12{,}288 & 4.43 & 6.34 \\ % E9.cell.ov_k8.t0;csv:results/analysis/derived/c4_e9_phase_split.csv#ov_k8.t0
+ & 51 & 33.22 & 29.17 & 4{,}857 & 73{,}728 & 4.82 & 4.04 \\ % E9.cell.ov_k8.t51;csv:results/analysis/derived/c4_e9_phase_split.csv#ov_k8.t51
+Oversub. $K{=}64$ & 0 & 71.78 & 53.76 & 2{,}027 & 12{,}288 & 4.41 & 3.43 \\ % E9.cell.ov_k64.t0;csv:results/analysis/derived/c4_e9_phase_split.csv#ov_k64.t0
+ & 51 & 72.00 & 56.81 & 7{,}661 & 73{,}728 & 4.89 & 4.87 \\ % E9.cell.ov_k64.t51;csv:results/analysis/derived/c4_e9_phase_split.csv#ov_k64.t51
+Oversub. $K{=}512$ & 0 & 71.68 & 52.87 & 2{,}780 & 12{,}288 & 4.42 & 3.56 \\ % E9.cell.ov_k512.t0;csv:results/analysis/derived/c4_e9_phase_split.csv#ov_k512.t0
+ & 51 & 71.83 & 54.85 & 6{,}642 & 73{,}728 & 4.80 & 4.84 \\ % E9.cell.ov_k512.t51;csv:results/analysis/derived/c4_e9_phase_split.csv#ov_k512.t51
+In-mem. $K{=}1$ & 0 & 8.00 & 0.00 & 74 & 4{,}096 & 1.48 & 0.17 \\ % E9.cell.in_k1.t0;csv:results/analysis/derived/c4_e9_phase_split.csv#in_k1.t0
+ & 51 & 0.25 & 0.00 & 72 & 24{,}576 & 1.63 & 0.04 \\ % E9.cell.in_k1.t51;csv:results/analysis/derived/c4_e9_phase_split.csv#in_k1.t51
+In-mem. $K{=}512$ & 0 & 7.64 & 0.00 & 271 & 4{,}096 & 1.48 & 0.23 \\ % E9.cell.in_k512.t0;csv:results/analysis/derived/c4_e9_phase_split.csv#in_k512.t0
+ & 51 & 7.94 & 0.00 & 776 & 24{,}576 & 1.53 & 0.39 \\ % E9.cell.in_k512.t51;csv:results/analysis/derived/c4_e9_phase_split.csv#in_k512.t51
+Stencil-24K & 0 & 4.26 & 0.00 & 27{,}876 & 2{,}198 & 0.52 & 0.32 \\ % E9.cell.stencil.t0;csv:results/analysis/derived/c4_e9_phase_split.csv#stencil.t0
+ & 51 & 4.29 & 0.00 & 91{,}935 & 13{,}188 & 0.60 & 0.47 \\ % E9.cell.stencil.t51;csv:results/analysis/derived/c4_e9_phase_split.csv#stencil.t51
+\bottomrule
+\end{tabular}

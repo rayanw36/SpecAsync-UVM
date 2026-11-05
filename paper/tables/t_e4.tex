@@ -1,0 +1,15 @@
+\begin{tabular}{@{}llrrrrrcr@{}}
+\toprule
+Workload & Arm vs C0 & Median C0 (s) & Median arm (s) & $\Delta$ (\%) & MWU $p$ & Holm thr. & Sig. & MDE, $\alpha/18$ (s) \\
+\midrule
+Stencil-24K & C7-W1 (F1) & 1.1295 & 1.1958 & +5.87 & 1.08e-5 & 0.0028 & yes & 0.0266 \\ % E4.F1.stencil.C7-W1_vs_C0
+ & C7-W64 (F1) & 1.1295 & 1.1089 & $-$1.83 & 8.92e-2 & 0.0071 & no & 0.0274 \\ % E4.F1.stencil.C7-W64_vs_C0
+ & C7-W512 (F1) & 1.1295 & 1.0738 & $-$4.93 & 1.08e-5 & 0.0029 & yes & 0.0197 \\ % E4.F1.stencil.C7-W512_vs_C0
+ & C6-W512 (F4) & 1.1295 & 3.2975 & +191.95 & 1.08e-5 & 0.0042 & yes & 0.0252 \\ % E4.F4.stencil.C6-W512_vs_C0
+\midrule
+GraphBFS-23 & C7-W1 (F1) & 31.5513 & 31.4619 & $-$0.28 & 3.53e-1 & 0.0125 & no & 0.1848 \\ % E4.F1.graphbfs.C7-W1_vs_C0
+ & C7-W64 (F1) & 31.5513 & 31.5199 & $-$0.10 & 4.81e-1 & 0.0250 & no & 0.1810 \\ % E4.F1.graphbfs.C7-W64_vs_C0
+ & C7-W512 (F1) & 31.5513 & 31.5322 & $-$0.06 & 5.29e-1 & 0.0500 & no & 0.1194 \\ % E4.F1.graphbfs.C7-W512_vs_C0
+ & C6-W512 (F4) & 31.5513 & 32.7692 & +3.86 & 1.08e-5 & 0.0050 & yes & 0.1641 \\ % E4.F4.graphbfs.C6-W512_vs_C0
+\bottomrule
+\end{tabular}

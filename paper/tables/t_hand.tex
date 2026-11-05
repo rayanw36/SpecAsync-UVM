@@ -1,0 +1,13 @@
+\begin{tabular}{@{}llrrrr@{}}
+\toprule
+Source & Arm & Enqueue per prediction (ns) & Residual per fault, slow lookup (ns) & Residual per fault, fast lookup (ns) & Residual removed (\%) \\
+\midrule
+E1b Stencil-24K & C6 (prefetcher off) & 54 &  &  &  \\ % E1b.stencil.C64096-C1
+E1b Stencil-24K & C7 (prefetcher on) & 75 &  &  &  \\ % E1b.stencil.C74096-C0
+E1b GraphBFS-23 & C6 (prefetcher off) & 114 &  &  &  \\ % E1b.graphbfs.C64096-C1
+\midrule
+E3b Stencil-24K & C6 (per-fault residual) &  & 140 & 19 & 86.6 \\ % E3b.stencil.C6.residual
+E3b Stencil-24K & C7 (per-fault residual) &  & 163 & 35 & 77.6 \\ % E3b.stencil.C7.residual
+E3b GraphBFS-23 & C6 (per-fault residual) &  & 167 & 20 & 87.8 \\ % E3b.graphbfs.C6.residual
+\bottomrule
+\end{tabular}

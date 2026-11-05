@@ -1,0 +1,15 @@
+\begin{tabular}{@{}lrrrrr@{}}
+\toprule
+Array & $K$ & $\Delta$ wall (s) & $\Delta$ outside kernels (ms) & $\Delta$ kernels (s) & Outside share of $\Delta$ wall (\%) \\
+\midrule
+In memory & 1 & +0.062 & $-$62 & +0.124 & $-$99 \\ % E8.outside_kernels.t0
+ & 8 & $-$0.039 & $-$60 & +0.021 & +154 \\ % E8.outside_kernels.t0
+ & 64 & $-$0.179 & $-$36 & $-$0.143 & +20 \\ % E8.outside_kernels.t0
+ & 512 & $-$0.148 & $-$34 & $-$0.114 & +23 \\ % E8.outside_kernels.t0
+\midrule
+Oversubscribed & 1 & +4.294 & $-$191 & +4.484 & $-$4 \\ % E8.outside_kernels.t0
+ & 8 & +2.789 & $-$171 & +2.959 & $-$6 \\ % E8.outside_kernels.t0
+ & 64 & $-$0.741 & $-$123 & $-$0.618 & +17 \\ % E8.outside_kernels.t0
+ & 512 & $-$0.607 & $-$139 & $-$0.469 & +23 \\ % E8.outside_kernels.t0
+\bottomrule
+\end{tabular}

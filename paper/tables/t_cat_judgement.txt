@@ -1,0 +1,14 @@
+#5: J: the entry names no stated false conclusion
+#7: J: the entry's naive reading is about independence of the dumps
+#8: J: the number of repetitions dropped from the name
+#9: J: the cross-platform divergence part omitted
+#10: J: the entry says it is not a false conclusion in the usual sense
+#11: J: the entry says no false conclusion was yet produced
+#14: J: three instances merged into one sentence
+#18: J: two withdrawn conclusions reduced to one
+#19: J: two false conclusions merged
+#20: J: two false conclusions merged
+#22: J: the entry says the hazard was physical
+#28: J: second clause is the entry's counterfactual
+#29: J: the entry says no data conclusion
+#30: J: the entry says no result was reached
