@@ -57,6 +57,8 @@ All sweeps run through a stack of runners that import the previous one unchanged
 | delta convention | `tests/e7_analyze.py` / `e8_analyze.py` headers | `(arm - baseline) / baseline`; negative = the arm (lower threshold) is faster |
 | positive controls | `e6_analyze.py --control`, `e7_analyze.py --control`, `e8_analyze.py --control`, `e9_analyze.py --control`, `t4/e7t4_analyze.py --control`; E4 and E5 gained theirs in C8 phase 6 | see `results/analysis/REPRODUCE.md` |
 
+**Note on expectations (C9):** numbered pre-committed expectations start at E6 (X1-X4); E0.9b, E1, E4 and E5 had verdict rules and prediction checks instead (E0.9b the pilot-ceiling prediction test, E1 and E4 the falsification trigger, E5 the H-feed verdict rule and dose-response check).
+
 ## Open items for review
 - E1's and E5's date rows come from commit times; see the clock caveat at the top. The Section V text should cite commit hashes and ancestry, not durations.
 - No pre-committed numbered expectations were found for E0.9b, E1, E4 and E5 (E0.9b has the prediction test; E5 the H-feed rule and dose-response). If the reviewer's brief for those gates had expectations, they are not in the pre-registrations.

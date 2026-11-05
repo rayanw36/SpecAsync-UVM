@@ -196,15 +196,64 @@ def f10():
                        cap=f"Oversubscribed Stencil (1.078 times GPU memory), wall-clock of C0 (stock), C1 (prefetcher off) and C3 (the {MIS}) against the number of kernel iterations, interleaved runs, kept phase. Points are runs and lines join medians; log scale; no test is applied. C1 is not the shipped driver, and C3 consumed a trace that was not aligned with the faults.")
 
 
+# ------------------------------------------------------------------ F7: dispatch latency and fault inter-arrival interval (no "race")
+def f7():
+    wk = {}
+    for r in rd("results/analysis/t_a1_worker/worker_latency_summary.csv"):
+        wk[(r["platform"], r["scale"], r["bench"])] = r
+    probes = {}
+    for r in rd("results/phaseB1/hit_probe_summary.csv"):
+        probes.setdefault(r["platform"], []).append(r)
+    ints = {}
+    for r in rd("results/gate3/telemetry/t4_prefetch_off_hitrate_recovered.csv"):
+        if r["methodology"] == "corrected_marginal_clean" and r["fault_rate_per_s"]:
+            ints.setdefault(r["bench"], []).append(1e6 / float(r["fault_rate_per_s"]))
+    cats = [("full_run", "bench_stencil"), ("full_run", "bench_graph_bfs"), ("short_run", "bench_stencil"), ("short_run", "bench_graph_bfs")]
+    mk = {"bench_stencil": "o", "bench_graph_bfs": "s"}
+    bl = {"bench_stencil": "Stencil", "bench_graph_bfs": "GraphBFS"}
+    sl = {"full_run": "full-size", "short_run": "short-run"}
+    fig, axes = plt.subplots(1, 2, figsize=(M.COL2, 3.1), sharey=True)
+    for ax, plat in zip(axes, ["T4", "5070Ti"]):
+        for xi, (scale, bench) in enumerate(cats):
+            r = wk[(plat, scale, bench)]
+            med, p90 = float(r["dispatch_median_us"]), float(r["dispatch_p90_us"])
+            ax.plot([xi, xi], [med, p90], color=M.SPEC_COL, lw=1.1, zorder=2)
+            ax.scatter([xi], [med], s=24, marker=mk[bench], color=M.SPEC_COL, zorder=3)
+            ax.scatter([xi], [p90], s=24, marker=mk[bench], facecolor="white", edgecolor=M.SPEC_COL, linewidths=1.0, zorder=3)
+        tag = "prefoff_adj" if plat == "T4" else "task1_probe"
+        pm = float(next(r for r in probes[plat] if r["tag"] == tag)["dispatch_median_us"])
+        ax.axhline(pm, color=GREY, ls="--", lw=0.9)
+        ax.text(-0.45, pm * 1.1, f"uncontended probe, {pm:.2f} \u00b5s", fontsize=5.8, color=M.MUTED)
+        if plat == "T4":
+            for b, v in ints.items():
+                mid = (min(v) + max(v)) / 2
+                ax.axhline(mid, color=DARK, lw=1.3, alpha=0.8)
+                ax.text(-0.45, mid * (1.1 if b == "bench_graph_bfs" else 0.8), f"{bl[b]} demand-fault interval, {mid:.2f} \u00b5s", fontsize=5.8, color=DARK)
+        ax.set_yscale("log"); ax.set_xlim(-0.55, 3.55)
+        ax.set_xticks(range(4)); ax.set_xticklabels([f"{sl[s]}\n{bl[b]}" for s, b in cats], fontsize=6.3)
+        ax.set_xlabel("Tesla T4" if plat == "T4" else "RTX 5070 Ti")
+    axes[0].set_ylabel("latency or interval (\u00b5s, log)")
+    from matplotlib.lines import Line2D
+    fig.tight_layout()
+    fig.legend(handles=[Line2D([], [], marker="o", ls="", color=M.SPEC_COL, ms=4, label="dispatch latency, median (enqueue to dequeue)"),
+                        Line2D([], [], marker="o", ls="", mfc="w", mec=M.SPEC_COL, ms=4, label="dispatch latency, p90"),
+                        Line2D([], [], color=DARK, lw=1.3, label="demand-fault inter-arrival interval (T4 only)"),
+                        Line2D([], [], color=GREY, ls="--", lw=0.9, label="uncontended probe latency")], frameon=False, loc="lower center", ncol=2, bbox_to_anchor=(0.5, -0.12), fontsize=6.3)
+    save(fig, "f7_dispatch_latency_and_fault_interval")
+    META["F7"] = dict(file="f7_dispatch_latency_and_fault_interval", csv="results/analysis/t_a1_worker/worker_latency_summary.csv; results/phaseB1/hit_probe_summary.csv; results/gate3/telemetry/t4_prefetch_off_hitrate_recovered.csv",
+                      note="renamed and retitled: dispatch latency and fault inter-arrival interval (no 'race'); no 5070 Ti interval is drawn because no matching prefetch-off real-workload fault-rate sweep exists on that platform",
+                      cap="Dispatch latency (enqueue to dequeue; median and p90) of the speculative worker on the Tesla T4 and the RTX 5070 Ti, for two workloads at two run sizes, beside the uncontended probe latency and, on the T4 only, the demand-fault inter-arrival interval. The figure compares the two time scales; it does not by itself explain the `spec_hits` coincidence rate, which is not a measure of prediction success. Points are summaries from the committed recovery CSVs; no test is applied.")
+
+
 def main():
     M.style()
-    for f in (f1, f2, f3, f10):
+    for f in (f1, f2, f3, f7, f10):
         f()
         print("wrote", f.__name__)
     with open(f"{OUT}/LEGACY.md", "w") as f:
         f.write("# Regenerated legacy figures (`tests/make_legacy_figures.py`)\n\nShared colour map of `tests/make_paper_figures.py`. The files in `results/figures/` are unchanged. Captions: at most 3 sentences, no 'upper bound' or 'oracle-perfect' for pre-E0.5 data.\n\n"
                 "| figure | file (PDF and PNG) | source CSV(s) | what changed / omitted | draft caption |\n|---|---|---|---|---|\n")
-        for k in ("F1", "F2", "F3", "F10"):
+        for k in ("F1", "F2", "F3", "F7", "F10"):
             m = META[k]
             f.write(f"| {k} | `{m['file']}` | {m['csv'].replace('; ', '<br>')} | {m['note']} | {m['cap']} |\n")
 

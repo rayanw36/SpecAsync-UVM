@@ -1,10 +1,12 @@
 @article{allen2024finegrain,
   title   = {Fine-grain Quantitative Analysis of Demand Paging in {UVM}},
-  author  = {Allen and Cooper and Ge},
+  author   = {Allen, Tyler and Cooper, Bennett and Ge, Rong},
   journal = {ACM Transactions on Architecture and Code Optimization (TACO)},
   year    = {2024},
   volume  = {21},
   number  = {1},
+  pages    = {1--24},
+  doi      = {10.1145/3632953},
   note    = {Driver-level measurement and batch cost breakdown for UVM demand paging.}
 }
 
@@ -175,11 +177,10 @@
 @inproceedings{bastem2017tiles,
   title     = {Overlapping Data Transfers with Computation on {GPU} with Tiles},
   author    = {Bastem, Burak and Unat, Didem and Zhang, Weiqun and Almgren, Ann and Shalf, John},
-  booktitle = {Proceedings of the 46th International Conference on Parallel Processing (ICPP)},
-  year      = {2017},
-  doi       = {10.1109/ICPP.2017.24},
-  note      = {Was cited as bastemTilesTR (@techreport, year={n.d.}) -- real venue is
-               ICPP'17, a peer-reviewed conference, not an undated technical report.}
+  booktitle= {2017 46th International Conference on Parallel Processing (ICPP)},
+  year     = {2017},
+  doi      = {10.1109/icpp.2017.26},
+  pages    = {171--180}
 }
 
 % =============================================================================
@@ -320,11 +321,13 @@
 @inproceedings{wahlgren2025mi300a,
   title     = {Dissecting {CPU-GPU} Unified Physical Memory on {AMD} {MI300A}
                {APUs}},
-  author    = {Wahlgren, Jacob and others},
+  author   = {Wahlgren, Jacob and Schieffer, Gabin and Shi, Ruimin and Le{\'o}n, Edgar A. and Pearce, Roger and Gokhale, Maya and Peng, Ivy},
   booktitle = {2025 IEEE International Symposium on Workload Characterization
                (IISWC)},
   year      = {2025},
-  note      = {UNVERIFIED: full author list. Bounds the generality of our
+  pages    = {368--380},
+  doi      = {10.1109/iiswc66894.2025.00038},
+  note      = {Bounds the generality of our
                claims -- our findings concern discrete-GPU fault paths.}
 }
 
@@ -334,10 +337,9 @@
   author    = {Cooper, Bennett and Scogland, Thomas R. W. and Ge, Rong},
   booktitle = {Proceedings of the 38th ACM International Conference on
                Supercomputing (ICS)},
-  pages     = {26--37},
+  pages    = {26--37},
   year      = {2024},
-  doi       = {10.1145/3650200.3656608},
-  note      = {UNVERIFIED: author first names, page range.}
+  doi       = {10.1145/3650200.3656608}
 }
 
 
@@ -393,11 +395,13 @@
 % load-dependent blowup are introduced.
 @inproceedings{guo2025ghost,
   title     = {Ghost Threading: Helper-Thread Prefetching for Real Systems},
-  author    = {Guo, Yuxin and others},
+  author   = {Guo, Yuxin and Bhosale, Akshay and Bora, Utpal and Chadwick, Alexandra W. and Erd{\H{o}}s, M{\'a}rton and Gabrielli, Giacomo and Jones, Timothy M.},
   booktitle = {Proceedings of the 58th IEEE/ACM International Symposium on
                Microarchitecture (MICRO)},
   year      = {2025},
-  note      = {UNVERIFIED: full author list. Reports 1.33x geomean speedup.
+  pages    = {899--914},
+  doi      = {10.1145/3725843.3756106},
+  note      = {Reports 1.33x geomean speedup.
                Their emphasis on cheap throttling as the enabling condition is
                the mechanism our negative result identifies as absent.}
 }
@@ -405,12 +409,14 @@
 @inproceedings{han2026agio,
   title     = {Asynchrony and {GPUs}: Bridging this Dichotomy for {I/O} with
                {AGIO}},
-  author    = {Han, Jihoon and others},
+  author   = {Han, Jihoon and Sivasubramaniam, Anand and Chang, Chia-Hao and Mailthody, Vikram Sharma and Qureshi, Zaid and Hwu, Wen-Mei},
   booktitle = {Proceedings of the 31st ACM International Conference on
                Architectural Support for Programming Languages and Operating
                Systems (ASPLOS)},
   year      = {2026},
-  note      = {UNVERIFIED: full author list. Decouples I/O initiation from
+  pages    = {208--222},
+  doi      = {10.1145/3779212.3790130},
+  note      = {Decouples I/O initiation from
                completion for GPU threads; 65% better than synchronous.
                Asynchrony pays at SSD-access granularity; our result is that it
                does not pay at per-fault granularity. Contrast, not
@@ -441,10 +447,14 @@
 @article{wang2025rmax,
   title   = {{R-Max}: A Method for Approximating the Benefit of Ideal
              Prefetching and Replacement Policy},
-  author  = {Wang, Lei and others},
+  author   = {Wang, Lei and Lee, Chia-Hang and Merrell, Maccoy and Chacon, Gino and Jim{\'e}nez, Daniel A. and Gratz, Paul V.},
   journal = {IEEE Computer Architecture Letters},
   year    = {2025},
-  note    = {UNVERIFIED: full author list, volume/pages. Approximates ideal
+  volume   = {24},
+  number   = {2},
+  pages    = {293--296},
+  doi      = {10.1109/lca.2025.3611316},
+  note    = {Approximates ideal
              prefetching under realistic bandwidth and capacity constraints but
              oracular knowledge of future accesses, to bound remaining gain.
              Direct methodological precedent for our oracle policy. They report
@@ -471,17 +481,23 @@
                Bos, Herbert and Giuffrida, Cristiano},
   booktitle = {2019 IEEE European Symposium on Security and Privacy (EuroS\&P)},
   year      = {2019},
-  note      = {UNVERIFIED: full author list. Methodological template for our
+  pages    = {310--325},
+  doi      = {10.1109/eurosp.2019.00031},
+  note      = {Methodological template for our
                artifact catalog.}
 }
 
 @article{papadopoulos2019principles,
   title   = {Methodological Principles for Reproducible Performance Evaluation
              in Cloud Computing},
-  author  = {Papadopoulos, Alessandro V. and others},
+  author   = {Papadopoulos, Alessandro Vittorio and Versluis, Laurens and Bauer, Andre and Herbst, Nikolas and Kistowski, Joakim von and Ali-Eldin, Ahmed and Abad, Cristina L. and Amaral, Jose Nelson and Tuma, Petr and Iosup, Alexandru},
   journal = {IEEE Transactions on Software Engineering},
-  year    = {2019},
-  note    = {UNVERIFIED: full author list, volume/pages. Eight principles for
+  year     = {2021},
+  volume   = {47},
+  number   = {8},
+  pages    = {1528--1543},
+  doi      = {10.1109/tse.2019.2927908},
+  note    = {Eight principles for
              sound performance measurement; a systematic review finds few
              published studies follow them. Supports our pre-registration and
              interleaving protocol as a deliberate methodological choice.}
@@ -490,12 +506,13 @@
 @inproceedings{raasveldt2018fair,
   title     = {Fair Benchmarking Considered Difficult: Common Pitfalls in
                {DBMS} Performance Testing},
-  author    = {Raasveldt, Mark and Holanda, Pedro and Gubner, Tim and
-               M{\"u}hleisen, Hannes},
+  author   = {Raasveldt, Mark and Holanda, Pedro and Gubner, Tim and M{\"u}hleisen, Hannes},
   booktitle = {Proceedings of the Workshop on Testing Database Systems
                (DBTest)},
   year      = {2018},
-  note      = {UNVERIFIED: full author list. Mock benchmarks showing large
+  pages    = {1--6},
+  doi      = {10.1145/3209950.3209955},
+  note      = {Mock benchmarks showing large
                apparent differences where none exist -- structurally the same
                lesson as our crippled-baseline entry: correct measurement,
                correct arithmetic, wrong conclusion.}
@@ -539,14 +556,11 @@
 @article{li2025pipelining,
   title   = {Performance Implications of Pipelining the Data Transfer in
              {CPU-GPU} Heterogeneous Systems},
-  author  = {Li, Ruihao and Hanindhito, Bagus and Yadav, Shalini and Wu, Qijun
-             and Kavi, Krishna and Mehta, Gayatri and Yadwadkar, Neeraja and
-             John, Lizy},
+  author   = {Li, Ruihao and Hanindhito, Bagus and Yadav, Sanjana and Wu, Qinzhe and Kavi, Krishna and Mehta, Gayatri and Yadwadkar, Neeraja J. and John, Lizy K.},
   journal = {ACM Transactions on Architecture and Code Optimization (TACO)},
   volume  = {22},
   number  = {3},
-  pages   = {1--26},
+  pages    = {1--26},
   year    = {2025},
-  doi     = {10.1145/3746231},
-  note    = {UNVERIFIED: author list order.}
+  doi     = {10.1145/3746231}
 }
