@@ -1,0 +1,62 @@
+\documentclass[journal]{IEEEtran}
+
+% ---------------------------------------------------------------------------
+% Preamble: identical packages to main.tex; graphics path points at paper/figures/
+% (the post-E0.5 figures; legacy and retired figures are in figures/legacy and
+% figures/retired). main.tex is untouched; this file assembles the new sections.
+% ---------------------------------------------------------------------------
+
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{subfig}          % NOT subfigure or subcaption -- pick one, this is it
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{url}
+\usepackage{xcolor}
+
+\graphicspath{{figures/}}
+
+\begin{document}
+
+\title{SpecAsync-UVM: Speculative Asynchronous Prefetch Infrastructure for the\\
+NVIDIA Unified Virtual Memory Driver}
+
+% TODO: author block (kept as in main.tex; to be filled).
+\author{%
+  Author~Name,~\IEEEmembership{Member,~IEEE},
+  Second~Author%
+  \thanks{TODO: draft -- affiliation and contact footnote.}%
+}
+
+\markboth{IEEE Transactions on XXXXXXXXXXXXXXXXXXXX,~Vol.~XX, No.~X, Month~2026}%
+{Author \MakeLowercase{\textit{et al.}}: SpecAsync-UVM}
+
+\maketitle
+
+\begin{abstract}
+% TODO: to be written after Sections V-IX (see paper/abstract_v2.md and
+% results/analysis/consolidation/PAPER_SUPERSEDED_STATUS.md rows 4-5).
+\end{abstract}
+
+\begin{IEEEkeywords}
+% TODO: keyword list.
+\end{IEEEkeywords}
+
+\input{section1_introduction}
+\input{section2_related_work}
+\input{section3_background}
+\input{section4_design}
+\input{section5_protocol}
+\input{section6_speculation}
+\input{section7_threshold}
+\input{section8_catalog}
+\input{section9_conclusion}
+
+% Generated table fragments (paper/tables/, see TABLES.md) are \input by the
+% section that uses them, for example \input{tables/t_e4}.
+
+\bibliographystyle{IEEEtran}
+\bibliography{ref}
+
+\end{document}
