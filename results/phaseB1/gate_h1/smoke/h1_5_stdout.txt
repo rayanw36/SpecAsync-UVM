@@ -2,7 +2,7 @@
 distinct_pages=2097152 total_pages=2097152
 checksum=00100291a4640b85 expected_checksum=00100291a4640b85
 page_list_hash=34416921a498ff60
-pass 1 kernel_ms=4345.619
-pass 2 kernel_ms=3.314
-pass 3 kernel_ms=3.159
+pass 1 kernel_ms=4297.106
+pass 2 kernel_ms=3.378
+pass 3 kernel_ms=3.126
 CHECKSUM OK

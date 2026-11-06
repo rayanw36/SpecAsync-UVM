@@ -15,3 +15,9 @@
 - 13:48:38 PRE-RUN GUARD ABORT (not a stop condition; nothing ran): the orchestrator refused because phase0_start.txt still held the C9 start (cap 01:39 on 2026-11-06 already passed). phase0_start.txt set to the C10 session start; chain relaunched once (unit h1a1).
 - 13:48:38 orchestrator smoke: phase0 13:46:30, now 13:48:38, session cap 17:46:30, latest sweep end (cap - 25 min reserve) 17:21:30
 - 13:49:17 smoke complete: 6 rows; h1_timeouts.csv written
+- 13:49:20 push after smoke: ok
+- 13:49:20 orchestrator sweep: phase0 13:46:30, now 13:49:20, session cap 17:46:30, latest sweep end (cap - 25 min reserve) 17:21:30
+- 13:55:47 in-memory cells: idx 1-60: runner exit 0 (387 s)
+- 13:55:51 push after in-memory cells: ok
+- 13:55:51 SWEEP COMPLETE
+- 13:56:44 Run complete (60 rows, exit 0, 0 dmesg lines). Threshold restored to 51 by reloading the stock module with defaults.

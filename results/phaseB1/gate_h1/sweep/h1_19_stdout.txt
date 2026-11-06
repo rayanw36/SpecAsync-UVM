@@ -1,0 +1,2 @@
+[RESULT] Time: 2525.62 ms
+Bandwidth: 36.49 GB/s
