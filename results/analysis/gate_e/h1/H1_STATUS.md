@@ -9,3 +9,9 @@
 - 2026-11-06 13:35:15 RESUME after a pause of the user's: the machine had hung and been power-cycled; state read from the journal. STOP (run-class): see STOP and h1_lockup_excerpt.txt. H1 stops here: no retry, no sweep.
 
 - 2026-11-06 13:47:56 AMENDMENT 1 RUN preflight: boot started 2026-11-06 13:32:52; no dmesg line matching the stop patterns on this boot; stock srcversion 6284DA42F15EDC3AB92332B, refcnt 0, threshold 51; THP enabled=madvise defrag=madvise and numa_balancing=0 (as in C9); MemAvailable 59432812 kB; Addressing Mode HMM; upgrade timers inactive; amendment commit 54566e2.
+- 13:48:04 isolate multi-user.target exit 0; chain launched as unit h1a1.
+- 13:48:04 orchestrator smoke: phase0 21:39:44, now 13:48:04, session cap 01:39:44, latest sweep end (cap - 25 min reserve) 01:14:44
+- 13:48:04 ABORT: session cap 01:39:44 is not later than now 13:48:04
+- 13:48:38 PRE-RUN GUARD ABORT (not a stop condition; nothing ran): the orchestrator refused because phase0_start.txt still held the C9 start (cap 01:39 on 2026-11-06 already passed). phase0_start.txt set to the C10 session start; chain relaunched once (unit h1a1).
+- 13:48:38 orchestrator smoke: phase0 13:46:30, now 13:48:38, session cap 17:46:30, latest sweep end (cap - 25 min reserve) 17:21:30
+- 13:49:17 smoke complete: 6 rows; h1_timeouts.csv written

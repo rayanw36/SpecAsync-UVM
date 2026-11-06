@@ -1,0 +1,7 @@
+label,timeout_s
+stencil stock-t0,24
+stencil stock-t51,20
+in_k1 stock-t0,33
+in_k1 stock-t51,11
+in_k512 stock-t0,34
+in_k512 stock-t51,42
