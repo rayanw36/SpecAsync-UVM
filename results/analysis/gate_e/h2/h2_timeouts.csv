@@ -1,0 +1,17 @@
+label,timeout_s
+managed_k1 stock-t0,9
+managed_k1 stock-t51,8
+managed_k8 stock-t0,9
+managed_k8 stock-t51,9
+managed_k64 stock-t0,9
+managed_k64 stock-t51,10
+managed_k512 stock-t0,10
+managed_k512 stock-t51,10
+malloc_k1 stock-t0,33
+malloc_k1 stock-t51,11
+malloc_k8 stock-t0,33
+malloc_k8 stock-t51,22
+malloc_k64 stock-t0,33
+malloc_k64 stock-t51,45
+malloc_k512 stock-t0,34
+malloc_k512 stock-t51,42
