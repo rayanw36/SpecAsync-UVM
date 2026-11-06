@@ -365,7 +365,7 @@ def main():
             if errs:
                 print("CHECK FAIL", f, errs)
         lines.append(f"| {k} | {m['file'].replace('; ', '<br>')} | {m['csv'].replace('; ', '<br>')} | {m['cap']} |")
-    lines += ["", f"**T-CAT:** {nflag} of 30 shortenings needed judgement and are flagged in `t_cat_judgement.txt` (each lists what was merged or omitted); the rest are direct shortenings of the entry's own false-conclusion text. The family and 'how caught' columns follow the catalog's families table.", "", f"Script checks: {bad} problems."]
+    lines += ["", f"**T-CAT:** {nflag} of 31 shortenings needed judgement and are flagged in `t_cat_judgement.txt` (each lists what was merged or omitted); the rest are direct shortenings of the entry's own false-conclusion text. The family and 'how caught' columns follow the catalog's families table.", "", f"Script checks: {bad} problems."]
     open(f"{OUT}/TABLES.md", "w").write("\n".join(lines) + "\n")
     print("tables written; script-check problems:", bad, "; T-CAT judgement-flagged:", nflag)
 
