@@ -316,7 +316,7 @@ def fig_e8():
         ax.set_xlabel(f"pages touched per 2 MB block, {lab}")
     axes[0].set_ylabel("wall-clock vs threshold 51 (%)")
     from matplotlib.lines import Line2D
-    axes[0].legend(handles=[Line2D([], [], marker="o", ls="-", color=THR[0], ms=3.5, lw=0.8, label="threshold 0"), Line2D([], [], marker="o", ls="-", color=THR[25], ms=3.5, lw=0.8, label="threshold 25"), Line2D([], [], ls="-", color=THR[51], lw=0.8, label="threshold 51 (shipped baseline)")], frameon=False, loc="upper right")
+    axes[0].legend(handles=[Line2D([], [], marker="o", ls="-", color=THR[0], ms=3.5, lw=0.8, label="threshold 0"), Line2D([], [], marker="o", ls="-", color=THR[25], ms=3.5, lw=0.8, label="threshold 25"), Line2D([], [], ls="-", color=THR[51], lw=0.8, label="threshold 51 (shipped baseline)"), Line2D([], [], marker="o", ls="", mfc="k", mec="k", ms=3.5, label="filled: Holm-significant"), Line2D([], [], marker="o", ls="", mfc="k", alpha=0.5, mec="none", ms=2.5, label="one run")], frameon=False, loc="upper right")
     panel(axes[0], "a", -0.1); panel(axes[1], "b", -0.1)
     fig.tight_layout(w_pad=0.8)
     save(fig, "fig_e8_sparse_access")
@@ -444,22 +444,29 @@ def h2_panel_b(ax, rows_out):
     ax.set_ylabel("fraction of the 8 GiB array made resident")
 
 
-def h2_legend(fig, panels):
+def h2_legend(ax, panel_id):
+    """One legend per panel, with only the markers that appear in that panel."""
     from matplotlib.lines import Line2D
-    h = []
-    if "a" in panels:
-        h += [Line2D([], [], marker="o", ls="-", color=THR[0], ms=4, lw=0.8, label="managed (UVM), solid"), Line2D([], [], marker="^", ls="--", color=THR[0], ms=4, lw=0.8, label="HMM (malloc), dashed"),
-              Line2D([], [], marker="o", ls="", mfc="k", mec="k", ms=4, label="filled: Holm-significant"), Line2D([], [], marker="o", ls="", mfc="w", mec="k", ms=4, label="hollow: not significant")]
-    if "b" in panels:
-        h += [Line2D([], [], marker="o", ls="", color=THR[0], ms=4, label="threshold 0"), Line2D([], [], marker="o", ls="", color=THR[51], ms=4, label="threshold 51 (shipped)"),
-              Line2D([], [], marker="^", ls="", mfc="k", mec="k", ms=4, label="HMM, memory.used residency"), Line2D([], [], marker="s", ls="", mfc="k", mec="k", ms=4, label="managed, traced HtoD (E9)")]
-    h += [Line2D([], [], marker="o", ls="", mfc="k", alpha=0.5, mec="none", ms=2.5, label="one run")]
-    fig.legend(handles=h, frameon=False, loc="lower center", ncol=4 if len(panels) == 2 else 2, bbox_to_anchor=(0.5, -0.12 if len(panels) == 2 else -0.2), fontsize=6.3, handletextpad=0.3)
+    if panel_id == "a":
+        h = [Line2D([], [], marker="o", ls="-", color=THR[0], ms=4, lw=0.8, label="managed (cudaMallocManaged), solid"), Line2D([], [], marker="^", ls="--", color=THR[0], ms=4, lw=0.8, label="HMM (malloc), dashed"),
+             Line2D([], [], marker="o", ls="", mfc="k", mec="k", ms=4, label="filled: Holm-significant"), Line2D([], [], marker="o", ls="", mfc="k", alpha=0.5, mec="none", ms=2.5, label="one run")]
+    else:
+        h = [Line2D([], [], marker="o", ls="", color=THR[0], ms=4, label="threshold 0"), Line2D([], [], marker="o", ls="", color=THR[51], ms=4, label="threshold 51 (shipped)"),
+             Line2D([], [], marker="^", ls="", mfc="k", mec="k", ms=4, label="HMM, GPU memory in use"), Line2D([], [], marker="s", ls="", mfc="k", mec="k", ms=4, label="managed, traced bytes (E9)"),
+             Line2D([], [], marker="o", ls="", mfc="k", alpha=0.5, mec="none", ms=2.5, label="one run")]
+    ax.legend(handles=h, frameon=False, loc="upper center", bbox_to_anchor=(0.5, -0.2), ncol=2, fontsize=6.3, handletextpad=0.3, columnspacing=1.0)
 
 
 def h2_caption_nums():
     T = {(t["alloc"], int(t["K"])): t for t in rd(f"{H2}/h2_tests.csv")}
     return {k: fl(v["delta_pct"]) for k, v in T.items()}
+
+
+def h2_excess_sentence():
+    res = [r for r in rd(f"{H2}/residency_summary.csv") if r["workload"].startswith("malloc") and fl(r["residency_frac_8gib"]) > 1.0]
+    ex = [fl(r["residency_mib"]) - 8192 for r in res]
+    return (f"HMM values sit slightly above 1.0 (by {min(ex):.0f} to {max(ex):.0f} MiB, {min(ex) / 8192:.3f} to {max(ex) / 8192:.3f} of the array, in the {len(ex)} fully resident runs) because GPU memory in use includes allocation ahead of use: "
+            f"the driver allocates root chunks in batches of up to 128 MiB per call (`RESIDENCY_SEMANTICS.md` section 2c).")
 
 
 def fig_h2_hmm():
@@ -468,7 +475,7 @@ def fig_h2_hmm():
     h2_panel_a(axes[0], rows); h2_panel_b(axes[1], rows)
     panel(axes[0], "a", -0.1); panel(axes[1], "b", -0.1)
     fig.tight_layout(w_pad=1.2)
-    h2_legend(fig, "ab")
+    h2_legend(axes[0], "a"); h2_legend(axes[1], "b")
     save(fig, "fig_h2_hmm")
     with open(f"{OUT}/fig_h2_hmm.csv", "w", newline="") as f:
         w = csv.writer(f); w.writerow(["panel", "allocator", "instrument", "K", "threshold", "run", "value"]); w.writerows(rows)
@@ -476,14 +483,14 @@ def fig_h2_hmm():
     META["h2"] = dict(csv=f"{H2}/h2_runs.csv; {H2}/h2_tests.csv; {H2}/residency_summary.csv; {GE}/e9/e9_runs.csv", fn="fig_h2_hmm", n="10 runs per timing cell; 3 runs per residency cell (descriptive)",
         cap=(f"RTX 5070 Ti, stock driver, 8 GiB array in memory. (a) Wall-clock change of threshold 0 against 51 on managed and on system-allocated (HMM, malloc) memory; symmetric-logarithmic y axis, linear within +-20%; each run is a point, markers are medians, filled when Holm-significant (two-sided Mann-Whitney U, one Holm family of 8, n = 10 per cell). "
              f"At K = 1 the change is {d[('malloc', 1)]:+.2f}% on HMM and {d[('managed', 1)]:+.2f}% on managed memory. (b) Fraction of the array made resident: HMM from nvidia-smi memory.used (valid for 4 KB chunks), managed from nsys traced host-to-device bytes of E9, a different session; "
-             f"descriptive, n = 3, no test. Managed memory.used is not plotted because it measures allocated 2 MB chunks (catalog #31)."))
+             f"descriptive, n = 3, no test. {h2_excess_sentence()} Managed memory.used is not plotted because it measures allocated 2 MB chunks (catalog #31)."))
 
 
 def fig_h2_time():
     rows = []
     fig, ax = plt.subplots(figsize=(COL1, 2.6))
     h2_panel_a(ax, rows)
-    fig.tight_layout(); h2_legend(fig, "a")
+    fig.tight_layout(); h2_legend(ax, "a")
     save(fig, "F-H2-time", "supplementary")
     with open(f"{OUT}/supplementary/F-H2-time.csv", "w", newline="") as f:
         w = csv.writer(f); w.writerow(["panel", "allocator", "instrument", "K", "threshold", "run", "value"]); w.writerows(rows)
@@ -497,7 +504,7 @@ def fig_h2_res():
     rows = []
     fig, ax = plt.subplots(figsize=(COL1, 2.6))
     h2_panel_b(ax, rows)
-    fig.tight_layout(); h2_legend(fig, "b")
+    fig.tight_layout(); h2_legend(ax, "b")
     save(fig, "F-H2-res", "supplementary")
     with open(f"{OUT}/supplementary/F-H2-res.csv", "w", newline="") as f:
         w = csv.writer(f); w.writerow(["panel", "allocator", "instrument", "K", "threshold", "run", "value"]); w.writerows(rows)
@@ -565,7 +572,7 @@ def main():
                     "Three channels, each carrying one thing:\n\n"
                     "- **Colour = threshold**: t0 blue, t10 light blue, t25 teal, t51 grey (the shipped default). Where a figure compares speculation arms at each threshold (F-E5, F-E6), colour is the arm (C0 blue, C7W512 orange) and the threshold is on the x axis; the legend says so.\n"
                     "- **Fill = significance**: filled = Holm-significant median, hollow = not significant, plus (P) = not tested (a reference or untested cell). A white x on a filled marker = Holm-significant but below the minimum detectable effect (F-E7, GraphBFS-23).\n"
-                    "- **Shape = allocator or instrument**: circle = managed (UVM) memory, triangle = system-allocated (HMM, `malloc`) memory; in residency plots a square = the managed traced-bytes instrument (E9, nsys). Every non-H figure is managed memory, so it uses circles only.\n\n"
+                    "- **Shape = allocator or instrument**: circle = managed (`cudaMallocManaged`) memory, triangle = system-allocated (HMM, `malloc`) memory; in residency plots a square = the managed traced-bytes instrument (E9, nsys). Every non-H figure is managed memory, so it uses circles only.\n\n"
                     "Every run is a small point (alpha 0.5). **Descriptive panels** (n = 3, no test: F-E9, F-PH and the residency panel of F-H2) use filled markers or bars, and their captions say that they are descriptive. "
                     "Widths: 3.5 in (single column, `figure` with `\\columnwidth`) or 7.16 in (double column, `figure*` with `\\textwidth`); the table below gives the generated size of the saved PNG (tight bounding box, so within about 1% of the nominal width). Two-panel figures carry (a) and (b) labels.\n\n"
                     "**F-H2 (`fig_h2_hmm`) axis choice:** panel (a) uses a symmetric-logarithmic y axis (`symlog`, linear region +-20%, ticks -20 to 200) so that managed memory's -10% and HMM's +204% (K = 1) are both readable; the x axis is log-2 in K. "

@@ -14,23 +14,14 @@
 \usepackage{amssymb}
 \usepackage{url}
 \usepackage{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{positioning,arrows.meta,fit,calc}
 
 \graphicspath{{figures/}}
 
 \begin{document}
 
-% Title and abstract come from abstract_title.tex (author's file, included unedited).
-% IEEEtran needs \title before \maketitle and the abstract after it, so the file is input twice:
-% pass 1 (before \maketitle) swallows the abstract and keyword environments into a discarded box and keeps only \title;
-% pass 2 (after \maketitle) restores them, so the abstract and keywords are typeset (the repeated \title is harmless).
-\makeatletter
-\let\SAabstract\abstract \let\SAendabstract\endabstract
-\let\SAkeywords\IEEEkeywords \let\SAendkeywords\endIEEEkeywords
-\newbox\SAtrash
-\def\abstract{\setbox\SAtrash\vbox\bgroup}\def\endabstract{\egroup}
-\def\IEEEkeywords{\setbox\SAtrash\vbox\bgroup}\def\endIEEEkeywords{\egroup}
-\makeatother
-\input{abstract_title}
+\input{title}
 
 % TODO: author block (kept as in main.tex; to be filled).
 \author{%
@@ -44,11 +35,7 @@
 
 \maketitle
 
-\makeatletter
-\let\abstract\SAabstract \let\endabstract\SAendabstract
-\let\IEEEkeywords\SAkeywords \let\endIEEEkeywords\SAendkeywords
-\makeatother
-\input{abstract_title}
+\input{abstract}
 
 \input{section1_introduction}
 \input{section2_related_work}

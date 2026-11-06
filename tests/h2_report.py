@@ -34,37 +34,9 @@ out += ["", "## Observations outside the pre-registered criteria", "",
         f"- On **managed** memory the K = 1 residency at threshold 51 is already {_rf[('managed', 1, 51)]:.3f} of the array (`H2.res.managed.k1.t51`), against {_rf[('malloc', 1, 51)]:.3f} on malloc (`H2.res.malloc.k1.t51`): the t0-vs-t51 residency contrast that Z5 expects exists only on HMM. On managed memory the whole array is resident after a K = 1 pass at both thresholds, so its small t0 cost is not a difference in volume moved.",
         f"- Z2 and Z3 failed because the malloc t51 medians are not monotonic in K (K = 512 is faster than K = 64, as in E8/H1); they do not enter the verdict."]
 out += ["", "## Limitations", "One platform, one benchmark and page list, four K values, in memory only (HMM oversubscription is not run, see `GATE_H1_REPORT.md`). `memory.used` is a device-level measure; baseline subtraction assumes nothing else changes GPU memory during the run (headless host). Absolute times are not comparable across allocators; only within-allocator contrasts and the difference of deltas are. CS2-N10 and CLAIM_SCOPE are not edited; the proposed claim text is `consolidation/CS2_N12_PROPOSED.md`.", "",
-        "## Figures", "`paper/figures/F-H2-time.pdf` (median time against K; t0 blue, t51 grey; managed filled, malloc open markers; every run a point) and `paper/figures/F-H2-res.pdf` (residency against K); CSV fallbacks `F-H2-time.csv`, `F-H2-res.csv`."]
+        "## Figures", "`paper/figures/supplementary/F-H2-time.pdf` (median time against K; t0 blue, t51 grey; managed filled, malloc open markers; every run a point) and `paper/figures/supplementary/F-H2-res.pdf` (residency against K); CSV fallbacks `F-H2-time.csv`, `F-H2-res.csv`."]
 open("results/analysis/gate_e/GATE_H2_REPORT.md", "w").write("\n".join(out) + "\n")
-# ---- figures
-import matplotlib
-matplotlib.use("Agg")
-import matplotlib.pyplot as plt
-import make_paper_figures as M
-M.style()
-col = {0: M.THR[0], 51: M.THR[51]}
-fig, ax = plt.subplots(figsize=(M.COL1 * 1.3, 2.7))
-rows_out = []
-for a in C.ALLOCS:
-    for t in (0, 51):
-        xs, ys = [], []
-        for i, k in enumerate(C.KS):
-            v = [float(r["wall_s"]) for r in RUNS if r["workload"] == f"{a}_k{k}" and r["label"].endswith(f"stock-t{t}")]
-            dx = (-0.2 if a == "managed" else 0.2) + (-0.05 if t == 0 else 0.05)
-            M.pts(ax, i + dx, v, col[t], "o", jitter=0.03, size=5, alpha=0.5)
-            xs.append(i + dx); ys.append(st.median(v))
-            for j, x in enumerate(v, 1): rows_out.append([a, k, t, j, f"{x:.6f}"])
-        ax.plot(xs, ys, color=col[t], lw=0.8, zorder=4)
-        ax.scatter(xs, ys, s=26, marker="o", facecolor=col[t] if a == "managed" else "white", edgecolor=col[t], linewidths=1.1, zorder=5)
-ax.set_xticks(range(len(C.KS))); ax.set_xticklabels([str(k) for k in C.KS]); ax.set_xlabel("pages touched per 2 MB block (K)"); ax.set_ylabel("wall-clock (s)")
-from matplotlib.lines import Line2D
-ax.legend(handles=[Line2D([], [], marker="o", color=M.THR[0], ms=4, lw=0.8, label="threshold 0"), Line2D([], [], marker="o", color=M.THR[51], ms=4, lw=0.8, label="threshold 51 (shipped)"),
-                   Line2D([], [], marker="o", ls="", mfc="k", mec="k", ms=4, label="managed (filled)"), Line2D([], [], marker="o", ls="", mfc="w", mec="k", ms=4, label="malloc, HMM (open)")], frameon=False, loc="upper center", bbox_to_anchor=(0.5, -0.25), ncol=2, fontsize=6.3)
-fig.tight_layout()
-for ext in ("pdf", "png"): fig.savefig(f"paper/figures/F-H2-time.{ext}", bbox_inches="tight", dpi=300)
-plt.close(fig)
-with open("paper/figures/F-H2-time.csv", "w", newline="") as f:
-    w = csv.writer(f); w.writerow(["allocator", "K", "threshold", "run", "wall_s"]); w.writerows(rows_out)
+# ---- figures: (C18) none are written here. F-H2-time, F-H2-res and fig_h2_hmm are drawn by tests/make_paper_figures.py (paper marker convention); a rerun cannot bring back the C11 encoding.
 # (C13) the residency figure F-H2-res is now produced by tests/c13_fig_hres.py (managed memory.used is not a valid volume measure; catalog #31)
 # ---- CS2-N12 proposal
 dm, dg = float(TT[("malloc", 1)]["delta_pct"]), float(TT[("managed", 1)]["delta_pct"])
