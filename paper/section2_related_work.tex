@@ -1,277 +1,210 @@
 % =====================================================================
-% Section II -- Background and Related Work
-% SpecAsync-UVM manuscript, draft 1
+% Section II -- Related Work
+% SpecAsync-UVM manuscript, draft 2 (2026-11-06). A rewrite of draft 1;
+% the literature summaries are kept, the framing and comparisons are new.
 %
-% -------------------------------------------------------------------
-% CITATION KEY RECONCILIATION -- READ BEFORE COMPILING
-% -------------------------------------------------------------------
-% BIB_AUDIT.md identified six entries needing repair, and T4_REPORT.md
-% Section 1.2 records that all six were applied to ref.bib.  Whether the
-% applied fix RENAMED the keys or upgraded them in place is not recorded,
-% so the keys used below are a best reconstruction.  Check these six and
-% sed as needed before the first build:
+% WHAT CHANGED FROM DRAFT 1:
+%   - Removed (superseded, see Section I header / CLAIM_SCOPE):
+%     "oracle ... yields nothing", "the bound is empty", the 0.08-7.94%
+%     ceiling, the stride-policy-harms contrast, "80 million speculative
+%     migrations / two thousand hits" (spec_hits, CS2-N7), "dispatch window
+%     inflates by three orders of magnitude" (R1), "prefetcher makes
+%     speculation redundant", and the simulation-optimism generalisation.
+%   - Go et al. now credited as the prior report of both directions of the
+%     threshold trade-off (LIT CHECKED in Section I header).
+%   - Shen and Nikolopoulos contrasted by mapping, not dispatch cost:
+%     cudaMemPrefetchAsync maps (uvm_migrate.c:680, :698-699).
+%   - New subsection on system-allocated memory and other vendors:
+%     allen2024finegrain (HMM motivation), cooper2024svm (AMD MI250X SVM).
+%   - Eviction: Go et al. describe LRU; 595.91.07 picks victims in
+%     allocation order (Section III, C5 SRC-2). Stated once, neutrally.
 %
-%   OLD KEY                          KEY USED HERE
-%   anonymous2022learningoversub  -> long2022oversub          (replaced entry)
-%   jain2019crac                  -> jain2020crac             (replaced entry)
-%   bastemTilesTR                 -> bastem2017tiles          (replaced entry)
-%   long2022dlprefetch            -> long2022dlprefetch       (in-place upgrade to JPDC 2023)
-%   choi2022gpuaware              -> choi2022gpuaware         (in-place upgrade to IPDPSW 2022)
-%   parravicini2021dagpolyglot    -> parravicini2021dagpolyglot (in-place upgrade to IPDPS 2021)
+% CITATION KEYS: all used keys resolved in ref.bib (C13: 0 missing for
+%   Sections I, III-V). New in this section: cooper2024svm, ganguly2019interplay
+%   (already cited in I/III). Run the cite-key check after installing.
 %
-% -------------------------------------------------------------------
-% EVALUATION-SUBSTRATE COLUMN -- VERIFY BEFORE SUBMISSION
-% -------------------------------------------------------------------
-% The table's "Evaluated on" column is the load-bearing new element and
-% directly answers Reviewer Comment 5.  Entries marked below are asserted
-% from each paper's own description as summarised in the previous draft;
-% the following four were NOT independently re-verified and should be
-% checked against the papers themselves before submission:
-%   CONFIRMED hardware: go2023earlyadaptor (abstract states real hardware,
-%     NVIDIA RTX 3090, open-source driver), shen2026stride (non-invasive
-%     runtime layer, no kernel/application modification), guo2025ghost,
-%     jung2020hum, allen2021indepth, jones2025helm, wahlgren2025mi300a.
-%   CONFIRMED simulation: lin2025forest, long2022dlprefetch, yu2020cppe.
-%   STILL UNVERIFIED -- check before submission:
-%     li2019oversubframework (ASPLOS'19), pratheek2024suv (MICRO'24),
-%     nihaal2024compression (ICPP'24).
-% Getting this column wrong would be a serious and easily-caught error, so
-% it is better to drop a row than to guess at its substrate.
+% EVALUATION-SUBSTRATE COLUMN -- STILL UNVERIFIED, check before submission:
+%   li2019oversubframework (ASPLOS'19), pratheek2024suv (MICRO'24),
+%   nihaal2024compression (ICPP'24). Drop a row rather than guess.
+%   cooper2024svm: hardware (MI250X) per our earlier reading -- confirm.
+%   ganguly2019interplay: marked Simulation (GPGPU-Sim UVM model, as I
+%     recall the ISCA'19 paper) -- confirm; it was absent from draft 1's table.
+%
+% TODO (lit): Didona et al. and Traeger et al. (benchmarking methodology)
+%   were planned additions; not added until their bib entries are verified.
 % =====================================================================
 
-\section{Background and Related Work}
+\section{Related Work}
 \label{sec:related}
 
-Work on reducing UVM fault-handling cost falls into four groups: measurement
-studies that characterise where fault-service time goes, prediction and
-prefetching schemes that try to move data earlier, oversubscription policies
-that manage residency under memory pressure, and asynchronous-overlap
-techniques that hide transfer cost behind computation. Our study sits at the
-intersection of the first and the last: it builds an overlap mechanism and then
-measures why it fails. We therefore organise this section around a question that
-cuts across all four groups---\emph{what was each result measured on}---because
-that question turns out to be what separates our finding from the expectations
-the literature sets.
+We group prior work by the question it answers about UVM: where the cost of
+a fault goes, how aggressively the driver should prefetch, how to prefetch
+from outside the driver, what to do when memory is oversubscribed, how to
+overlap transfers with computation, and how the same questions look for
+system-allocated memory and for other vendors' GPUs. Table~\ref{tab:prior-work}
+summarises the closest work and what each result was evaluated on.
 
 \subsection{Where Fault-Service Time Goes}
 
-The closest relatives to this work are direct measurements of the UVM fault
-path. Allen and Ge first characterised UVM at the driver level, establishing
-the fault batch as the fundamental unit of work and showing that batch service
-time dominates migration cost \cite{allen2021indepth}. Their subsequent work
-provides a fine-grained decomposition of demand paging in
-UVM, quantifying per-batch phases and showing that the \emph{service} portion---%
-host-side unmapping and page-table work---can dominate CPU--GPU migration cost,
-while DMA is often overlapped in the background \cite{allen2024finegrain}. Their
-analysis also surfaces a trade-off we encounter directly: batching reduces trap
-frequency, but larger batches amplify synchronization and tracker-wait effects,
-capping end-to-end gains \cite{allen2024finegrain}. Our seven-phase
-decomposition is methodologically in this tradition and agrees with its
-qualitative conclusion, but differs in instrumentation point and in what it is
-used for: we measure inside a modified driver rather than around it, and we use
-the decomposition to derive an \emph{upper bound} on what an off-path scheme
-could recover rather than to characterise the path descriptively.
+The closest relatives to this work measure the UVM fault path directly.
+Allen and Ge characterised UVM at the driver level, established the fault
+batch as the unit of work, and showed that batch service time dominates
+migration cost \cite{allen2021indepth}. Allen \emph{et al.}\ then decomposed
+demand paging into per-batch phases and found that the \emph{service}
+portion, host-side unmapping and page-table work, can dominate CPU--GPU
+migration cost while DMA is largely overlapped \cite{allen2024finegrain}. They
+also identified a trade-off we meet directly: larger batches reduce trap
+frequency but amplify synchronisation and tracker waits. Our seven-phase
+decomposition (Section~\ref{sec:background}) follows their approach, measured
+inside the driver, and agrees with their conclusion that the lock-held service
+phase is CPU work. We use it for a different purpose: to locate where an
+off-path mechanism can act at all.
 
-The same group's more recent work derives locality metrics directly from UVM
-driver page-fault telemetry to guide allocation under oversubscription
-\cite{jones2025helm}. That study and ours draw on the same instrumentation
-source and reach opposite kinds of conclusion---theirs constructive, ours
-negative---which we take as complementary rather than conflicting: telemetry
-that is informative enough to guide residency decisions is not thereby
-sufficient to make off-path speculation profitable. Characterisation has also
-begun to extend to integrated CPU--GPU parts, where page-fault handling and
-TLB management differ substantially from the discrete-GPU path we study
-\cite{wahlgren2025mi300a}; we return to what this bounds about our claims in
-the Discussion.
+The same group derived locality metrics from driver fault telemetry to guide
+allocation under oversubscription \cite{jones2025helm}; our telemetry comes
+from the same source. Characterisation has begun to reach integrated CPU--GPU
+parts, where fault handling and TLB management differ from the discrete-GPU
+path we study \cite{wahlgren2025mi300a}. At the benchmark level, UVMBench shows
+that naive UVM can underperform non-UVM code and that explicit prefetching
+largely closes the gap \cite{gu2020uvmbench}, and Chien \emph{et al.}\ find that
+advice and prefetch choices matter in platform-dependent ways
+\cite{chien2019umfeatures}. The platform dependence is one reason we replicate
+the threshold result on a second GPU generation (Section~VII). GPUVM takes a
+more radical route, moving parts of the paging control plane to the GPU with
+RDMA support \cite{nazaraliyev2024gpuvm}.
 
-Benchmark-level characterisation supplies the other half of the picture.
-UVMBench contributes a suite spanning machine learning, graph, HPC, and
-statistical workloads, and shows that naive UVM can underperform non-UVM code
-while explicit prefetching largely closes the gap \cite{gu2020uvmbench}. Chien
-\emph{et al.} evaluate advanced Unified Memory features and find that
-advice and prefetch choices materially affect performance, but in
-platform-dependent ways, with oversubscription regimes degrading results
-\cite{chien2019umfeatures}. Both findings recur in our data. The
-platform-dependence in particular is why we report every cost ratio with an
-explicit platform qualifier rather than as a property of UVM in general.
+\subsection{The Prefetch Threshold}
 
-A separate line moves the paging control plane itself. GPUVM shifts portions of
-unified-memory control toward the GPU using RDMA-assisted mechanisms, reporting
-substantial latency improvements on graph workloads
-\cite{nazaraliyev2024gpuvm}. This is a more radical restructuring than ours and
-depends on specialised networking assumptions, but it shares our conclusion in
-one respect: it treats the host-side path as the thing to be removed rather than
-the thing to be predicted around.
+The driver's prefetcher descends from the tree-based neighbourhood scheme
+analysed by Ganguly \emph{et al.}, who showed how prefetching and eviction
+interact under oversubscription \cite{ganguly2019interplay}. The work closest to
+our threshold measurements is Early-Adaptor by Go \emph{et al.}\
+\cite{go2023earlyadaptor}. They varied the same density threshold on an
+RTX~3090 with release 515.65.01 of the open driver. In memory, a low threshold
+was at least as fast as the default for every workload they tested; at 150\%
+oversubscription, low thresholds hurt irregular workloads through thrashing.
+On that basis they built a controller that adapts the threshold at run time.
+Both directions of the trade-off are therefore theirs.
 
-\subsection{Prediction and Prefetching}
+What our measurements add is narrower. We replicate both directions on two
+later GPU generations and a later driver, under pre-registered tests with
+minimum detectable effects. We separate access density from workload identity
+with a synthetic benchmark whose pages per block we set, and we trace the bytes
+migrated. We also find, on system-allocated memory, that the sparse-access cost
+appears without oversubscription (Section~VII). And we connect the threshold to
+speculation: the measured benefit of our off-path staging is a side effect of
+the same density rule (Section~VI). One detail of the mechanism differs from
+the description in Go \emph{et al.}: in release 595.91.07 the driver picks
+eviction victims in allocation order, not by recency of access
+(Section~\ref{sec:bg-oversub}).
 
-A large body of work improves UVM performance by initiating movement earlier.
-Early-Adaptor monitors fault behaviour and adapts proactive UVM actions
-dynamically, reporting speedups under oversubscription by adjusting prefetch
-aggressiveness \cite{go2023earlyadaptor}. SUV uses static analysis to guide UVM
-management---selectively pinning dense data and issuing iteration-aligned
-prefetch---achieving large speedups over baseline UVM
-\cite{pratheek2024suv}. Both indicate that the \emph{timing} of proactive
-actions matters, not merely their presence.
+Other work replaces or retunes the prefetcher. Forest configures tree
+prefetchers per data object at run time, on the observation that the
+pattern-oblivious stock prefetcher causes thrashing and unnecessary migration
+\cite{lin2025forest}. Long \emph{et al.}\ train a deep-learning prefetcher that
+improves IPC and page hit rate \cite{long2022dlprefetch}. SUV uses static
+analysis to pin dense data and issue iteration-aligned prefetches
+\cite{pratheek2024suv}. These results, like ours, say that no fixed prefetch
+aggressiveness suits every access pattern; they differ from ours in proposing a
+policy rather than measuring the shipped one.
 
-Learning-based predictors push this further. Long \emph{et al.} propose a deep
-learning prefetcher built from transformer-style components, improving IPC and
-page hit rate \cite{long2022dlprefetch}; Forest configures tree prefetchers at
-runtime according to each data object's access pattern, on the observation that
-the stock access-pattern-oblivious tree-based neighbouring prefetcher causes
-excessive thrashing and unnecessary migration \cite{lin2025forest}. That
-observation is worth dwelling on, because it concerns the same in-path
-prefetcher whose interaction with our mechanism we report in
-Section~\ref{sec:squeeze}: the component is simultaneously the reason
-speculation has nothing to do when it is enabled and, by Forest's account, an
-imperfect policy in its own right.
+\subsection{Prefetching From Outside the Driver}
 
-Most directly relevant to our stride policy, Shen \emph{et al.} report a
-stride-aware Markov prefetcher for GPU unified memory that reaches high
-prediction accuracy and delivers real speedups, prototyped as a non-invasive
-runtime layer on real workloads \cite{shen2026stride}. Our stride policy, by
-contrast, measurably \emph{harms} performance. The two results are compatible,
-and the reason they are compatible is the point of this paper. Their predictor
-drives migration from above the driver and never pays a per-fault dispatch
-cost; ours issues speculative work from inside the fault handler and pays that
-cost on every fault. More fundamentally, our negative result is not a statement
-about prediction accuracy at all---our oracle achieves 100\% accuracy by
-construction and still yields nothing. A predictor can therefore be as accurate
-as Shen \emph{et al.} report and still be unable to help when its output is
-consumed off-path inside the driver.
-
-Our oracle policy can be read as the limiting case of this whole line: it makes
-prediction accuracy perfect by construction and so bounds from above what any
-predictor in this family can deliver on this driver. That the bound is empty is
-the result this paper reports.
+Prefetching can also be issued from user space. Shen and Nikolopoulos predict
+faults from profiler events and issue \texttt{cudaMemAdvise} and
+\texttt{cudaMemPrefetchAsync} calls from a preloaded library, reporting speedups
+of up to $1.48\times$ on A100 and V100 GPUs \cite{shen2026stride}. That result
+and ours are compatible, and the reason is a property of the driver
+(Section~\ref{sec:bg-resident-mapped}). An explicit prefetch to a GPU runs the
+driver's migration path in a make-resident-and-map mode, so the prefetched pages
+do not fault when first touched. Our worker calls the routine that makes pages
+resident without mapping them, the only one available outside fault service, so
+its pages still fault. A user-space prefetcher can therefore remove faults; an
+off-path stager inside the driver, as we built it, can only make them cheaper
+or, through the density rule, enlarge the region the next fault maps.
+UVMBench's finding that explicit prefetching closes most of the naive-UVM gap
+\cite{gu2020uvmbench} fits the same account.
 
 \subsection{Oversubscription and Memory Pressure}
 
-Under oversubscription, UVM enters eviction-dominated regimes where performance
-collapses. Li \emph{et al.} propose coordinated admission and throttling
-policies to reduce thrashing \cite{li2019oversubframework}, and Yu \emph{et al.}
-couple prefetch with modified eviction, reporting large speedups
-\cite{yu2020cppe}. Others reduce effective pressure by increasing usable
-capacity through selective compression and packing \cite{nihaal2024compression},
-or through oversubscription-aware scheduling of tensor migration
-\cite{kim2025most}. Long \emph{et al.} approach the same regime with a learned
-oversubscription-management framework \cite{long2022oversub}.
+When the working set exceeds GPU memory, UVM enters eviction-dominated regimes.
+Li \emph{et al.}\ coordinate admission and throttling to reduce thrashing
+\cite{li2019oversubframework}; Yu \emph{et al.}\ couple prefetch with modified
+eviction \cite{yu2020cppe}; others raise usable capacity through selective
+compression \cite{nihaal2024compression}, schedule tensor migration with
+oversubscription in mind \cite{kim2025most}, or learn an oversubscription
+policy \cite{long2022oversub}. We propose no residency policy. Our
+oversubscribed measurements show what the shipped threshold does there: for
+sparse access, the low threshold migrates far more data than the program uses
+and is markedly slower, which is the regime in which the coordinated policies
+above, and an adaptive threshold, are useful.
 
-Our oversubscription measurements are complementary rather than competitive: we
-do not propose a residency policy, we measure what happens when speculation is
-run inside one. The result is instructive. Under thrashing, speculation behaves
-as an extremely costly accidental page-replacement policy---in one
-configuration issuing over 80 million speculative migrations to service fewer
-than two thousand recorded hits---rather than as working prediction. This is
-precisely the regime in which the coordinated policies above are valuable, and
-precisely the regime in which an uncoordinated off-path mechanism is most
-harmful.
+\subsection{Overlapping Transfers With Computation}
 
-\subsection{Asynchronous Overlap and Off-Path Work}
+Explicit overlap of transfer and computation delivers real gains, generally
+above the driver. HUM turns synchronous host-to-device copies into an
+asynchronous pipeline using page-fault-driven mechanisms \cite{jung2020hum},
+and tile-based partitioning overlaps transfers with computation using caching
+and ghost regions \cite{bastem2017tiles}. Runtime systems generalise the idea:
+HPXCL integrates CUDA execution into an asynchronous tasking framework
+\cite{diehl2018hpxcl}, GPU-aware asynchronous tasks with prioritised streams
+increase overlap \cite{choi2022gpuaware}, and DAG scheduling in a polyglot
+runtime overlaps transfers using inferred dependencies
+\cite{parravicini2021dagpolyglot}. CRAC documents the engineering hazards of
+coordinating around CUDA streams and UVM \cite{jain2020crac}. Outside GPUs,
+helper-thread prefetching identifies timeliness, running far enough ahead
+without running too far, as the governing constraint \cite{guo2025ghost};
+GPU-side I/O decouples initiation from completion to overlap SSD latency
+\cite{han2026agio}; and pre-scheduling moves coordination work earlier to cut
+completion-time variance \cite{jin2019prescheduling}.
 
-Finally, a body of work shows that explicit overlap of transfer and computation
-delivers real gains, generally above the driver. HUM converts synchronous
-host-to-device copies into an asynchronous pipeline using page-fault-driven
-mechanisms \cite{jung2020hum}, and tile-based partitioning overlaps transfers
-with computation using caching and ghost regions \cite{bastem2017tiles}.
-Runtime systems generalise this: HPXCL integrates CUDA execution into an
-asynchronous tasking framework with futures \cite{diehl2018hpxcl}; GPU-aware
-asynchronous tasks with prioritised streams and kernel fusion improve
-scalability by increasing overlap \cite{choi2022gpuaware}; DAG-based scheduling
-in a polyglot runtime overlaps transfers using runtime-inferred dependencies
-\cite{parravicini2021dagpolyglot}. CRAC, while targeting checkpoint-restart
-rather than performance, documents the engineering hazards of coordinating
-around CUDA streams and UVM \cite{jain2020crac}. Outside GPUs entirely,
-pre-scheduling has been used to cut completion-time variance by moving
-coordination work earlier \cite{jin2019prescheduling}.
+Our mechanism is an instance of this principle applied inside the fault
+handler, and it shows a condition the principle needs that the work above
+satisfies by construction: the overlapped work must produce the state that
+removes the stall. In these systems the asynchronous step delivers data where
+the consumer will read it. In the UVM driver, what removes a fault is a mapping,
+and only fault service installs one; staging residency in advance moves part of
+the work earlier but leaves the stall in place.
 
-Two recent results sharpen the comparison. Ghost Threading demonstrates
-software-only helper-thread prefetching on real systems, and identifies
-\emph{timeliness} as the governing constraint: the helper thread must run far
-enough ahead to be useful but not so far as to be wasteful, and achieving that
-required a synchronisation primitive cheap enough to throttle the helper thread
-without OS involvement \cite{guo2025ghost}. AGIO makes an analogous argument
-for GPU-side I/O, decoupling initiation from completion so that microsecond-scale
-SSD latencies can be overlapped with useful work \cite{han2026agio}.
+\subsection{System-Allocated Memory and Other Vendors}
 
-We regard these as corroboration rather than counterexample, and they are the
-clearest statement of the condition our mechanism fails to meet. Off-path work
-pays when the cost of dispatching it is small relative to the latency being
-hidden. Ghost Threading found a primitive cheap enough at instruction
-granularity; AGIO has whole SSD accesses to hide behind. Inside the UVM fault
-handler neither holds: the dispatch cost and the work being overlapped are the
-same order of magnitude, and under load the dispatch window inflates by three
-orders of magnitude while faults continue to arrive. Our contribution is to
-show that the principle does not survive being applied at the granularity of an
-individual page fault inside a production driver, and to measure the margin by
-which it fails.
+Allen \emph{et al.}\ motivate their fault-path analysis with Linux's
+Heterogeneous Memory Management (HMM), through which a GPU can fault on
+ordinary \texttt{malloc}'d memory \cite{allen2024finegrain}. NVIDIA's open
+driver services such faults with the same prefetcher and threshold as managed
+memory but migrates pages in 4\,KB units (Section~\ref{sec:bg-hmm}). We measure
+the threshold on both kinds of memory. AMD GPUs reach system memory through
+shared virtual memory built on the same kernel interface. Cooper \emph{et al.}\
+study it on MI250X and find a range-based, aggressive prefetching policy whose
+benefit depends on the access pattern \cite{cooper2024svm}, the same trade-off
+in a different driver. We have not measured AMD hardware; whether an
+access-density-aware threshold helps there is a question for future work.
 
 \subsection{Limit Studies and Measurement Methodology}
 
-Two methodological literatures underpin this study and are worth naming
-explicitly, because both of our less conventional choices---an oracle policy
-and a catalog of our own measurement errors---have established precedent.
+Granting a mechanism oracular knowledge of future accesses is an established
+way to bound what it can achieve. R-Max approximates an ideal prefetcher for
+CPU caches under realistic bandwidth and capacity limits in order to measure
+the headroom current designs leave \cite{wang2025rmax}. Our first-touch oracle
+plays the same role for off-path staging (Section~\ref{sec:design-oracle}),
+with the difference that its accuracy is limited by the workload's run-to-run
+stability, which we report.
 
-Bounding achievable benefit by granting a mechanism oracular knowledge of
-future accesses is a recognised technique. R-Max applies exactly this idea to
-CPU cache prefetching, approximating an ideal prefetcher under realistic
-bandwidth and capacity constraints in order to quantify how much gain remains
-unexploited by current designs \cite{wang2025rmax}. Our oracle serves the same
-function one level down the memory hierarchy. The contrast in outcome is
-instructive: that work finds substantial headroom left on the table for CPU
-caches, whereas we find the UVM fault path affords between 0.08\% and 7.94\%.
-The method is the same; the bound is a property of the subsystem, not of the
-technique.
-
-The measurement-pitfalls catalog we present in Section~\ref{sec:pitfalls} also
-has precedent. Van der Kouwe \emph{et al.} identify twenty-two benchmarking
-flaws and, surveying fifty defence papers at top venues, find that tier-one
-papers contain an average of five flaws each \cite{vanderkouwe2019sok}.
-Papadopoulos \emph{et al.} propose eight principles for reproducible
-performance evaluation and find, by systematic review, that few published
-studies follow them \cite{papadopoulos2019principles}. Raasveldt \emph{et al.}
-demonstrate with mock benchmarks how easily large apparent differences can be
-produced where none exist \cite{raasveldt2018fair}---structurally the same
-hazard as the entry in our catalog where the measurement and the arithmetic
-were both correct and the conclusion was still wrong, because the comparison
-was made against a crippled baseline. Our pre-registration, strictly
-interleaved run ordering, and reporting of minimum detectable effects are
-responses to this literature rather than local idiosyncrasies.
-
-\subsection{The Simulation--Hardware Gap}
-
-Table~\ref{tab:prior-work} adds a column that the previous version of this
-survey did not carry: what each result was evaluated on. The pattern it exposes
-is the motivation for this paper. Measurement studies
-\cite{allen2024finegrain,gu2020uvmbench,chien2019umfeatures} run on real
-hardware and report costs. Mechanism proposals that predict, prefetch, or manage
-residency are substantially more likely to be evaluated in simulation, where the
-proposed mechanism's cost model is written by the same author who wrote the
-mechanism.
-
-We want to be careful about what this observation does and does not license.
-Simulation is not a methodological failing; it is often the only tractable way
-to explore a design space, and several of the simulated results above are
-carefully done. The point is narrower and specific to our mechanism: off-path
-speculation's benefit case rests entirely on a comparison between two costs---%
-the latency of dispatching speculative work and the latency of the fault it is
-meant to hide. A simulator that models fault-service time but abstracts the
-driver's internal queueing, its existing in-path prefetcher, and its
-address-space lock discipline will get that comparison wrong in a direction that
-favours the mechanism. All three of those components turned out to be decisive
-in our measurements: the in-path prefetcher makes speculation redundant when
-enabled and unaffordable to disable, the queueing inflates dispatch latency by
-three orders of magnitude under load, and the lock-held phase is CPU-side
-bookkeeping rather than a GPU wait that asynchrony could hide.
-
-This is the gap our study addresses. Not that prior work is wrong---the
-prediction results in particular we take as sound, and our oracle presupposes
-them---but that a mechanism whose viability depends on driver-internal cost
-structure has to be measured against that structure before it can be believed.
+Our catalog of measurement artifacts (Section~\ref{sec:pitfalls}) also has
+precedent. Van der Kouwe \emph{et al.}\ identify twenty-two benchmarking flaws
+and find an average of five in tier-one defence papers
+\cite{vanderkouwe2019sok}. Papadopoulos \emph{et al.}\ propose eight principles
+for reproducible performance evaluation and find that few published studies
+follow them \cite{papadopoulos2019principles}. Raasveldt \emph{et al.}\ show how
+easily mock benchmarks produce large differences where none exist
+\cite{raasveldt2018fair}, the hazard behind our choice of the shipped driver,
+not a disabled prefetcher, as the comparison of record. Pre-registration with
+falsification triggers, interleaved run orders, positive controls for analysis
+scripts and minimum detectable effects (Section~\ref{sec:protocol}) are our
+responses to this literature.
 
 % ---------------------------------------------------------------------
-% Prior-work table.  The "Evaluated on" column is the new element; see the
-% verification note in this file's header before submission.
+% Prior-work table. See the substrate note in the header.
 % ---------------------------------------------------------------------
 \begin{table*}[t]
 \centering
@@ -293,98 +226,83 @@ structure has to be measured against that structure before it can be believed.
 UVM fault cost breakdown &
 Measurement, driver-level &
 Hardware &
-Closest prior measurement; we decompose inside a modified driver and derive a bound \\
+Closest prior decomposition; we instrument the same path to locate where off-path work can act \\
+
+\cite{go2023earlyadaptor} &
+Prefetch threshold &
+Adaptive threshold controller &
+Hardware &
+First reported both directions of the threshold trade-off; we replicate them on newer GPUs and driver \\
+
+\cite{ganguly2019interplay} &
+Prefetch--eviction interplay &
+Tree prefetcher analysis &
+Simulation$^{\ast}$ &
+Origin of the density prefetcher whose rule our results run through \\
+
+\cite{shen2026stride} &
+UVM page prefetching &
+User-space prediction, explicit prefetch &
+Hardware &
+Explicit prefetch maps pages; our in-driver staging cannot \\
 
 \cite{gu2020uvmbench} &
 UVM benchmarking &
 Benchmark suite &
 Hardware &
-Establishes prefetch closes the naive-UVM gap; consistent with our squeeze finding \\
+Explicit prefetch closes the naive-UVM gap; consistent with the mapping distinction \\
 
 \cite{chien2019umfeatures} &
 Unified Memory features &
 Measurement &
 Hardware &
-Platform-dependence motivates our per-platform qualification of every cost ratio \\
+Platform dependence; we replicate on a second GPU generation \\
 
-\cite{nazaraliyev2024gpuvm} &
-Alternative paging control plane &
-RDMA-assisted GPU-side control &
-Hardware &
-Also treats the host path as the target; assumes specialised networking \\
+\cite{cooper2024svm} &
+AMD shared virtual memory &
+Measurement &
+Hardware$^{\ast}$ &
+Same aggressiveness trade-off in another vendor's driver \\
 
-\cite{go2023earlyadaptor} &
-Proactive UVM management &
-Adaptive runtime policy &
-Hardware &
-Timing of proactive action matters; complements service-path reduction \\
-
-\cite{pratheek2024suv} &
-Static-analysis-guided UVM &
-Compiler analysis + policy &
-Hardware &
-Program-informed prefetch; a candidate predictor input, bounded by our oracle \\
+\cite{lin2025forest} &
+Per-object prefetching &
+Runtime-configured tree prefetchers &
+Simulation &
+Stock prefetcher's fixed aggressiveness is a problem; we measure it \\
 
 \cite{long2022dlprefetch} &
 Learned prefetching &
-Deep learning predictor &
+Deep-learning predictor &
 Simulation &
-Prediction is learnable; our oracle upper-bounds what any such predictor can yield here \\
+Prediction quality; our oracle removes it as a variable \\
 
-\cite{lin2025forest} &
-Access-aware management &
-Prediction-driven queuing &
-Simulation &
-Same bound applies; interaction with driver queueing not modelled \\
+\cite{pratheek2024suv} &
+Static-analysis-guided UVM &
+Compiler analysis and policy &
+Hardware$^{\ast}$ &
+Program-informed prefetch and pinning \\
 
 \cite{yu2020cppe} &
-Coordinated prefetch/eviction &
+Coordinated prefetch and eviction &
 Policy co-design &
 Simulation &
-Residency coordination, not host-service cost \\
-
-\cite{nihaal2024compression} &
-Oversubscription capacity &
-Selective compression &
-Simulation &
-Reduces pressure rather than service cost; orthogonal \\
+Residency policy under oversubscription; we measure the shipped one \\
 
 \cite{jones2025helm} &
 UM access characterisation &
-Driver-telemetry metrics + policy &
+Driver telemetry and policy &
 Hardware &
-Same telemetry source as this work; constructive result where ours is negative \\
-
-\cite{shen2026stride} &
-UVM page prefetching &
-Stride Markov predictor, runtime layer &
-Hardware &
-Accurate stride prediction above the driver; our stride policy harms below it \\
-
-\cite{guo2025ghost} &
-Helper-thread prefetching &
-Software-only, SMT helper threads &
-Hardware &
-Identifies timeliness and cheap throttling as the enabling condition we lack \\
+Same telemetry source \\
 
 \cite{jung2020hum} &
 Transfer overlap &
-Fault-driven async pipeline &
+Fault-driven asynchronous pipeline &
 Hardware &
-Strongest support for off-path principle; overlaps at transfer, not per-fault, granularity \\
-
-\cite{bastem2017tiles} &
-Transfer/compute overlap &
-Tiling + ghost regions &
-Hardware &
-Same principle at tile granularity \\
+Overlap that delivers data where it is read \\
 
 \bottomrule
 \end{tabularx}
-\caption{Representative prior work, classified by evaluation substrate.
-Mechanism proposals evaluated in simulation are systematically more optimistic
-about off-path benefit than hardware measurement supports, because the costs
-that defeat the mechanism---in-path prefetching, driver queueing, and
-lock-held CPU bookkeeping---are typically not modelled.}
+\caption{Closest prior work and the substrate each result was evaluated on.
+$^{\ast}$To be confirmed against the paper before submission.}
 \label{tab:prior-work}
 \end{table*}
