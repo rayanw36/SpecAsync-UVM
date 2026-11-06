@@ -1,0 +1,1 @@
+- 2026-11-06 16:06:00 H2 preflight: boot 2026-11-06 13:32:52; dmesg stop-pattern lines on this boot: 0; srcversion 6284DA42F15EDC3AB92332B refcnt 0 threshold 51; THP enabled=always [madvise] never defrag=always defer defer+madvise [madvise] never numa_balancing=0; MemAvailable:   58804240 kB; Addressing Mode : HMM; GPU procs 0; pre-registration commit 11c0c95.
