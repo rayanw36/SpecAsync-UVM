@@ -1,5 +1,257 @@
-% Placeholder (Gate C8 phase 4): to be written.
-% Facts for this section: paper/support/PROTOCOL_FACTS.md.
+% =====================================================================
+% Section V: Measurement Protocol            draft 1, 2026-11-06
+% Source of every fact: paper/support/PROTOCOL_FACTS.md (Gate C8/C9),
+% GATE_H1_REPORT.md (C9/C10), C10_STATUS.md.
+% Notes for the author:
+%  [CHECK] marks a number I derived by hand from PROTOCOL_FACTS (sums,
+%          counts). Have Claude Code recompute it before submission.
+%  [TAB]   Table tab:gates could be generated from PROTOCOL_FACTS by a
+%          script into paper/tables/T-GATES.tex. The inline version
+%          below is the reviewed content.
+%  [LABEL] sec:discussion is assumed for Section IX; add it to main_v2.
+%  Commit hashes are cited, not durations: the September commit clocks
+%  are not trustworthy as durations (PROTOCOL_FACTS, scope note).
+% =====================================================================
 \section{Measurement Protocol}
 \label{sec:protocol}
-% to be written
+
+The results in Sections~\ref{sec:squeeze}--\ref{sec:pitfalls} come from
+ten pre-registered gates. Each gate is a sweep whose cells, run order,
+tests, correction family and stop conditions were committed before its
+first timed run. This section describes what those gates have in common
+and lists, gate by gate, what was decided in advance and what happened
+(Table~\ref{tab:gates}). The protocol was not fixed at the start of the
+project. Several of its rules were added after the failures catalogued
+in Section~\ref{sec:pitfalls}, and we say below which ones.
+
+\subsection{Platforms}
+\label{sec:protocol:platforms}
+
+The primary platform is an NVIDIA RTX~5070~Ti with 16\,GB of VRAM,
+running the open-source kernel modules of driver 595.91.07 on Linux
+kernel 7.0.0-34. The earliest characterization gates (E0.5, E0.7 and
+E0.9) ran on kernel 7.0.0-31 of the same machine. Gates that load our
+modified module ran it with source version \texttt{5997D238} (E0.9b,
+E1) or \texttt{33FD42E6} (E4--E6). Gates about the shipped driver load
+the unmodified module, source version \texttt{6284DA42}; E7--E9 ran
+  with the machine booted to a text-mode target and no desktop session.
+
+The replication platform is an AWS \texttt{g4dn.xlarge} instance with a
+Tesla~T4 (sm\_75, 15\,GB), 4~vCPUs and 15\,GiB of host memory, running
+kernel 6.17.0-1017-aws. Its driver packages were installed from the
+distribution's archive at the same version, 595.91.07, and checked by
+SHA-256 against the published packages. The stock module has the same
+source version on both machines. Every timed run on the T4 was made
+with no remote-desktop or graphical session active.
+
+\subsection{One Timed Run}
+\label{sec:protocol:run}
+
+Every gate runs its cells through the same per-run procedure. The
+runners form a chain in which each imports the previous one unchanged,
+so the procedure is the same code from E0.9b onward.
+\begin{enumerate}
+\item The module's reference count is checked (it must be zero) and the
+  module is unloaded.
+\item The module is reloaded with the cell's parameters: for the stock
+  module, the prefetcher switch and \texttt{uvm\_perf\_prefetch\_threshold};
+  for ours, also the policy, width and oracle parameters.
+\item The source version and every parameter are read back from
+  \texttt{sysfs} and compared with the values the cell expects. A
+  mismatch stops the gate. For our module with the fast oracle lookup,
+  the load-time verification flag must also be set
+  (Section~\ref{sec:design}). Without this check the module would fall
+  back silently to the slow path.
+\item The kernel log is snapshotted. New lines are selected by
+  timestamp, not by line count; an earlier count-based diff could miss
+  lines (Section~\ref{sec:pitfalls}, catalog entry~24).
+\item Our module's counters, region history and oracle cursor are
+  cleared.
+\item The benchmark runs as \texttt{timeout~$T$~setarch~-R~<bench>},
+  with \texttt{time.monotonic\_ns()} taken around the whole process.
+  This \emph{process wall-clock} is the outcome measure of every gate.
+  \texttt{setarch -R} disables address-space randomization, so the
+  managed allocations, and hence the oracle tables, land at the same
+  virtual addresses in every run.
+\item The runner sleeps for one second, outside the timed region, so
+  that staging work still in flight finishes before the next run.
+\item Counters, available host memory and free disk space are read, and
+  each new kernel-log line is matched against the stop pattern.
+\item One CSV row is appended. The CSV is committed to version control
+  every ten rows.
+\end{enumerate}
+Runs follow a single order file. The order is generated from a fixed
+seed, interleaves the cells so that slow drift in the machine is spread
+across them, and is committed with its SHA-256. From E6 onward the
+runner refuses an order file whose hash is not in the committed list.
+E4 and E5 record the hash only in their pre-registration.
+
+The oracle tables used by E0.9b--E6 are collected in a separate pass,
+with the prefetcher off and our module logging every distinct faulted
+page. The pass asserts the expected number of distinct pages
+(1{,}125{,}000 for Stencil-24K and 287{,}956 for GraphBFS-23) before a
+table can be used.
+
+\subsection{Pre-Registration}
+\label{sec:protocol:prereg}
+
+Each gate's pre-registration fixes the following: the cells and the
+number of runs per cell; the seed and the order hash; the comparisons
+and how they are grouped into correction families; a falsification
+trigger or a mechanical verdict rule; numbered expectations, from E6
+onward; and the stop conditions. The rule is that this commit must
+precede the first timed run. We establish that order by git ancestry,
+not by commit times: for every gate, the pre-registration commit is an
+ancestor of the first commit containing a timed row. Smoke and pilot
+runs, used to exercise the harness, are excluded from every analysis.
+
+A pre-registration may be amended only before its first timed run, and
+the amendment is committed and stated in the report. Three gates were
+amended. On the T4, the instance was powered off during the smoke pass
+(Amendment~1 of E7-T4: new start time and cap). Its oversubscribed
+Stencil cell needed more managed memory than the instance's host memory
+and was killed by the kernel's out-of-memory handler in the smoke pass.
+That cell was removed, which shrank Family~B from 16 to 14 tests, and a
+host-memory stop condition was added (Amendment~2). H1 lost its
+oversubscribed cells after a defect in the stock driver
+(Section~\ref{sec:protocol:stops}). The fourth departure is E0.9b's
+addendum. It was committed after ten pilot runs and before the sweep,
+to fix a prediction interval taken from those pilot runs. The addendum
+says so. The prediction test it set up failed
+(Section~\ref{sec:pitfalls}).
+
+Pre-registration cannot make a measurement correct; it only makes it
+impossible to choose the analysis after seeing the result. Section~\ref{sec:pitfalls}
+lists five validations that could not have failed. The protocol's answer is a \emph{positive control}. Every analysis
+script from E6 onward has one, and E4's and E5's were added
+retrospectively. The script is run on a copy of the data in which a known effect
+is present, and must report it. It is then run on a perturbed copy that
+violates the expected result, and must fail. A script that passes both
+copies does not count as validated.
+
+\subsection{Statistics}
+\label{sec:protocol:stats}
+
+The statistic of record is the median of process wall-clock per cell.
+E5 also tests the median number of demand faults. Each comparison
+reports the difference of medians, in seconds and as
+$\delta = (\text{arm} - \text{baseline})/\text{baseline}$, so a negative
+$\delta$ means the arm is faster. It also reports a two-sided
+Mann--Whitney $U$ test, which is exact when the pooled samples have no
+ties and asymptotic otherwise, and Cohen's $d$ with the pooled standard
+deviation. Significance is decided by Holm's step-down procedure at
+$\alpha = 0.05$ within each pre-declared family. Families are never
+pooled across gates.
+
+To say how large an effect each test could have detected, we report a
+minimum detectable effect at the family's corrected level:
+\begin{equation}
+\mathrm{MDE} = \bigl(z_{1-\alpha/(2m)} + z_{0.80}\bigr)
+\sqrt{s_1^2/n_1 + s_2^2/n_2},
+\label{eq:mde}
+\end{equation}
+where $m$ is the family size and $s_i$, $n_i$ are the standard deviation
+and number of runs of the two cells. A non-significant comparison whose
+MDE is smaller than an effect of interest is evidence that the effect is
+absent at that size. A comparison whose MDE is larger is not evidence
+either way.
+
+Early analysis scripts hard-coded the correction for a family of 16
+(\texttt{Z\_MDE\_BONF}). E4 and E5 overrode it for their own families;
+E6 did not. An audit recomputed every MDE in this paper at the family's
+own level (Section~\ref{sec:pitfalls}, catalog entry~27).
+
+As a secondary analysis, every comparison is repeated without Tukey
+outliers, the runs beyond 1.5 interquartile ranges. These runs are never
+removed from the primary analysis. When the two analyses disagree, we
+report both.
+
+\subsection{Stop Conditions}
+\label{sec:protocol:stops}
+
+Every gate stops on its first anomaly: no retry, no module reload, no
+restoration of the desktop. The machine is left as it is and the
+evidence is committed. The list grew with the project. From E0.9b it
+covered:
+\begin{itemize}
+\item a new kernel-log line matching \texttt{BUG}, \texttt{Oops},
+  \texttt{WARNING}, \texttt{general protection}, \texttt{NULL pointer}
+  or \texttt{exited with irqs disabled};
+\item a failed unload or a nonzero reference count;
+\item a benchmark timeout;
+\item less than 6\,GiB of available host memory;
+\item less than 10\,GiB of free disk;
+\item a source-version mismatch;
+\item any departure from the pre-registration.
+\end{itemize}
+E4 added soft lockups, hung tasks and RCU stalls, a parameter read-back
+mismatch, a nonzero benchmark exit, and three internal checks of our
+module: the oracle's verification flag, CAS give-ups and invalid
+regions. E5 added the threshold read-back, and E8 a checksum mismatch.
+
+No stop condition fired in any timed run. The two that fired did so in
+smoke passes. The first was the T4 out-of-memory kill described above.
+The second was a NULL-pointer dereference in the stock driver: in H1,
+on the first oversubscribed cell with HMM-managed (\texttt{malloc}'d)
+memory, the driver's chunk-free thread crashed and the fault-servicing
+thread then spun on a lock until the host was power-cycled. No modified
+code was loaded. The stop rule forbade a retry, and the oversubscribed
+HMM cells were removed by an amendment before any timed run. The
+consequence for the claims is stated in Section~\ref{sec:discussion}:
+the sparse, oversubscribed half of the threshold trade-off is tested
+only on managed memory.
+
+\subsection{Gates}
+\label{sec:protocol:gates}
+
+Table~\ref{tab:gates} summarizes the ten gates. Four early gates (E0.9b,
+E1, E4, E5) have verdict rules or falsification triggers but no numbered
+expectations. From E6 onward, each gate also commits numbered
+expectations with stated directions. Each one is scored as held, failed
+or unscored, and the scores are reported whether or not they favor our
+account. Across E6--E9, E7-T4 and H1, 20 expectations held, 4 failed,
+1 could not be scored because it had no direction (E6~X3), and 1 was
+withdrawn by amendment before any timed run (H1~Y3).
+% [CHECK] 20/4/1/1 summed by hand from the expectation column.
+
+Process deviations that did not involve a stop:
+\begin{itemize}
+\item one E4 run was interrupted by a user-initiated shutdown, and the
+  sweep resumed at the next index as its pre-registration specifies;
+\item an E6 session was killed by an unrelated process isolation and
+  resumed with no run in the gap;
+\item an E9 session was paused overnight and its time cap re-anchored.
+\end{itemize}
+Each is recorded in the gate's report.
+
+\begin{table*}[t]
+\centering
+\caption{Pre-registered gates. ``Family'' gives the Holm family sizes
+(all at $\alpha=0.05$); $n$ is runs per cell. Trigger/verdict is the
+pre-committed rule and its outcome. Expectations: held/failed/unscored.
+Stop conditions fired in no timed run of any gate.}
+\label{tab:gates}
+\footnotesize
+\begin{tabular}{@{}lllllll@{}}
+\toprule
+Gate & Platform, module & Family & $n$ & Trigger or verdict rule & Outcome & Exp.\\
+\midrule
+E0.9b & 5070\,Ti, ours (\texttt{5997D238}) & 16 & 10 & any C6-$L$ beats C0 by $>$MDE & not fired; prediction test failed & --\\
+E1    & 5070\,Ti, ours (\texttt{5997D238}) & 8  & 10 & any C7-$L$ beats C0 by $>$MDE & not fired & --\\
+E4    & 5070\,Ti, ours (\texttt{33FD42E6}) & 18 & 10 & any F1 arm beats C0 by $>$MDE & \textbf{fired} ($-4.93\%$) & --\\
+E5    & 5070\,Ti, ours (\texttt{33FD42E6}) & 3+3 & 10 & H-feed verdict rule & Supported & --\\
+E6    & 5070\,Ti, ours (\texttt{33FD42E6}) & 4, 3, 3, 2 & 10 & V-B: some C0-$t$ not slower than C7 & \textbf{fired} & 2/1/1\\
+E7    & 5070\,Ti, stock & 2, 16, 2 & 10 & none (headline: Family A) & -- & 5/1/0\\
+E8    & 5070\,Ti, stock & 16 & 10 & slowdown at $K<512$ falsifies generality & \textbf{fired} (6 cells) & 3/2/0\\
+E9    & 5070\,Ti, stock, \texttt{nsys} & -- (descriptive) & 3 & none & -- & 4/0/0\\
+E7-T4 & T4, stock & 2, 14$^{a}$ & 10 & slowdown at $t_0$ or $t_{25}$ & not fired; replicated ($-5.07\%$) & 3/0/0\\
+H1    & 5070\,Ti, stock, HMM & 3$^{b}$ & 10 & dense cell faster at $t_0$ & dense replicated on HMM & 3/0/0$^{b}$\\
+\bottomrule
+\end{tabular}
+
+\smallskip
+\raggedright
+$^{a}$16 before Amendment~2 (oversubscribed Stencil removed; host memory).
+$^{b}$After Amendment~1 (oversubscribed cells removed; stock-driver
+defect). Y3 withdrawn, not scored.
+\end{table*}
