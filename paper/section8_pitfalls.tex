@@ -1,0 +1,131 @@
+% =====================================================================
+% Section VIII -- A Catalog of Measurement Artifacts
+% SpecAsync-UVM manuscript, draft 1 (2026-11-06)
+% Source: ARTIFACT_CATALOG.md (31 entries), RESULTS_FACTS.md Section VIII
+% (family counts and how-caught column), T-CAT (paper/tables/T-CAT.tex).
+% Entry numbers are the catalog's. The "103 days" for #13 is from the
+% catalog text (RESULTS_FACTS VIII); [CHECK] it against the catalog entry.
+% =====================================================================
+
+\section{A Catalog of Measurement Artifacts}
+\label{sec:pitfalls}
+
+Over the course of this study we recorded 31 artifacts: errors in measurement,
+analysis or procedure, each with the false conclusion it produced or would have
+produced. Table~\ref{tab:catalog} lists them. We report them for two reasons.
+Several of them shaped the results of Sections~\ref{sec:spec}
+and~\ref{sec:threshold}, including the reversal of this study's earlier
+conclusion, so a reader needs them to judge those results. And most are not
+specific to our mechanism: they can arise in any measurement of a GPU driver.
+
+\subsection{Families}
+
+We group the entries by the mechanism of the error, not by its consequence
+(Table~\ref{tab:families}).
+
+\begin{table}[t]
+\centering
+\footnotesize
+\caption{Catalog entries by family.}
+\label{tab:families}
+\begin{tabular}{@{}l l r@{}}
+\toprule
+Family & Entries & $n$\\
+\midrule
+Aggregation-level mismatch & 7, 8, 9, 13, 16, 17, 18, 25, 27 & 9\\
+Validation that could not fail & 1, 2, 12, 14, 15, 31 & 6\\
+Instrument cost and blindness & 4, 5, 19, 20, 21 & 5\\
+Operational hazards & 3, 10, 11, 22, 24, 28, 29, 30 & 8\\
+Record integrity & 23, 26 & 2\\
+Uncategorised (a genuine outlier) & 6 & 1\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Aggregation-level mismatch}
+A quantity is recorded at one level and consumed at another: per batch and
+per fault, per trial and per run, a share of one window applied to another. The
+most consequential entry in the catalog is of this kind (\#13). Our first
+oracle recorded faults once per batch and replayed them once per fault, so it
+ran ahead of the application and wrapped. Every oracle result for 103 days was
+read as the result of a maximally favourable predictor, and the conclusion
+that ``even oracle prediction yields no benefit'' was the paper's thesis. The
+others in the family are smaller versions of the same error: capped ring
+counts read as totals (\#7), rates computed over the wrong denominator (\#8,
+\#16), a ceiling expressed in the units of a different window (\#9, \#25), and
+a multiplicity correction hard-coded for a family of 16 and reused for others
+(\#27, Section~\ref{sec:protocol}).
+
+\paragraph{Validation that could not fail}
+A check passes, but it would have passed whatever the truth was. The first
+fix to the oracle was validated by an improvement, without an absolute
+ceiling against which to judge it (\#15). A positive control that could not have
+failed was read as showing that the fix, its hit accounting and the width path
+were sound (\#14). A large speedup under oversubscription,
+measured against a crippled baseline, appeared to reverse the paper's
+conclusion (\#12). The newest entry is
+of this kind too (\#31). We validated GPU memory in use as a measure of
+migrated volume on HMM memory, where the driver allocates 4\,KB pages, and then
+used it on managed memory, where the driver allocates a whole 2\,MB chunk per
+block on the first fault. There it reads allocation, not migration, and an
+expectation scored on it held (Section~\ref{sec:thr-hmm}).
+
+\paragraph{Instrument cost and blindness}
+An instrument changes what it measures, or cannot see it. The clearest case is
+our oracle (\#21): its lookup ran on the fault-servicing thread under a global
+lock, so an instrument meant to bound speculation's benefit was paying most of
+speculation's per-fault cost (Section~\ref{sec:spec-cost}). Another counter,
+named \texttt{spec\_hits}, counted faults on pages predicted within a time
+window and was read as prediction success; a second counter, measuring whether
+the worker actually finished first, disagreed with it (\#20). Two entries
+concern our own ring buffers, read at a drifting byte offset (\#5) and in slot
+order rather than time order (\#19).
+
+\paragraph{Operational hazards}
+These are errors of procedure: results taken with address randomisation
+disabled read as general platform behaviour (\#10), a host memory leak (\#11), a kernel-log diff
+by line count that could miss lines (\#24), a driver patch silently replaced by a Git LFS
+pointer (\#28), a session ended by our own clean-up command (\#29), and an
+oversubscribed run sized against GPU memory but not host memory (\#30). The one
+that changed our development protocol is \#22: an instrumentation counter called
+a driver helper that returns a null pointer when the GPU has no state in a
+block, guarded only by a non-fatal assertion, and the kernel oopsed
+(Section~\ref{sec:design-safety}).
+
+\paragraph{Record integrity}
+Two entries concern our records rather than our measurements: a platform table
+that silently fell behind a driver upgrade (\#23), and a status log treated as
+a primary record of timing (\#26). Section~\ref{sec:protocol} explains why we
+establish the order of events by version-control ancestry, not by the clocks in
+those records.
+
+\subsection{How the Errors Were Caught}
+
+Each entry records how it was found. Of the nine aggregation-level errors, eight
+were caught only by a later, independent pass: a re-investigation, a source
+audit, or the author of a later gate. Seven of them had already reached a
+reported figure or conclusion. One (\#25) was caught inside the gate that made
+it, by a pre-registered prediction test: E0.9b's addendum predicted, from pilot
+runs, the interval in which its result should fall, and the result fell outside
+it. Across all families, four errors were caught inside their own gate, and all
+four by a check written before the measurement: a pre-registered test (\#10,
+\#21, \#25) or a pre-registered smoke pass (\#30).
+
+We state this pattern descriptively. The samples are small, two or three entries
+per catching mechanism, and the counts are biased: an error caught inside its gate may
+never have been recorded as an artifact at all, so in-gate catches are
+under-counted by construction. Two lessons nevertheless shaped the protocol of
+Section~\ref{sec:protocol}. A check that cannot fail is not a check, hence the
+positive controls that must also reject a perturbed copy. And an error of
+aggregation level is invisible from inside the analysis that makes it, because
+every step is arithmetically correct; what catches it is a second, independent
+path to the same number.
+
+\begin{table*}[t]
+\centering
+\footnotesize
+\caption{The artifact catalog. Each entry: the false conclusion it produced or
+would have produced, and how it was caught.}
+\label{tab:catalog}
+\input{tables/T-CAT}
+\end{table*}

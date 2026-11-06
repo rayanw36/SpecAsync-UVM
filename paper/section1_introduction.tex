@@ -36,6 +36,10 @@
 % OPEN before submission:
 %   [SRC]  RESOLVED (C4): cudaMemPrefetchAsync to a GPU maps
 %          (uvm_migrate.c:680, :698-699 MAKE_RESIDENT_AND_MAP).
+%   [C14]  fixed: three sessions (not four); eight further workloads (not
+%          nine); 'did not reduce' (C6 faults +1.3% vs C1); three triggers
+%          fired (E4, E6, E8 per PROTOCOL_FACTS; confirm E8 wording); catalog
+%          sentence made descriptive (RESULTS_FACTS VIII counts).
 %   [HMM]  H1 (C10), H2 (C11), C12: HMM numbers from GATE_H2_REPORT.md
 %          (H2.malloc_k1/k8.t0_vs_t51); catalog #31 pending application.
 %   [CAT]  RESOLVED: 30 entries after C6 (ARTIFACT_CATALOG.md).
@@ -79,8 +83,7 @@ prefetcher rather than speculation.
 The background worker can make a page resident, but in this driver only the
 fault-servicing path installs GPU mappings. A staged page therefore still
 faults when the GPU first touches it. We confirmed this from source, from
-counters, and with the oracle: with the prefetcher disabled, staging 99.95\% of
-pages ahead of demand left the demand-fault count unchanged, and that
+counters, and with the oracle: with the prefetcher disabled, staging 99.95\% of pages ahead of demand did not reduce the demand-fault count, and that
 configuration remained $2.92\times$ slower than the shipped driver. Speculation
 can move copy work off the fault-servicing thread, worth 21--23\% against a
 driver whose prefetcher is off, but it cannot recover what turning the
@@ -88,7 +91,7 @@ prefetcher off costs.
 
 \paragraph{Against the shipped driver, speculation helps only through the prefetcher}
 With the prefetcher on, whole-block staging with the oracle beats the shipped
-driver on a stencil workload by 3.4--5.3\% across four independent sessions,
+driver on a stencil workload by 3.4--5.3\% across three independent sessions,
 with no detectable gain on graph traversal. The gain does not come from the
 staged pages themselves. The prefetcher's density rule counts \emph{resident}
 pages, so pages staged by the worker push regions over its threshold, and the
@@ -104,7 +107,7 @@ makes the stock driver 9.57\% faster on the same stencil workload (confirmatory
 test), and the oracle-driven speculation configuration at the shipped threshold
 is 6.4\% slower than it. At matched thresholds, speculation adds at most 2.8\%,
 and nothing detectable at threshold 0 or 10 (minimum detectable effects 2.0\%
-and 2.3\% at the family's corrected level). Across nine dense or streaming workloads, the lower threshold sped up
+and 2.3\% at the family's corrected level). Across eight further dense or streaming workloads, the lower threshold sped up
 four, by 2.5--17\%, and significantly slowed none.
 
 \paragraph{But the lever cuts both ways}
@@ -173,18 +176,17 @@ written before the measurement it tested.
 
   \item \textbf{A falsifiable measurement protocol, exercised.} Every gate fixed
   its families, statistic, test, minimum detectable effect, and falsification
-  trigger in a committed file before running. Two triggers fired and changed the
-  paper's conclusion. Analysis uses medians, two-sided Mann--Whitney $U$, Holm
+  trigger in a committed file before running. Three triggers fired, and each changed the paper's conclusion. Analysis uses medians, two-sided Mann--Whitney $U$, Holm
   correction across pre-declared families, and reports outliers with and
   without removal.
 
   \item \textbf{A catalog of UVM measurement artifacts.} Thirty-one artifacts
   met in this study, each with the false conclusion it would have produced,
-  including the misaligned oracle. One pattern stands out: errors arising from
-  a mismatch of aggregation level (per batch versus per fault, per trial versus
-  per run) were caught only by later, independent passes, after they had spread
-  into other reports, whereas pre-registered predictions caught errors inside the
-  gate that made them.
+  including the misaligned oracle. One pattern stands out, descriptively: of
+  nine errors arising from a mismatch of aggregation level (per batch versus per
+  fault, per trial versus per run), eight were caught only by a later,
+  independent pass; the four errors caught inside the gate that made them were
+  all caught by a pre-registered check.
 \end{itemize}
 
 \subsection{Scope}
