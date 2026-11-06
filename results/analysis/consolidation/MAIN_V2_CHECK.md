@@ -2,7 +2,7 @@
 
 Files followed: main_v2.tex, section1_introduction.tex, section2_related_work.tex, section3_background.tex, section4_design.tex, section5_protocol.tex, section6_speculation.tex, section7_threshold.tex, section8_catalog.tex, section9_conclusion.tex
 
-- labels: 34; \ref uses: 23; unresolved refs: **0**
+- labels: 35; \ref uses: 24; unresolved refs: **0**
 - duplicate labels: **0**
 - distinct cite keys: 31; missing from ref.bib: **0**
 

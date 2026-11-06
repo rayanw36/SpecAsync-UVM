@@ -28,6 +28,13 @@
 | H1 | Y2 | HELD | `results/analysis/gate_e/GATE_H1_REPORT.md:35` |
 | H1 | Y3 | WITHDRAWN | `results/analysis/gate_e/GATE_H1_REPORT.md:36` |
 | H1 | Y4 | HELD | `results/analysis/gate_e/GATE_H1_REPORT.md:37` |
+| H2 | Z1 | HELD | `results/analysis/gate_e/GATE_H2_REPORT.md:45` |
+| H2 | Z2 | FAILED | `results/analysis/gate_e/GATE_H2_REPORT.md:46` |
+| H2 | Z3 | FAILED | `results/analysis/gate_e/GATE_H2_REPORT.md:47` |
+| H2 | Z4 | HELD | `results/analysis/gate_e/GATE_H2_REPORT.md:48` |
+| H2 | Z5 | HELD | `results/analysis/gate_e/GATE_H2_REPORT.md:49` |
+| H2 | Z6 | HELD | `results/analysis/gate_e/GATE_H2_REPORT.md:50` |
+| H2 | Z7 | HELD | `results/analysis/gate_e/GATE_H2_REPORT.md:51` |
 
-**Totals recounted from the reports:** 20 held, 4 failed, 1 unscored, 1 withdrawn (26 expectations; unknown: 0).
-**Section V's `[CHECK]` line (20 held, 4 failed, 1 unscored, 1 withdrawn): MATCHES.**
+**Totals recounted from the reports:** 25 held, 6 failed, 1 unscored, 1 withdrawn (33 expectations; unknown: 0).
+**Section V's `[CHECK]` line (25 held, 6 failed, 1 unscored, 1 withdrawn): MATCHES.**
