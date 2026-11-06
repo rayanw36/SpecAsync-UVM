@@ -1,0 +1,566 @@
+@article{allen2024finegrain,
+  title   = {Fine-grain Quantitative Analysis of Demand Paging in {UVM}},
+  author   = {Allen, Tyler and Cooper, Bennett and Ge, Rong},
+  journal = {ACM Transactions on Architecture and Code Optimization (TACO)},
+  year    = {2024},
+  volume  = {21},
+  number  = {1},
+  pages    = {1--24},
+  doi      = {10.1145/3632953},
+  note    = {Driver-level measurement and batch cost breakdown for UVM demand paging.}
+}
+
+@misc{gu2020uvmbench,
+  title        = {{UVMBench}: A Comprehensive Benchmark Suite for Researching Unified Virtual Memory in GPUs},
+  author       = {Gu and others},
+  year         = {2020},
+  howpublished = {arXiv preprint},
+  eprint       = {2007.09822},
+  archivePrefix= {arXiv},
+  note         = {Benchmark suite covering ML/graph/HPC workloads for UVM studies.}
+}
+
+@article{long2022dlprefetch_published,
+  title   = {Deep Learning Based Data Prefetching in {CPU--GPU} Unified Virtual Memory},
+  author  = {Long, Xinjian and Gong, Xiangyang and Zhou, Huiyang and Zhang, ...},
+  journal = {Journal of Parallel and Distributed Computing},
+  year    = {2023},
+  doi     = {10.1016/j.jpdc.2022.12.004},
+  note    = {Upgrade of long2022dlprefetch (arXiv 2203.12672) -- has since been published.}
+}
+
+@misc{nazaraliyev2024gpuvm,
+  title        = {{GPUVM}: {GPU}-driven Unified Virtual Memory},
+  author       = {Nazaraliyev and Sadredini and Abu-Ghazaleh},
+  year         = {2024},
+  howpublished = {arXiv preprint},
+  eprint       = {2411.05309},
+  archivePrefix= {arXiv},
+  note         = {GPU-driven paging control using RDMA/RNIC mechanisms.}
+}
+
+@article{jin2019prescheduling,
+  title   = {Towards Low-Latency Batched Stream Processing by Pre-Scheduling},
+  author  = {Jin and Chen and Wu and Yao and Liu and Gu and Zhou},
+  journal = {IEEE Transactions on Parallel and Distributed Systems (TPDS)},
+  year    = {2019},
+  note    = {Pre-scheduling to mitigate stragglers in batched systems; used as an analogy for pre-staging work.}
+}
+
+@inproceedings{go2023earlyadaptor,
+  author    = {Go, Seokjin and Lee, Hyunwuk and Kim, Junsung and Lee, Jiwon and Yoon, Myung Kuk and Ro, Won Woo},
+  title     = {{Early-Adaptor}: An Adaptive Framework for Proactive {UVM} Memory Management},
+  booktitle = {Proceedings of the IEEE International Symposium on Performance Analysis of Systems and Software (ISPASS)},
+  year      = {2023},
+  pages     = {248--258},
+  doi       = {10.1109/ISPASS57527.2023.00032},
+  note      = {RTX 3090; NVIDIA open driver 515.65.01; CUDA 11.7; real hardware.}
+}
+
+@inproceedings{pratheek2024suv,
+  title     = {{SUV}: Static-Analysis-Guided Unified Virtual Memory},
+  author    = {Pratheek and others},
+  booktitle = {IEEE/ACM International Symposium on Microarchitecture (MICRO)},
+  year      = {2024},
+  note      = {Uses static analysis to guide pinning/prefetch/migration decisions for UVM.}
+}
+
+@article{kim2025most,
+  title   = {{MOST}: Memory Oversubscription-Aware Scheduling for Tensor Migration on {GPU} Unified Storage},
+  author  = {Kim and others},
+  journal = {IEEE Computer Architecture Letters (CAL)},
+  year    = {2025},
+  note    = {Scheduling policy for oversubscription-aware tensor migration in unified storage settings.}
+}
+
+@inproceedings{li2019oversubframework,
+  title     = {A Framework for Memory Oversubscription Management in {GPU}s},
+  author    = {Li and others},
+  booktitle = {Architectural Support for Programming Languages and Operating Systems (ASPLOS)},
+  year      = {2019},
+  note      = {Coordinated policies to reduce thrashing under GPU memory oversubscription.}
+}
+
+@inproceedings{nihaal2024compression,
+  title     = {Selective Memory Compression for {GPU} {UVM}},
+  author    = {Nihaal and Mutyam},
+  booktitle = {International Conference on Parallel Processing (ICPP)},
+  year      = {2024},
+  note      = {Selective compression and packing to increase effective capacity under oversubscription (simulation).}
+}
+
+@inproceedings{lin2025forest,
+  title     = {Forest: Access-Aware {GPU} {UVM} Management},
+  author    = {Lin and others},
+  booktitle = {International Symposium on Computer Architecture (ISCA)},
+  year      = {2025},
+  note      = {Access-aware UVM management using prediction/queuing (reported as simulation-based in the project table).}
+}
+
+@article{long2022oversub,
+  title   = {An Intelligent Framework for Oversubscription Management in {CPU--GPU} Unified Memory},
+  author  = {Long, Xinjian and Gong, Xiangyang and Zhou, Huiyang},
+  journal = {Journal of Grid Computing},
+  volume  = {21},
+  number  = {11},
+  year    = {2023},
+  doi     = {10.1007/s10723-023-09646-1},
+  note    = {Was cited as anonymous2022learningoversub (arXiv 2204.02974, author field
+             "Anonymous") -- real authors and peer-reviewed venue recovered by this audit.}
+}
+
+@inproceedings{jain2020crac,
+  title     = {{CRAC}: Checkpoint-Restart Architecture for {CUDA} with Streams and {UVM}},
+  author    = {Jain, Twinkle and Cooperman, Gene},
+  booktitle = {Proceedings of the International Conference for High Performance Computing,
+               Networking, Storage and Analysis (SC)},
+  year      = {2020},
+  doi       = {10.5555/3433701.3433803},
+  note      = {Was cited as jain2019crac (@techreport, year=2019) -- real venue is SC'20,
+               not a technical report; year corrected 2019 to 2020.}
+}
+
+@inproceedings{yu2020cppe,
+  title     = {Coordinated Page Prefetch and Eviction for Memory Oversubscription Management in {GPU}s},
+  author    = {Yu and others},
+  booktitle = {IEEE International Parallel and Distributed Processing Symposium (IPDPS)},
+  year      = {2020},
+  note      = {Couples prefetch with modified eviction to reduce thrashing (simulation).}
+}
+
+@inproceedings{chien2019umfeatures,
+  title     = {Performance Evaluation of Advanced Features in {CUDA} Unified Memory},
+  author    = {Chien and Peng and Markidis},
+  booktitle = {Workshop on Memory Centric High Performance Computing (MCHPC)},
+  year      = {2019},
+  note      = {Evaluates prefetch/advice and platform sensitivity of Unified Memory features.}
+}
+
+@misc{diehl2018hpxcl,
+  title        = {Integration of {CUDA} Processing within {HPX} ({HPXCL})},
+  author       = {Diehl and others},
+  year         = {2018},
+  howpublished = {arXiv preprint},
+  note         = {Asynchronous task/future-based GPU execution interface enabling overlap.}
+}
+
+@inproceedings{choi2022gpuaware_published,
+  title     = {Improving Scalability with {GPU}-Aware Asynchronous Tasks},
+  author    = {Choi, Jaemin and Richards, David F. and Kale, Laxmikant V.},
+  booktitle = {2022 IEEE International Parallel and Distributed Processing Symposium
+               Workshops (IPDPSW)},
+  year      = {2022},
+  doi       = {10.1109/IPDPSW55747.2022.00164},
+  note      = {Upgrade of choi2022gpuaware (arXiv 2202.11819) -- has since been published.}
+}
+
+@inproceedings{jung2020hum,
+  title     = {Overlapping Host-to-Device Copy and Computation using Hidden Unified Memory ({HUM})},
+  author    = {Jung and Park and Do and Park and Lee},
+  booktitle = {ACM SIGPLAN Symposium on Principles and Practice of Parallel Programming (PPoPP)},
+  year      = {2020},
+  note      = {Uses UM/page-fault-driven mechanisms to overlap H2D copies and computation.}
+}
+
+@inproceedings{parravicini2021dagpolyglot_published,
+  title     = {{DAG}-based Scheduling with Resource Sharing for Multi-task Applications
+               in a Polyglot {GPU} Runtime},
+  author    = {Parravicini, Alberto and Delamare, Arnaud and Arnaboldi, Marco and
+               Santambrogio, Marco D.},
+  booktitle = {2021 IEEE International Parallel and Distributed Processing Symposium (IPDPS)},
+  year      = {2021},
+  doi       = {10.1109/IPDPS49936.2021.00105},
+  note      = {Upgrade of parravicini2021dagpolyglot (arXiv 2012.09646) -- has since been
+               published.}
+}
+
+@inproceedings{bastem2017tiles,
+  title     = {Overlapping Data Transfers with Computation on {GPU} with Tiles},
+  author    = {Bastem, Burak and Unat, Didem and Zhang, Weiqun and Almgren, Ann and Shalf, John},
+  booktitle= {2017 46th International Conference on Parallel Processing (ICPP)},
+  year     = {2017},
+  doi      = {10.1109/ICPP.2017.26},
+  pages    = {171--180}
+}
+
+% =============================================================================
+% Original (miscited / stale-preprint) entries, superseded above by BIB_AUDIT.md's
+% corrected replacements. Kept for auditability inside a single Comment block
+% below -- a bare percent-sign prefix does NOT reliably hide a BibTeX entry
+% from bibtex's parser (it scans for the entry-start sign regardless of
+% preceding text), so the native BibTeX comment mechanism is used instead. Do
+% not restore these without also removing the corrected entries above, to
+% avoid duplicate keys.
+% =============================================================================
+@Comment{
+@misc{long2022dlprefetch,
+  title        = {Deep Learning Based Data Prefetching in {CPU--GPU} Unified Virtual Memory},
+  author       = {Long and Gong and Zhou and Zhang},
+  year         = {2022},
+  howpublished = {arXiv preprint},
+  eprint       = {2203.12672},
+  archivePrefix= {arXiv},
+  note         = {Transformer-style predictor evaluated in simulation.}
+}
+
+@misc{anonymous2022learningoversub,
+  title        = {Learning-Based Oversubscription Management for {CPU--GPU} {UVM}},
+  author       = {Anonymous},
+  year         = {2022},
+  howpublished = {arXiv preprint},
+  eprint       = {2204.02974},
+  archivePrefix= {arXiv},
+  note         = {Early preprint on ML-guided prefetch/evict under oversubscription.}
+}
+
+@techreport{jain2019crac,
+  title       = {{CRAC}: Checkpoint-Restart Architecture for {CUDA} with Streams and {UVM}},
+  author      = {Jain and Cooperman},
+  institution = {Technical Report},
+  year        = {2019},
+  note        = {Checkpoint/restart for CUDA streams and UVM; emphasizes correctness and replay.}
+}
+
+@misc{choi2022gpuaware,
+  title        = {Improving Scalability with {GPU}-Aware Asynchronous Tasks},
+  author       = {Choi and Richards and Kale},
+  year         = {2022},
+  howpublished = {arXiv preprint},
+  eprint       = {2202.11819},
+  archivePrefix= {arXiv},
+  note         = {Overlap/stream/graph techniques for scalable GPU execution and coordination.}
+}
+
+@misc{parravicini2021dagpolyglot,
+  title        = {DAG-based Scheduling with Resource Sharing for Multi-task Applications in a Polyglot {GPU} Runtime},
+  author       = {Parravicini and Delamare and Arnaboldi and Santambrogio},
+  year         = {2021},
+  howpublished = {arXiv preprint},
+  eprint       = {2012.09646},
+  archivePrefix= {arXiv},
+  note         = {Runtime-inferred DAG scheduling and stream overlap; not UVM-specific but informs overlap patterns.}
+}
+
+@techreport{bastemTilesTR,
+  title       = {Overlapping Data Transfers with Computation on {GPU} with Tiles},
+  author      = {Bastem and Unat and Zhang and Almgren and Shalf},
+  institution = {Technical Report (Ko{\c{c}} University \& Lawrence Berkeley National Laboratory)},
+  year        = {n.d.},
+  note        = {Tile-based overlap of transfer and compute; useful overlap design reference.}
+}
+}
+
+% =====================================================================
+% MERGED 2026-10-10 (Gate C4 follow-up): everything below is paper/ref_additions.bib (v2) as received, including its header comments and the
+% UNVERIFIED notes. No key occurs in both files, so no entry of the original ref.bib above was changed. shen2026stride carries the 2026-10-10 fix.
+% (go2023earlyadaptor, the other 2026-10-10 fix, is in the original part above.)
+% =====================================================================
+
+% =====================================================================
+% ref_additions.bib  v2 -- entries to MERGE into paper/ref.bib
+% SpecAsync-UVM, literature refresh 2026-08-22 (Consensus-verified)
+%
+% v2 supersedes v1. Changes from v1:
+%   - allen2025mi300a was flagged as a preprint. IT IS NOT. It is IISWC 2025,
+%     peer-reviewed, lead author Jacob Wahlgren. Renamed wahlgren2025mi300a.
+%     v1's entry must be DELETED, not edited.
+%   - Added entries Consensus found that web search did not, three of which
+%     change the Section II argument (shen2026stride, guo2025ghost,
+%     vanderkouwe2019sok).
+%   - go2023earlyadaptor's substrate is now CONFIRMED as real hardware
+%     (NVIDIA RTX 3090, open-source driver) -- one of v1's four UNVERIFIED
+%     table cells is resolved.
+%
+% STILL UNVERIFIED (do not submit without checking):
+%   - Full author lists and page ranges where marked.
+%   - Substrate for pratheek2024suv, li2019oversubframework,
+%     nihaal2024compression.
+%   - POSSIBLE DATE CONFLICT: your allen2024finegrain is keyed 2024; Consensus
+%     indexes the same TACO paper as 2023. TACO issue vs. online dates often
+%     straddle a year. Make key, year field, and in-text mentions agree.
+% =====================================================================
+
+
+% ---------------------------------------------------------------------
+% GROUP A -- Direct measurement of the UVM fault path. Section II-A.
+% ---------------------------------------------------------------------
+
+% *** HIGHEST PRIORITY ADD *** Canonical driver-level UVM characterisation,
+% same authors as allen2024finegrain, currently not cited.
+@inproceedings{allen2021indepth,
+  title     = {In-Depth Analyses of Unified Virtual Memory System for {GPU}
+               Accelerated Computing},
+  author    = {Allen, Tyler and Ge, Rong},
+  booktitle = {Proceedings of the International Conference for High Performance
+               Computing, Networking, Storage and Analysis (SC)},
+  year      = {2021},
+  doi       = {10.1145/3458817.3480855},
+  note      = {Establishes the fault batch as the fundamental UVM work unit and
+               that batch service time dominates. Directly upstream of this
+               paper's seven-phase decomposition.}
+}
+
+% *** HIGHEST PRIORITY ADD *** SC'25, same group, post-dates the course paper.
+% Derives metrics from UVM driver page-fault telemetry.
+@inproceedings{jones2025helm,
+  title     = {{HELM}: Characterizing Unified Memory Accesses to Improve {GPU}
+               Performance under Memory Oversubscription},
+  author    = {Jones, Nathan and Allen, Tyler and Ge, Rong},
+  booktitle = {Proceedings of the International Conference for High Performance
+               Computing, Networking, Storage and Analysis (SC)},
+  pages     = {490--504},
+  year      = {2025},
+  doi       = {10.1145/3712285.3759812},
+  note      = {Same instrumentation family as this work; reaches a constructive
+               result where we reach a negative one. Carries an
+               artifact-evaluation appendix -- a useful model for our own
+               reproduction package.}
+}
+
+% Replaces v1's allen2025mi300a. PEER-REVIEWED, not a preprint.
+@inproceedings{wahlgren2025mi300a,
+  title     = {Dissecting {CPU-GPU} Unified Physical Memory on {AMD} {MI300A}
+               {APUs}},
+  author   = {Wahlgren, Jacob and Schieffer, Gabin and Shi, Ruimin and Le{\'o}n, Edgar A. and Pearce, Roger and Gokhale, Maya and Peng, Ivy},
+  booktitle = {2025 IEEE International Symposium on Workload Characterization
+               (IISWC)},
+  year      = {2025},
+  pages    = {368--380},
+  doi      = {10.1109/iiswc66894.2025.00038},
+  note      = {Bounds the generality of our
+               claims -- our findings concern discrete-GPU fault paths.}
+}
+
+@inproceedings{cooper2024svm,
+  title     = {Shared Virtual Memory: Its Design and Performance Implications
+               for Diverse Applications},
+  author    = {Cooper, Bennett and Scogland, Thomas R. W. and Ge, Rong},
+  booktitle = {Proceedings of the 38th ACM International Conference on
+               Supercomputing (ICS)},
+  pages    = {26--37},
+  year      = {2024},
+  doi       = {10.1145/3650200.3656608}
+}
+
+
+% ---------------------------------------------------------------------
+% GROUP B -- Prediction for UVM. Read the shen2026stride note carefully.
+% ---------------------------------------------------------------------
+
+% *** MUST ADDRESS, NOT MERELY CITE ***
+% ISMM 2026. A stride-based Markov prefetcher for GPU unified memory,
+% prototyped as a NON-INVASIVE RUNTIME LAYER on real workloads, reporting up
+% to 88% prediction accuracy and up to 1.48x speedup.
+%
+% This is the nearest thing in the literature to a positive result for the
+% family our C2 stride policy sits in, and our C2 result is that stride
+% speculation actively HARMS (+8.2% T4, +3.71% 5070 Ti). A reviewer who knows
+% this paper will read our stride result as contradicted unless we distinguish
+% the two explicitly. The distinction we can defend from our own data:
+%   (a) they predict to drive migration ABOVE the driver; we speculate INSIDE
+%       the fault handler, off-path, paying a per-fault dispatch cost they
+%       never incur;
+%   (b) our negative result is not about prediction accuracy at all -- our
+%       oracle is 100% accurate by construction and still yields nothing.
+% Their accuracy figure and our null are therefore compatible, and saying so
+% converts an apparent contradiction into support for our central claim.
+@inproceedings{shen2026stride,
+  author    = {Shen, Yunqi and Nikolopoulos, Dimitrios},
+  title     = {Stride-Aware Page Prefetching for {GPU} Unified Memory via {Markov} Pattern Prediction},
+  booktitle = {Proceedings of the 2026 ACM SIGPLAN International Symposium on Memory Management (ISMM '26)},
+  address   = {Boulder, CO, USA},
+  year      = {2026},
+  pages     = {52--65},
+  publisher = {ACM},
+  doi       = {10.1145/3814942.3816131},
+  note      = {User-space LD\_PRELOAD layer over CUPTI; cudaMemAdvise + cudaMemPrefetchAsync; A100 and V100.}
+}
+
+
+% ---------------------------------------------------------------------
+% GROUP C -- Off-path / helper-thread work on real hardware.
+% ---------------------------------------------------------------------
+
+% *** STRONGEST MECHANISTIC CORROBORATION AVAILABLE ***
+% MICRO 2025. Software-only helper-thread prefetching on real systems. Their
+% stated key challenge is TIMELINESS -- the helper thread must get far enough
+% ahead but not too far -- and they needed a cheap hardware-supported
+% synchronisation primitive because OS synchronisation was too expensive.
+%
+% That is precisely our dispatch-latency finding, reached independently in a
+% different subsystem: off-path work succeeds or fails on whether the
+% dispatch/synchronisation cost is small relative to the latency being hidden.
+% They found a primitive cheap enough; inside the UVM fault handler, we did
+% not. Cite where the 5.598us dispatch latency and the 1,685-1,894x
+% load-dependent blowup are introduced.
+@inproceedings{guo2025ghost,
+  title     = {Ghost Threading: Helper-Thread Prefetching for Real Systems},
+  author   = {Guo, Yuxin and Bhosale, Akshay and Bora, Utpal and Chadwick, Alexandra W. and Erd{\H{o}}s, M{\'a}rton and Gabrielli, Giacomo and Jones, Timothy M.},
+  booktitle = {Proceedings of the 58th IEEE/ACM International Symposium on
+               Microarchitecture (MICRO)},
+  year      = {2025},
+  pages    = {899--914},
+  doi      = {10.1145/3725843.3756106},
+  note      = {Reports 1.33x geomean speedup.
+               Their emphasis on cheap throttling as the enabling condition is
+               the mechanism our negative result identifies as absent.}
+}
+
+@inproceedings{han2026agio,
+  title     = {Asynchrony and {GPUs}: Bridging this Dichotomy for {I/O} with
+               {AGIO}},
+  author   = {Han, Jihoon and Sivasubramaniam, Anand and Chang, Chia-Hao and Mailthody, Vikram Sharma and Qureshi, Zaid and Hwu, Wen-Mei},
+  booktitle = {Proceedings of the 31st ACM International Conference on
+               Architectural Support for Programming Languages and Operating
+               Systems (ASPLOS)},
+  year      = {2026},
+  pages    = {208--222},
+  doi      = {10.1145/3779212.3790130},
+  note      = {Decouples I/O initiation from
+               completion for GPU threads; 65% better than synchronous.
+               Asynchrony pays at SSD-access granularity; our result is that it
+               does not pay at per-fault granularity. Contrast, not
+               contradiction.}
+}
+
+@inproceedings{choi2022huvm,
+  title     = {Memory Harvesting in Multi-{GPU} Systems with Hierarchical
+               Unified Virtual Memory},
+  author    = {Choi, Sangjin and Kim, Taeksoo and Jeong, Jinwoo and
+               Ausavarungnirun, Rachata and Jeon, Myeongjae and Kwon, Youngjin
+               and Ahn, Jeongseob},
+  booktitle = {Proceedings of the 2022 USENIX Annual Technical Conference
+               (USENIX ATC)},
+  pages     = {625--638},
+  year      = {2022},
+  note      = {NOTE: distinct from choi2022gpuaware already in the
+               bibliography -- different authors, different paper. Do not merge.}
+}
+
+
+% ---------------------------------------------------------------------
+% GROUP D -- Oracle / limit-study methodology.
+% Without this the oracle reads as an ad-hoc device rather than an
+% established method.
+% ---------------------------------------------------------------------
+
+@article{wang2025rmax,
+  title   = {{R-Max}: A Method for Approximating the Benefit of Ideal
+             Prefetching and Replacement Policy},
+  author   = {Wang, Lei and Lee, Chia-Hang and Merrell, Maccoy and Chacon, Gino and Jim{\'e}nez, Daniel A. and Gratz, Paul V.},
+  journal = {IEEE Computer Architecture Letters},
+  year    = {2025},
+  volume   = {24},
+  number   = {2},
+  pages    = {293--296},
+  doi      = {10.1109/lca.2025.3611316},
+  note    = {Approximates ideal
+             prefetching under realistic bandwidth and capacity constraints but
+             oracular knowledge of future accesses, to bound remaining gain.
+             Direct methodological precedent for our oracle policy. They report
+             headroom up to 299.6% in CPU caches; we find 0.08--7.94% in the
+             UVM fault path -- worth a sentence, since it shows the bound is
+             subsystem-specific, not a property of the method.}
+}
+
+
+% ---------------------------------------------------------------------
+% GROUP E -- Measurement-methodology literature.
+% The artifact catalog currently has no positioning at all. These give it a
+% home and convert it from "things that went wrong in our project" into a
+% contribution to an established line of work. Section VII + Intro bullet.
+% ---------------------------------------------------------------------
+
+% *** THE CATALOG'S CLOSEST PRECEDENT ***
+% Identifies 22 benchmarking flaws, surveys 50 defence papers at top venues,
+% finds tier-1 papers average five flaws each and only one paper in the
+% sample had none. Citing it pre-empts "this is just a lab notebook".
+@inproceedings{vanderkouwe2019sok,
+  title     = {{SoK}: Benchmarking Flaws in Systems Security},
+  author    = {van der Kouwe, Erik and Heiser, Gernot and Andriesse, Dennis and
+               Bos, Herbert and Giuffrida, Cristiano},
+  booktitle = {2019 IEEE European Symposium on Security and Privacy (EuroS\&P)},
+  year      = {2019},
+  pages    = {310--325},
+  doi      = {10.1109/eurosp.2019.00031},
+  note      = {Methodological template for our
+               artifact catalog.}
+}
+
+@article{papadopoulos2019principles,
+  title   = {Methodological Principles for Reproducible Performance Evaluation
+             in Cloud Computing},
+  author   = {Papadopoulos, Alessandro Vittorio and Versluis, Laurens and Bauer, Andre and Herbst, Nikolas and Kistowski, Joakim von and Ali-Eldin, Ahmed and Abad, Cristina L. and Amaral, Jose Nelson and Tuma, Petr and Iosup, Alexandru},
+  journal = {IEEE Transactions on Software Engineering},
+  year     = {2021},
+  volume   = {47},
+  number   = {8},
+  pages    = {1528--1543},
+  doi      = {10.1109/tse.2019.2927908},
+  note    = {Eight principles for
+             sound performance measurement; a systematic review finds few
+             published studies follow them. Supports our pre-registration and
+             interleaving protocol as a deliberate methodological choice.}
+}
+
+@inproceedings{raasveldt2018fair,
+  title     = {Fair Benchmarking Considered Difficult: Common Pitfalls in
+               {DBMS} Performance Testing},
+  author   = {Raasveldt, Mark and Holanda, Pedro and Gubner, Tim and M{\"u}hleisen, Hannes},
+  booktitle = {Proceedings of the Workshop on Testing Database Systems
+               (DBTest)},
+  year      = {2018},
+  pages    = {1--6},
+  doi      = {10.1145/3209950.3209955},
+  note      = {Mock benchmarks showing large
+               apparent differences where none exist -- structurally the same
+               lesson as our crippled-baseline entry: correct measurement,
+               correct arithmetic, wrong conclusion.}
+}
+
+
+% ---------------------------------------------------------------------
+% GROUP F -- Peer-reviewed oversubscription and prefetcher-interaction work.
+% ---------------------------------------------------------------------
+
+% Precedent that the in-path prefetcher interacts strongly with other
+% residency mechanisms -- support for "the squeeze".
+@inproceedings{ganguly2019interplay,
+  title     = {Interplay Between Hardware Prefetcher and Page Eviction Policy in
+               {CPU-GPU} Unified Virtual Memory},
+  author    = {Ganguly, Debashis and Zhang, Ziyu and Yang, Jun and Melhem, Rami},
+  booktitle = {Proceedings of the 46th International Symposium on Computer
+               Architecture (ISCA)},
+  pages     = {224--235},
+  year      = {2019},
+  doi       = {10.1145/3307650.3322224}
+}
+
+@inproceedings{kim2020batchaware,
+  title     = {Batch-Aware Unified Memory Management in {GPUs} for Irregular
+               Workloads},
+  author    = {Kim, Hyojong and Sim, Jaewoong and Gera, Prasun and Hadidi, Ramyad
+               and Kim, Hyesoon},
+  booktitle = {Proceedings of the Twenty-Fifth International Conference on
+               Architectural Support for Programming Languages and Operating
+               Systems (ASPLOS)},
+  pages     = {1357--1370},
+  year      = {2020},
+  doi       = {10.1145/3373376.3378529},
+  note      = {Relevant to our GraphBFS outlier -- heaviest D4/D5, lightest
+               D1+D2 on both platforms.}
+}
+
+% Directly about pipelining the CPU-GPU transfer path, Q1 journal, post-dates
+% the course paper. Cite where the 0.08-7.94% ceiling is introduced.
+@article{li2025pipelining,
+  title   = {Performance Implications of Pipelining the Data Transfer in
+             {CPU-GPU} Heterogeneous Systems},
+  author   = {Li, Ruihao and Hanindhito, Bagus and Yadav, Sanjana and Wu, Qinzhe and Kavi, Krishna and Mehta, Gayatri and Yadwadkar, Neeraja J. and John, Lizy K.},
+  journal = {ACM Transactions on Architecture and Code Optimization (TACO)},
+  volume  = {22},
+  number  = {3},
+  pages    = {1--26},
+  year    = {2025},
+  doi     = {10.1145/3746231}
+}
