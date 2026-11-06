@@ -405,6 +405,7 @@ labels stay as they are. Every Gate E claim below is stated for **595.91.07** an
 - **Scope:** oversubscription and sparse access on the RTX 5070 Ti only; one synthetic sparse benchmark; one oversubscription ratio (1.5x); crossover between K = 8 and K = 64 not located. Stock module throughout (E9 counts are under nsys tracing).
 - **Platform scope:** **two platforms** (RTX 5070 Ti and Tesla T4, both driver 595.91.07) for the dense-access part only; RTX 5070 Ti only for the sparse-access, oversubscription and mechanism parts.
 - **What changed and why:** E6's descriptive Stencil result was confirmed pre-registered (E7), replicated on the T4 (E7-T4), shown to reverse for sparse oversubscribed access (E8) and explained by migration counts (E9). The previous text's claim that the generality "is E7 Family B and the T4 replication" is replaced by the measurements.
+- **See also:** CS2-N12 for the in-memory HMM case; CS2-N10 itself remains scoped to managed memory.
 
 ### CS2-N11 · Prior work on the threshold
 - **Current text:** new (Gate C4); text replaced 2026-10-10 on the author's instruction after checking the full paper.
@@ -415,6 +416,27 @@ labels stay as they are. Every Gate E claim below is stated for **595.91.07** an
 - **Scope:** positioning only. "Two GPU generations" are the RTX 5070 Ti (Blackwell) and the Tesla T4 (Turing); the T4 covers CS2-N10's dense-access part only, and the sparse and oversubscribed parts and the traced mechanism (E9) are RTX 5070 Ti only.
 - **Platform scope:** not applicable (a statement about the literature); the measurements it points to are scoped in CS2-N1 to N4 and CS2-N10.
 - **What changed and why:** the earlier wording ("does not claim the threshold's workload-dependence as new", PENDING-LIT) is replaced by the checked comparison: the prior work already reports both directions, so CS2-N10's contribution is the replication on a newer driver and two GPU generations with traced bytes, and the distinct claims are CS2-N1 to N4.
+
+### CS2-N12 · HMM (malloc'd) memory, in memory: dense gain, sparse cost, and the volume moved
+- **Current text:** new (Gate C13; text from `consolidation/CS2_N12_PROPOSED_v2.md` with the author's three reviewer edits).
+- **Status:** new. Pre-registered H1 Amendment 1 (dense cells) and H2 (sparse cost across K and allocators; verdict MECHANISM SUPPORTED, `gate_e/GATE_H2_REPORT.md`); RTX 5070 Ti only; in memory only.
+- **Proposed text:** "**CS2-N12 (HMM and managed memory, in memory).** On `malloc`'d memory under the open driver's HMM mode, lowering `uvm_perf_prefetch_threshold` from 51 to 0 speeds up dense access (Stencil-24K -7.97%, `H1.stencil.stock-t0_vs_stock-t51`; sparse K = 512 -19.56%, `H2.malloc_k512.t0_vs_t51`) and slows down sparse access without oversubscription (K = 1 203.65%, `H2.malloc_k1.t0_vs_t51`). The t0 time on HMM is almost independent of K (max/min 1.028, `H2.Z1`). On HMM the GPU memory made resident follows the density rule (`memory.used` residency, valid because HMM chunks are 4 KB): K = 1 at t51 0.061 of the array, K = 8 at t51 0.280, and at t0 1.030 at every K (`H2.res.malloc.k1.t51`, `H2.res.malloc.k8.t51`, `H2.res.malloc.k1.t0`). The K = 1 slowdown differs by allocator: 203.65% on HMM against 3.92% on managed memory (`H2.Z7`). The bootstrap 95% CI of the difference is [+198.06, +201.66] (`H2.Z7`).
+  Per-K deltas, t0 vs t51, same session (H2, 10 runs per cell; E8 is an earlier session):
+  | K | malloc (H2) | managed (H2) | managed (E8) | evidence ids |
+|---|---|---|---|---|
+| 1 | 203.65% | 3.92% | 3.95% | `H2.malloc_k1.t0_vs_t51`, `H2.managed_k1.t0_vs_t51`, `E8.in.K1.stock-t0_vs_stock-t51` |
+| 8 | 50.39% | -1.49% | -2.32% | `H2.malloc_k8.t0_vs_t51`, `H2.managed_k8.t0_vs_t51`, `E8.in.K8.stock-t0_vs_stock-t51` |
+| 64 | -24.66% | -9.99% | -9.69% | `H2.malloc_k64.t0_vs_t51`, `H2.managed_k64.t0_vs_t51`, `E8.in.K64.stock-t0_vs_stock-t51` |
+| 512 | -19.56% | -7.19% | -7.54% | `H2.malloc_k512.t0_vs_t51`, `H2.managed_k512.t0_vs_t51`, `E8.in.K512.stock-t0_vs_stock-t51` |
+  **Volume moved, by instrument (not pooled):** on malloc, from `memory.used` residency (valid for HMM): 1.030 of the array at K = 1, t0. The managed and HMM volume figures come from different sessions and different instruments. On managed memory, from traced HtoD bytes (E9, nsys): 1.000 of the array at K = 1, t0 and 0.031 at t51 (`E9.htod_frac.in_k1.t0`, `E9.htod_frac.in_k1.t51`). So at threshold 0 a K = 1 pass moves about the whole array on both allocators, each by its own measure; the managed t51 value shows that the density rule keeps managed K = 1 migration small, as on HMM. H2's managed `memory.used` residency is **not** used for any volume statement (it measures allocated 2 MB chunks, `h2/RESIDENCY_SEMANTICS.md`). K = 8 and K = 64 managed traced bytes were not measured.
+  **Cross-session agreement (managed, in memory):** the managed t0-vs-t51 deltas of H2 and E8 agree at K = 1 (3.92% vs 3.95%) and at K = 8, 64, 512 (-1.49% vs -2.32%, -9.99% vs -9.69%, -7.19% vs -7.54%).
+  The difference between the allocators in cost at the same threshold-0 volume is consistent with HMM's per-4 KB `migrate_vma` migration (Section III); that attribution is **not isolated** by H2. The oversubscribed HMM case was not measured (stock-driver defect, Section V).
+  Status: HMM in memory only; oversubscribed HMM not measured (stock-driver oops, GATE_H1_REPORT.md)."
+- **Baseline:** C0 at threshold 51 (the shipped driver) within each allocator; thresholds 0 is **not** the shipped driver.
+- **Evidence:** `E8.in.K1.stock-t0_vs_stock-t51`, `E8.in.K512.stock-t0_vs_stock-t51`, `E8.in.K64.stock-t0_vs_stock-t51`, `E8.in.K8.stock-t0_vs_stock-t51`, `E9.htod_frac.in_k1.t0`, `E9.htod_frac.in_k1.t51`, `H1.stencil.stock-t0_vs_stock-t51`, `H2.Z1`, `H2.Z7`, `H2.malloc_k1.t0_vs_t51`, `H2.malloc_k512.t0_vs_t51`, `H2.malloc_k64.t0_vs_t51`, `H2.malloc_k8.t0_vs_t51`, `H2.managed_k1.t0_vs_t51`, `H2.managed_k512.t0_vs_t51`, `H2.managed_k64.t0_vs_t51`, `H2.managed_k8.t0_vs_t51`, `H2.res.malloc.k1.t0`, `H2.res.malloc.k1.t51`, `H2.res.malloc.k8.t51`; H2 residency instruments and their validity: `gate_e/h2/RESIDENCY_SEMANTICS.md`; catalog #31.
+- **Scope:** one platform; one synthetic sparse benchmark and page list; K in {1, 8, 64, 512}; in memory only (HMM oversubscription is not measured: stock-driver oops, `GATE_H1_REPORT.md`); HMM `memory.used` residency is valid for 4 KB chunks only and is not used for managed memory.
+- **Platform scope:** RTX 5070 Ti only (driver 595.91.07, HMM addressing mode).
+- **What changed and why:** H1 found an unregistered +200% sparse K = 1 slowdown on HMM; H2 tested the whole-array-migration explanation (supported) and C12 showed that managed `memory.used` measures allocation, so the cross-allocator volume statement rests on traced bytes for managed memory.
 
 ---
 
