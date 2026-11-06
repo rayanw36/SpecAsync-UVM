@@ -1,0 +1,44 @@
+% =====================================================================
+% Title and abstract -- draft 1 (2026-11-06)
+% Every number below is from Sections I and VI-VIII (checked in C14/C15);
+% run the number check over this file too.
+% Title options (pick one):
+%   (A) Off-Path Page Staging in a GPU Unified-Memory Driver: It Helps Only
+%       Through the Prefetcher, and the Prefetcher's Threshold Cuts Both Ways
+%   (B) What Off-Path Speculation Can Do in NVIDIA's UVM Driver: A
+%       Pre-Registered Measurement Study
+%   (C) Residency Is Not Mapping: Off-Path Page Staging and the Prefetch
+%       Threshold in GPU Unified Virtual Memory
+% IEEEtran abstracts: one paragraph, no citations, ~150-250 words.
+% =====================================================================
+
+\title{Residency Is Not Mapping: Off-Path Page Staging and the Prefetch
+Threshold in GPU Unified Virtual Memory}
+
+\begin{abstract}
+GPU unified virtual memory services page faults on the host, and a recurring
+proposal is to predict upcoming faults and stage their pages off the fault path.
+We built this into NVIDIA's open-source UVM driver, drove it with a first-touch
+oracle, and measured it on real hardware under pre-registered analysis plans
+with falsification triggers. Staging cannot prevent a fault: only fault service
+installs GPU mappings, so with the driver's prefetcher off, staging 99.95\% of
+pages ahead of demand left the run $2.92\times$ slower than the shipped driver.
+With the prefetcher on, staging beats the shipped driver by 3.4--5.3\% on a
+stencil workload across three sessions, but only because staged pages count
+toward the prefetcher's density threshold; a pre-registered dose--response test
+confirms the mechanism. Lowering that threshold from 51 to 0, without
+speculation, is faster still: 9.57\% on an RTX~5070~Ti and 5.1\% on a Tesla~T4,
+and at matched thresholds speculation adds at most 2.8\%. The threshold cuts
+both ways. For sparse access to an oversubscribed array the low threshold is
+41--85\% slower, moving up to $32.8\times$ more data, and on system-allocated
+(HMM) memory, which the driver migrates in 4\,KB units, sparse access is 204\%
+slower even in memory. These results replicate and extend an earlier report of
+the threshold trade-off. We also catalog 31 measurement artifacts met in this
+study, including the misaligned oracle that had led an earlier version of this
+work to the opposite conclusion.
+\end{abstract}
+
+\begin{IEEEkeywords}
+GPU, unified virtual memory, page faults, prefetching, speculation, HMM,
+measurement methodology, pre-registration
+\end{IEEEkeywords}

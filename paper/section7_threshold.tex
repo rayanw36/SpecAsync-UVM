@@ -76,16 +76,17 @@ in GPU memory and a 24\,GiB array that does not. E8 pre-registered a trigger
 that would declare the dense-access result not general if any cell with
 $K < 512$ was significantly slower at a lower threshold. It fired.
 
-\begin{table}[t]
+\begin{figure*}[t]
 \centering
-\footnotesize
-\caption{Sparse benchmark, stock driver, threshold 0 against 51 (E8). $K$:
-pages touched per 2\,MB block. Bold: Holm-significant ($m = 16$).}
-\label{tab:e8}
-\input{tables/t_e8}
-\end{table}
+\includegraphics[width=\textwidth]{figures/fig_e8_sparse_access}
+\caption{Sparse benchmark, stock driver: wall-clock change at thresholds 0 and
+25 against 51 as the pages touched per 2\,MB block ($K$) grow, with the array in
+GPU memory (a) and oversubscribed (b) (E8; one Holm family of 16; $n = 10$ per
+cell). Full results with MDEs are in the supplementary material.}
+\label{fig:e8}
+\end{figure*}
 
-With the array in GPU memory the effects are small and mixed: $+3.95\%$ at
+Fig.~\ref{fig:e8} shows the result. With the array in GPU memory the effects are small and mixed: $+3.95\%$ at
 $K = 1$ and $-2.32\%$ at $K = 8$, then $-9.69\%$ and $-7.54\%$ at $K = 64$ and
 512 (\texttt{E8.in.*}). Once the array exceeds GPU memory, the low threshold is
 84.96\% slower at $K = 1$ and 41.15\% slower at $K = 8$, while $K = 64$ and 512
@@ -95,14 +96,15 @@ pre-registered expectations about the shape of this pattern failed: the effect
 is not monotonic in $K$ (XS4), and threshold 25 does not always lie between 0
 and 51 (XS5).
 
-\begin{figure}[t]
+\begin{figure*}[t]
 \centering
-\includegraphics[width=\columnwidth]{figures/fig_e9_migrated_bytes}
+\includegraphics[width=\textwidth]{figures/fig_e9_migrated_bytes}
 \caption{Bytes migrated to and from the GPU per run, by access density and
 threshold (E9, nsys, $n = 3$). Oversubscribed, $K = 1$: 129.8\,GiB at
-threshold 0 against 3.96\,GiB at 51.}
+threshold 0 against 3.96\,GiB at 51. (a) Host to device; (b) device to
+host.}
 \label{fig:e9}
-\end{figure}
+\end{figure*}
 
 Tracing explains the slowdown (Fig.~\ref{fig:e9}). With the oversubscribed
 array and $K = 1$, a run moves 129.8\,GiB to the GPU at threshold 0 and
@@ -126,18 +128,22 @@ be if part of the managed gain was the CPU-side effect above, which HMM does not
 share; the two runs are different sessions, so we do not estimate that share
 from them.
 
-\begin{figure}[t]
+\begin{figure*}[t]
 \centering
-\includegraphics[width=\columnwidth]{figures/F-H2-time}
-\caption{Sparse benchmark in GPU memory, by allocator and threshold (H2; 10
-runs per cell). Open markers: \texttt{malloc} (HMM); filled: managed.}
+\includegraphics[width=\textwidth]{figures/fig_h2_hmm}
+\caption{Sparse benchmark in GPU memory, managed against system-allocated
+(HMM) memory (H2). (a) Wall-clock change at threshold 0 against 51, by pages
+touched per 2\,MB block ($K$); $n = 10$ per cell, one Holm family of 8. (b)
+Fraction of the 8\,GiB array moved to the GPU, by the instrument valid for each
+allocator: GPU memory in use for HMM ($n = 3$), traced bytes for managed memory
+(E9, $n = 3$, $K = 1$ and 512 only). Descriptive; no test.}
 \label{fig:h2}
-\end{figure}
+\end{figure*}
 
 H1 also found something we had not predicted: with $K = 1$ the low threshold was
 about three times slower on HMM, with no oversubscription. H2 pre-registered a
 test of an explanation, stating that the hypothesis came after the observation
-(Section~\ref{sec:protocol}). Fig.~\ref{fig:h2} shows the result. On HMM, the
+(Section~\ref{sec:protocol}). Fig.~\ref{fig:h2}(a) shows the result. On HMM, the
 time at threshold 0 is the same at every $K$, within 2.8\% (\texttt{H2.Z1}),
 because the first fault in each region migrates all of it; at 51 it rises with
 $K$. The low threshold is 203.65\% slower at $K = 1$ and 50.39\% slower at $K = 8$,
@@ -146,7 +152,8 @@ managed memory, in the same session, the same cells change by $+3.92\%$,
 $-1.49\%$, $-9.99\%$ and $-7.19\%$ (\texttt{H2.managed\_*}), within a point of
 E8's values from an earlier session.
 
-The volume moved does not explain the difference between the allocators. At
+The volume moved does not explain the difference between the allocators
+(Fig.~\ref{fig:h2}(b)). At
 threshold 0 a $K = 1$ pass moves essentially the whole array on both: on HMM,
 measured as GPU memory in use, 1.03 of the array (\texttt{H2.res.malloc.k1.t0});
 on managed memory, measured as traced bytes in E9, 1.00 (\texttt{E9.htod\_frac.in\_k1.t0}).

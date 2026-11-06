@@ -1,0 +1,117 @@
+% =====================================================================
+% Section IX -- Discussion and Conclusion
+% SpecAsync-UVM manuscript, draft 1 (2026-11-06)
+% No new numbers: every number below appears in Sections I, VI-VIII and
+% was checked there (C14/C15). Run the C15 number check over this file.
+% [BUG] The stock-driver oops is described, not cited; if the NVIDIA issue
+%       is filed before submission, cite its number here.
+% =====================================================================
+
+\section{Discussion and Conclusion}
+\label{sec:discussion}
+
+\subsection{What Off-Path Staging Can Do in This Driver}
+
+Our results answer the question we set out to test, but not in the way the
+idea's proponents, including our own earlier draft, expected. Moving residency
+work off the fault-servicing thread works as an engineering matter: the worker
+staged 99.95\% of pages ahead of demand, and the copies it made shortened the
+lock-held dispatch. It does not remove faults, because only fault service
+installs mappings (Section~\ref{sec:bg-resident-mapped}). Its one route to
+preventing faults runs through the prefetcher's density count, and the same
+effect is available, and larger, by lowering the threshold
+(Section~\ref{sec:spec-matched}).
+
+Two ways forward follow. The first is to stage from where mapping is possible.
+Explicit prefetch from user space runs the driver's make-resident-and-map path,
+which is why a user-space predictor can remove faults where our worker cannot
+\cite{shen2026stride}. The second is to change the driver so that a background
+path may install mappings. That is a larger change than ours: mapping touches
+page tables the servicing thread also writes, and would have to respect the
+driver's lock order and replay protocol. We have not attempted it. Our
+measurements bound what it could gain only indirectly, since Stencil-24K
+already runs 9.57\% faster when the prefetcher simply maps more on each fault.
+
+\subsection{What a Better Threshold Would Need}
+
+No fixed threshold dominates the shipped one (Section~\ref{sec:threshold}). Go
+\emph{et al.}\ drew the same conclusion and built a controller that adapts the
+threshold at run time \cite{go2023earlyadaptor}. Our measurements suggest three
+inputs such a controller needs. The first is the access density within a
+region: on oversubscribed managed memory and on HMM, the sign of the effect changed
+between 8 and 64 pages per 2\,MB block. The second is memory pressure: on managed memory
+the cost of a low threshold for sparse access was small in memory and large
+once the array was oversubscribed. The third is the cost of migration itself:
+on system-allocated memory, which moves in 4\,KB units, the same sparse access
+was much slower at a low threshold even in memory. A controller tuned on
+managed memory would therefore choose wrongly for HMM. These are observations
+from one synthetic benchmark at one oversubscription ratio, and they locate a
+crossover only between the densities we measured.
+
+Part of the dense-access gain lies outside the GPU. The same threshold governs
+prefetching for CPU faults on managed memory, and at threshold 0 the CPU faulted
+six times less often while initialising the array; on dense cells 17--23\% of
+the wall-clock gain was outside the kernels. A benchmark that initialises its
+data on the GPU, or with explicit copies, would see less of it.
+
+\subsection{System-Allocated Memory and Other Vendors}
+
+HMM lets a GPU fault on ordinary memory, and Allen \emph{et al.}\ name it as a
+motivation for studying the fault path \cite{allen2024finegrain}. On NVIDIA's
+open driver it shares the managed path's prefetcher and threshold but not its
+migration granularity, and that difference changed the sparse-access cost by
+about two hundred percentage points (Section~\ref{sec:thr-hmm}). AMD GPUs reach system
+memory through the same kernel interface, and Cooper \emph{et al.}\ report the
+same tension between aggressive range prefetching and access pattern on
+MI250X \cite{cooper2024svm}. Whether a density-aware prefetch policy would help
+there, where the driver and its prefetcher are different, is a question our
+measurements raise but cannot answer.
+
+\subsection{Threats to Validity}
+
+\paragraph{Scope of the speculation results}
+The oracle is near-perfect only for Stencil-24K, whose first-touch order varies
+by about a hundred ranks between runs; for GraphBFS-23 it is a weakened oracle.
+The speculation results therefore bound what off-path staging can achieve on
+one regular workload and do not evaluate a practical predictor. They come from
+one GPU and one driver release.
+
+\paragraph{Scope of the threshold results}
+The dense-access threshold result replicates on a second GPU generation with
+the same driver release. The sparse-access, oversubscription and HMM results
+come from the RTX~5070~Ti alone, from one synthetic benchmark with one fixed
+page list, and from one oversubscription ratio. The HMM results are for arrays
+that fit in GPU memory: the first oversubscribed HMM run crashed the stock
+driver, a null-pointer dereference in its chunk-free path followed by a soft
+lockup of the fault handler, with no modified code loaded. The stop rule
+forbade a retry, so the case was not measured.
+
+\paragraph{Measurement}
+The outcome of record is process wall-clock, which includes CUDA
+initialisation and host-side setup; we chose it because it is what a user
+experiences, and we separate kernel time from the rest where it matters
+(Section~\ref{sec:thr-dense}). Each cell has ten runs, and comparisons across
+sessions are reported side by side but never pooled. Two of our instruments
+had limits we found only after use, GPU memory in use on managed memory and
+the oracle's own lookup cost; both are in the catalog
+(Section~\ref{sec:pitfalls}), and no claim rests on either.
+
+\paragraph{The study's own history}
+This paper reverses an earlier version of itself. The pre-registered gates,
+the positive controls and the catalog are our response, and
+Section~\ref{sec:pitfalls} reports the errors they caught and those they did
+not.
+
+\subsection{Conclusion}
+
+We built off-path page staging into NVIDIA's open-source UVM driver and
+measured it, with an oracle, under pre-registered tests. Staging cannot prevent
+a fault, because in this driver only fault service maps a page. Against the
+shipped driver it helps, by 3.4--5.3\% on a regular workload, only by raising
+the count in the prefetcher's density rule, and lowering that rule's threshold
+does more without any speculation. The threshold itself cuts both ways: it
+speeds up dense access on two GPU generations and slows sparse access, under
+memory pressure on managed memory and even without it on system-allocated
+memory. For anyone building on the UVM fault path, the practical lesson is that
+the lever worth adapting is the one the driver already has, and that the input
+it most needs is how densely each region is used.
