@@ -1,0 +1,30 @@
+% Fig. 1 -- one fault batch and where each mechanism acts (TikZ, single column)
+\begin{tikzpicture}[
+  font=\footnotesize,
+  ph/.style={draw, minimum height=6mm, inner sep=1.5pt, align=center},
+  st/.style={draw, rounded corners=1pt, minimum width=25mm, minimum height=5mm, inner sep=1pt, align=center, fill=white},
+  ann/.style={align=left, font=\scriptsize},
+  arr/.style={-{Stealth[length=1.6mm]}, thick},
+  >=Stealth]
+\node[ph, minimum width=7mm] (d1) at (0,0) {D1};
+\node[ph, minimum width=7mm, right=0pt of d1] (d2) {D2};
+\node[ph, minimum width=6mm, right=0pt of d2] (d3) {D3};
+\node[ph, minimum width=34mm, right=0pt of d3, fill=gray!12] (d4) {D4: address-space lock\\held (read)};
+\node[ph, minimum width=7mm, right=0pt of d4] (d6) {D6};
+\node[ann, above=0.5mm of d1.north west, anchor=south west] {one fault batch, in time order $\rightarrow$};
+\node[st, below=9mm of d4.south] (c1) {classify faults};
+\node[st, below=1.5mm of c1] (c2) {select residency};
+\node[st, below=1.5mm of c2, fill=orange!15] (c3) {prefetch hint, Eq.~(1)};
+\node[st, below=1.5mm of c3, fill=orange!15] (c4) {copy};
+\node[st, below=1.5mm of c4, fill=blue!12, very thick] (c5) {map for faulting GPU};
+\foreach \a/\b in {c1/c2,c2/c3,c3/c4,c4/c5} \draw[->] (\a) -- (\b);
+\node[draw, dashed, inner sep=2mm, fit=(c1)(c5), label={[ann, anchor=south east]north east:D5, per VA block}] (d5) {};
+\draw[dashed, gray] (d4.south west) -- (d5.north west);
+\draw[dashed, gray] (d4.south east) -- (d5.north east);
+\node[ann, left=4mm of d5.west |- c3, anchor=east, text width=18mm] (sa) {(a) off-path\\stager: makes\\pages resident\\only};
+\draw[arr, orange!80!black] (sa.east) -- (c3.west);
+\draw[arr, orange!80!black] (sa.east) -- (c4.west);
+\node[ann, right=4mm of d5.east |- c5, anchor=west, text width=16mm] (mp) {the only step\\that installs\\a mapping};
+\draw[->, gray] (mp.west) -- (c5.east);
+\node[ann, below=2mm of d5.south, text width=60mm, align=center] {(b) explicit prefetch (\texttt{cudaMemPrefetchAsync}) makes\\pages resident \emph{and} maps them, outside the fault path};
+\end{tikzpicture}

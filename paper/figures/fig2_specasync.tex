@@ -1,0 +1,27 @@
+% Fig. 2 -- SpecAsync-UVM structure (TikZ, single column)
+\begin{tikzpicture}[
+  font=\footnotesize,
+  bx/.style={draw, rounded corners=1pt, minimum width=27mm, text width=26mm, minimum height=5.5mm, inner sep=1.2pt, align=center, fill=white},
+  ann/.style={align=center, font=\scriptsize},
+  >=Stealth]
+\node[font=\footnotesize\bfseries] (h1) at (0,0) {servicing thread};
+\node[bx, below=1.5mm of h1] (s1) {fetch, coalesce\\(D1, D2)};
+\node[bx, below=2mm of s1, fill=orange!15] (s2) {prediction hook: one\\policy call per fault};
+\node[bx, below=2mm of s2] (s3) {take VA-space lock (D3)};
+\node[bx, below=2mm of s3] (s4) {service blocks: hint,\\copy, \textbf{map} (D5)};
+\node[bx, below=2mm of s4] (s5) {replay (D6)};
+\foreach \a/\b in {s1/s2,s2/s3,s3/s4,s4/s5} \draw[->] (\a) -- (\b);
+\node[font=\footnotesize\bfseries] (h2) at (3.75,0) {worker (off path)};
+\node[bx, below=1.5mm of h2] (q) {queue, cap 1{,}024\\(full: drop)};
+\node[bx, below=2mm of q] (w1) {VA-space lock, read};
+\node[bx, below=2mm of w1] (w2) {block \emph{trylock}\\(busy: skip)};
+\node[bx, below=2mm of w2, fill=orange!15] (w3) {\texttt{make\_resident},\\region of width $W$};
+\foreach \a/\b in {q/w1,w1/w2,w2/w3} \draw[->] (\a) -- (\b);
+\draw[->, thick] (s2.east) -- (q.west);
+\node[ann, fill=white, inner sep=0.5pt] at ($(s2.east)!0.5!(q.west)$) {enqueue};
+\node[ann, below=0.5mm of w3.south] {resident, \textbf{not mapped}};
+\draw[->, dashed, orange!80!black, thick] (w3.west) -- (s4.east);
+\node[ann, below=0.3mm] at ($(w3.west)!0.5!(s4.east)$) {counts in\\Eq.~(1)};
+\node[bx, below=5mm of s5, text width=55mm, minimum width=56mm, fill=gray!10] (tb) {policy: first-touch table (rank of each page), cursor $c$, lookahead $L$};
+\draw[<->] (tb.west) -- ++(-2.5mm,0) |- (s2.west);
+\end{tikzpicture}

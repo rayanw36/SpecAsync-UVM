@@ -47,7 +47,7 @@
 %          and records once per coalesced fault after E0.5.
 %   [DC-4] depth semantics: depth 0 = lookup only (no make_resident),
 %          depth 1 = make_resident. Confirm.
-%   [FIG]  Fig. 2: fault path with the hook, queue, worker and table.
+%   [FIG]  Fig. 2 drawn in TikZ: figures/fig2_specasync.tex.
 % =====================================================================
 
 \section{SpecAsync-UVM}
@@ -62,7 +62,7 @@ checks that establish it does what it claims.
 \subsection{Structure}
 \label{sec:design-structure}
 
-The mechanism has three parts (Fig.~2).
+The mechanism has three parts (Fig.~\ref{fig:design}).
 
 \paragraph{A prediction hook on the servicing thread}
 At the start of servicing each batch, before the address-space lock is
@@ -260,7 +260,14 @@ Stock-$t$ denotes the unmodified driver at threshold $t$.}
 \label{tab:configs}
 \end{table}
 
-% [FIG] Fig. 2: Section III's fault-path figure extended with: the prediction
-% hook before the address-space lock (on the servicing thread), the bounded
-% queue, the worker (VA-space read lock -> block trylock -> make_resident,
-% no map), the first-touch table with cursor c and lookahead L.
+\begin{figure}[t]
+\centering
+\input{figures/fig2_specasync}
+\caption{SpecAsync-UVM. The prediction hook runs on the servicing thread before
+the address-space lock, asks the policy for one prediction per fault and
+enqueues those it receives; the worker makes
+the predicted region resident but cannot map it. Pages it makes resident count
+toward the density rule of Eq.~(\ref{eq:density}) when the servicing thread
+next services that block.}
+\label{fig:design}
+\end{figure}

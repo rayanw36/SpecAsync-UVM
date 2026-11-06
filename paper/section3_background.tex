@@ -62,7 +62,8 @@
 %     dropped (uvm_hmm.c:2856-2858). Verdict MAPS.
 %   [LABEL] main.tex:80 also defines sec:background (old inline Background);
 %       delete the old section when this file is wired in.
-%   [FIG]   Fig. 1 (fault path + where each mechanism acts) to be drawn.
+%   [FIG]   Fig. 1 drawn in TikZ: figures/fig1_faultpath.tex (needs tikz with
+%           positioning, arrows.meta, fit, calc in the preamble).
 % =====================================================================
 
 \section{Background: The UVM Fault Path and Its Prefetcher}
@@ -260,7 +261,8 @@ differ. Section~VII measures both.
 \subsection{Where Off-Path Work Can Act}
 \label{sec:bg-where}
 
-Combining the three subsections gives the frame for the rest of the paper.
+Combining the subsections above gives the frame for the rest of the paper
+(Fig.~\ref{fig:faultpath}).
 Work moved off the fault path, by a background thread that predicts upcoming
 faults, can touch only residency. It can therefore reduce the copy inside D5,
 and it can raise the count in (\ref{eq:density}) so that the in-path
@@ -271,7 +273,13 @@ one of those two channels, and both are measurable: the first as a change in
 D5 per fault, the second as a change in the number of demand faults at a
 fixed threshold.
 
-% [FIG] Fig. 1: one fault batch D1-D6 on a timeline; inside D5, the steps
-% classify -> residency -> prefetch hint (Eq. 1) -> copy -> map; arrows marking
-% where (a) a resident-only stager acts (copy, Eq. 1 count) and (b) an explicit
-% migrate-and-map call acts (residency + mapping, outside the fault path).
+\begin{figure}[t]
+\centering
+\input{figures/fig1_faultpath}
+\caption{One fault batch (phases of Table~\ref{tab:phases}) and the steps of
+D5 for each VA block. An off-path stager (a) can only make pages resident, so it
+acts on the copy and on the count in Eq.~(\ref{eq:density}); only the last step
+of fault service installs a GPU mapping. An explicit prefetch from user space
+(b) makes pages resident and maps them, outside the fault path.}
+\label{fig:faultpath}
+\end{figure}
