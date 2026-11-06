@@ -47,6 +47,12 @@
 %     Statement "non-resident pages are added" was WRONG: every page of the
 %       prefetch region except the faulted ones is added; only the copy skips
 %       resident pages. Fixed below.
+%   [C15] phase shares replaced: the quoted 63-74% (T4) and 52-77% (595.84)
+%     are UNCHECKED in CLAIM_SCOPE and were removed. New values from
+%     consolidation/C15_PHASE_SHARES.md, arm C1 (= prefetcher OFF; C15's
+%     header says "prefetcher on" -- that label is wrong, C1 is
+%     uvm_perf_prefetch_enable=0): D4/window 72.69% (Stencil, n=3), 86.26%
+%     (GraphBFS, n=2). D3 "<0.2%" is CS2-3 -> re-check from E1PartB D3.
 %   [HMM] new subsection sec:bg-hmm (2026-11-06) from gate_e/h0/H0_REPORT.md
 %     and H0_MAPPING.md: prefetch hint before the HMM branch
 %     (uvm_va_block.c:12046 vs :12051-12060); mask copied to migrate_vma
@@ -115,9 +121,10 @@ D7 & Residual & --- \\
 
 Two properties of this path matter later. First, the lock is rarely
 contended in our single-stream workloads: lock \emph{wait} (D3) is below
-0.2\% of the batch in the typical case on both of our platforms, while the
-lock \emph{hold}, dominated by D5, is the largest phase (63--74\% of the
-batch window on the T4, 52--77\% on the RTX~5070~Ti with driver 595.84).
+0.2\% of the batch in the typical case, while the lock \emph{hold} (D4),
+almost all of it D5, is the largest phase. In our decomposition runs on the
+RTX~5070~Ti with release 595.91.07 and the prefetcher off, D4 is 73\% of the
+batch window on Stencil-24K and 86\% on GraphBFS-23.
 Second, D5 is CPU work, not a wait for the GPU. Its cost is fault
 classification, residency bookkeeping, and the construction of copy commands,
 which are submitted asynchronously and tracked rather than waited on. The

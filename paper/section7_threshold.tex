@@ -4,10 +4,8 @@
 % Every number: paper/support/RESULTS_FACTS.md Section VII (evidence ids
 % in the text as \texttt{} for review; strip before submission).
 % Stock module 6284DA42 throughout. delta = (t - t51)/t51.
-% [WL]   Family B workload names (stencil8k, sweep4k, sweep16k, stream,
-%        sgemm, cufft, graphbfs, oversub) -- use the names Section V/the
-%        benchmark table defines; "oversub" is the oversubscribed dense
-%        stencil cell (XB3). Confirm.
+% [WL]   RESOLVED (C15): names as in T-E7 (Stencil-8K, Sweep-4K, Sweep-16K,
+%        STREAM, SGEMM, cuFFT, GraphBFS-23, Stencil oversubscribed).
 % [FIG]  figure file names from RESULTS_FACTS VII(f); confirm paths.
 % =====================================================================
 
@@ -34,7 +32,7 @@ same holds at 25. The four without a significant change are short runs whose
 minimum detectable effects are large, 7--12\% for three of them, so they are
 not evidence of no effect; the exception is GraphBFS-23, which runs long,
 changes by $-0.26\%$ and could have shown an effect of 0.86\%. The largest gain
-is on a dense workload whose array exceeds GPU memory, 16.95\%; a pre-registered
+is on a one-pass oversubscribed Stencil, whose array exceeds GPU memory, 16.95\%; a pre-registered
 expectation that oversubscription would make the low threshold slower failed
 (XB3). For dense access, oversubscription does not reverse the effect.
 
@@ -53,7 +51,7 @@ faster, a significant but negligible change.
 $\delta$: change in median wall-clock; MDE at the family's level
 ($m = 16$). Bold: Holm-significant.}
 \label{tab:e7}
-\input{tables/T-E7}
+\input{tables/t_e7}
 \end{table}
 
 Tracing shows where the dense gain comes from. On Stencil-24K the bytes moved to
@@ -84,7 +82,7 @@ $K < 512$ was significantly slower at a lower threshold. It fired.
 \caption{Sparse benchmark, stock driver, threshold 0 against 51 (E8). $K$:
 pages touched per 2\,MB block. Bold: Holm-significant ($m = 16$).}
 \label{tab:e8}
-\input{tables/T-E8}
+\input{tables/t_e8}
 \end{table}
 
 With the array in GPU memory the effects are small and mixed: $+3.95\%$ at
