@@ -65,24 +65,7 @@ for ext in ("pdf", "png"): fig.savefig(f"paper/figures/F-H2-time.{ext}", bbox_in
 plt.close(fig)
 with open("paper/figures/F-H2-time.csv", "w", newline="") as f:
     w = csv.writer(f); w.writerow(["allocator", "K", "threshold", "run", "wall_s"]); w.writerows(rows_out)
-fig, ax = plt.subplots(figsize=(M.COL1 * 1.3, 2.7)); rr = []
-for a in C.ALLOCS:
-    for t in (0, 51):
-        xs, ys = [], []
-        for i, k in enumerate(C.KS):
-            v = [float(r["residency_mib"]) / 1024 for r in RES if r["workload"] == f"{a}_k{k}" and int(r["threshold"]) == t]
-            dx = (-0.2 if a == "managed" else 0.2) + (-0.05 if t == 0 else 0.05)
-            M.pts(ax, i + dx, v, col[t], "o", jitter=0.0, size=6, alpha=0.7); xs.append(i + dx); ys.append(st.median(v))
-            for j, x in enumerate(v, 1): rr.append([a, k, t, j, f"{x:.4f}"])
-        ax.plot(xs, ys, color=col[t], lw=0.8, zorder=4)
-        ax.scatter(xs, ys, s=26, marker="o", facecolor=col[t] if a == "managed" else "white", edgecolor=col[t], linewidths=1.1, zorder=5)
-ax.axhline(8, color=M.MUTED, lw=0.5, ls=":"); ax.text(len(C.KS) - 0.5, 8.1, "array = 8 GiB", ha="right", fontsize=6, color=M.MUTED)
-ax.set_xticks(range(len(C.KS))); ax.set_xticklabels([str(k) for k in C.KS]); ax.set_xlabel("pages touched per 2 MB block (K)"); ax.set_ylabel("GPU memory made resident (GiB)")
-fig.tight_layout()
-for ext in ("pdf", "png"): fig.savefig(f"paper/figures/F-H2-res.{ext}", bbox_inches="tight", dpi=300)
-plt.close(fig)
-with open("paper/figures/F-H2-res.csv", "w", newline="") as f:
-    w = csv.writer(f); w.writerow(["allocator", "K", "threshold", "run", "residency_gib"]); w.writerows(rr)
+# (C13) the residency figure F-H2-res is now produced by tests/c13_fig_hres.py (managed memory.used is not a valid volume measure; catalog #31)
 # ---- CS2-N12 proposal
 dm, dg = float(TT[("malloc", 1)]["delta_pct"]), float(TT[("managed", 1)]["delta_pct"])
 rf = {(r["alloc"], int(r["K"]), int(r["threshold"])): float(r["median_frac"]) for r in RC}

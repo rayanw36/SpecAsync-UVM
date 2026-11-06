@@ -34,9 +34,10 @@
 % [T4] filled from GATE_E7T4_REPORT.md (dense-access threshold result only).
 %
 % OPEN before submission:
-%   [SRC]  verify from uvm_migrate.c that cudaMemPrefetchAsync to a GPU
-%          installs mappings (MAKE_RESIDENT_AND_MAP), before Section II
-%          relies on it.
+%   [SRC]  RESOLVED (C4): cudaMemPrefetchAsync to a GPU maps
+%          (uvm_migrate.c:680, :698-699 MAKE_RESIDENT_AND_MAP).
+%   [HMM]  H1 (C10), H2 (C11), C12: HMM numbers from GATE_H2_REPORT.md
+%          (H2.malloc_k1/k8.t0_vs_t51); catalog #31 pending application.
 %   [CAT]  RESOLVED: 30 entries after C6 (ARTIFACT_CATALOG.md).
 %   [MDE]  MDEs quoted at the family alpha (MDE_AUDIT.md): E6 t0/t10 2.04/2.28%.
 %   [SEC]  section numbers in the roadmap follow the planned outline.
@@ -66,8 +67,8 @@ a background worker stages pages that a predictor nominates while the
 fault-servicing thread continues. To ask what off-path staging can achieve at
 all, rather than how well some heuristic predicts, we drive it with a
 \emph{first-touch oracle}: a table of the run's own page order recorded in an
-earlier run, which on our stencil workload is nearly deterministic, looked up in
-constant time. We then measured it against the driver as shipped, under
+earlier run, which on our stencil workload is nearly deterministic, looked up
+without a lock. We then measured it against the driver as shipped, under
 pre-registered analysis plans with falsification triggers, on an RTX 5070 Ti
 (Blackwell) with driver 595.91.07.
 
@@ -114,8 +115,11 @@ shows why: at threshold 0 the prefetcher brings in whole regions for a few
 useful pages, and on the oversubscribed array a traced run migrates about
 130\,GiB into the GPU, against 4\,GiB at the shipped threshold. With the array
 in memory the effects are small and mixed, and with 64 or more pages touched per
-block the low threshold is faster again. No fixed lower threshold dominates the
-shipped one.
+block the low threshold is faster again. On system-allocated memory, which the
+driver migrates in 4\,KB units through the kernel's HMM interface, the cost
+appears without oversubscription: at threshold 0 a pass that touches one or
+eight pages per block is 204\% and 50\% slower, while dense access still
+gains. No fixed lower threshold dominates the shipped one.
 
 \paragraph{Relation to prior work on the threshold}
 Neither direction of this effect is new. Go \emph{et al.} varied the same
@@ -146,7 +150,7 @@ written before the measurement it tested.
 
 \begin{itemize}
   \item \textbf{An in-driver off-path staging prototype with a usable oracle.}
-  A modification of NVIDIA's open-source UVM driver with a constant-time,
+  A modification of NVIDIA's open-source UVM driver with a fast,
   lock-free first-touch oracle and a configurable staging width, whose kernel
   changes passed a review protocol of compile-only review, a precondition table
   for every driver call, and an attended first load.
@@ -174,7 +178,7 @@ written before the measurement it tested.
   correction across pre-declared families, and reports outliers with and
   without removal.
 
-  \item \textbf{A catalog of UVM measurement artifacts.} Thirty artifacts
+  \item \textbf{A catalog of UVM measurement artifacts.} Thirty-one artifacts
   met in this study, each with the false conclusion it would have produced,
   including the misaligned oracle. One pattern stands out: errors arising from
   a mismatch of aggregation level (per batch versus per fault, per trial versus
@@ -190,7 +194,9 @@ weaker one on graph traversal, so they bound what off-path staging can achieve
 and do not evaluate a practical predictor. The dense-access threshold gain
 replicates on a Tesla T4 (Turing) with the same driver: $-5.1\%$ on the stencil
 workload, and 12 of 14 further tests faster with none slower. The speculation,
-sparse-access and oversubscription results are from the RTX 5070 Ti alone. The
+sparse-access, oversubscription and HMM results are from the RTX 5070 Ti alone,
+and the HMM results are for arrays that fit in GPU memory: the oversubscribed
+HMM case crashed the stock driver and was not measured. The
 sparse-access counterexample uses one synthetic benchmark at one
 oversubscription ratio. Prefetching issued from user space is a different
 mechanism, and we make no claim about it: Shen and Nikolopoulos predict faults

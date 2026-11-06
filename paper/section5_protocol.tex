@@ -15,8 +15,7 @@
 \section{Measurement Protocol}
 \label{sec:protocol}
 
-The results in Sections~\ref{sec:squeeze}--\ref{sec:pitfalls} come from
-ten pre-registered gates. Each gate is a sweep whose cells, run order,
+The results in Sections~\ref{sec:squeeze}--\ref{sec:pitfalls} come from eleven pre-registered gates. Each gate is a sweep whose cells, run order,
 tests, correction family and stop conditions were committed before its
 first timed run. This section describes what those gates have in common
 and lists, gate by gate, what was decided in advance and what happened
@@ -106,8 +105,7 @@ ancestor of the first commit containing a timed row. Smoke and pilot
 runs, used to exercise the harness, are excluded from every analysis.
 
 A pre-registration may be amended only before its first timed run, and
-the amendment is committed and stated in the report. Three gates were
-amended. On the T4, the instance was powered off during the smoke pass
+the amendment is committed and stated in the report. Three amendments were made, two of them to one gate. On the T4, the instance was powered off during the smoke pass
 (Amendment~1 of E7-T4: new start time and cap). Its oversubscribed
 Stencil cell needed more managed memory than the instance's host memory
 and was killed by the kernel's out-of-memory handler in the smoke pass.
@@ -204,15 +202,23 @@ only on managed memory.
 \subsection{Gates}
 \label{sec:protocol:gates}
 
-Table~\ref{tab:gates} summarizes the ten gates. Four early gates (E0.9b,
+Table~\ref{tab:gates} summarizes the eleven gates. Four early gates (E0.9b,
 E1, E4, E5) have verdict rules or falsification triggers but no numbered
 expectations. From E6 onward, each gate also commits numbered
 expectations with stated directions. Each one is scored as held, failed
 or unscored, and the scores are reported whether or not they favor our
-account. Across E6--E9, E7-T4 and H1, 20 expectations held, 4 failed,
+account. Across E6--E9, E7-T4, H1 and H2, 25 expectations held, 6 failed,
 1 could not be scored because it had no direction (E6~X3), and 1 was
 withdrawn by amendment before any timed run (H1~Y3).
-% [CHECK] 20/4/1/1 summed by hand from the expectation column.
+% [CHECK] 20/4/1/1 confirmed by script for E6-E9, T4, H1 (C11
+% EXPECTATION_COUNT.md); H2's 5/2 added by hand -> recount.
+One expectation that held was scored on an instrument that could not
+fail. H2's Z6 used peak GPU memory in use as a measure of migrated volume
+on managed memory, but the driver allocates a whole 2\,MB chunk per block
+on the first fault there, so the measure reads allocation, not migration.
+Traced copy volumes from E9 replace it in every claim, and the instrument
+is a catalog entry (Section~\ref{sec:pitfalls}). We leave the pre-registered
+score as it was recorded.
 
 Process deviations that did not involve a stop:
 \begin{itemize}
@@ -246,6 +252,7 @@ E8    & 5070\,Ti, stock & 16 & 10 & slowdown at $K<512$ falsifies generality & \
 E9    & 5070\,Ti, stock, \texttt{nsys} & -- (descriptive) & 3 & none & -- & 4/0/0\\
 E7-T4 & T4, stock & 2, 14$^{a}$ & 10 & slowdown at $t_0$ or $t_{25}$ & not fired; replicated ($-5.07\%$) & 3/0/0\\
 H1    & 5070\,Ti, stock, HMM & 3$^{b}$ & 10 & dense cell faster at $t_0$ & dense replicated on HMM & 3/0/0$^{b}$\\
+H2    & 5070\,Ti, stock, HMM + managed & 8 & 10 (+3) & mechanical verdict rule & mechanism supported & 5/2/0$^{c}$\\
 \bottomrule
 \end{tabular}
 
@@ -254,4 +261,6 @@ H1    & 5070\,Ti, stock, HMM & 3$^{b}$ & 10 & dense cell faster at $t_0$ & dense
 $^{a}$16 before Amendment~2 (oversubscribed Stencil removed; host memory).
 $^{b}$After Amendment~1 (oversubscribed cells removed; stock-driver
 defect). Y3 withdrawn, not scored.
+$^{c}$Plus 3 untimed runs per cell for GPU memory use. Z6 held on an
+instrument later found not to measure migration on managed memory.
 \end{table*}

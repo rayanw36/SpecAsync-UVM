@@ -24,7 +24,18 @@
 %   decomposition overhead: CS2-16 (+0.331% 5070 Ti; +0.64% T4 UNCHECKED).
 %   review protocol: E3A_WIDTH_REVIEW.md §3, §5-6; catalog #22.
 %
-% OPEN -- design checks (read-only, Claude Code):
+% DESIGN CHECKS RESOLVED 2026-10-10 (consolidation/SECTION4_DESIGN_CHECKS.md):
+%   DC-1 8-slot FIFO history, W>1 only, drops never enter it.
+%   DC-2 ranges = maximal runs of consecutive pages in the sorted table
+%        (Stencil 2, GraphBFS 19); linear scan <=16 runs, bsearch above;
+%        cursor by atomic_try_cmpxchg, <=64 tries, give-up counted (0 on all
+%        250 policy-6 rows); failed verification -> silent fallback to slow
+%        path; refusal is a harness rule (e4_runner.py:18).
+%   DC-3 setarch -R; per coalesced fault; collected with prefetcher OFF.
+%   DC-4 depth 0 = find block + record, no make_resident.
+%   Hook runs only when specasync_log_enabled != 0 (default; all runs).
+%   Identities: 0 nonzero differences on 250 policy-6 rows (E4-E7).
+% Original open list, kept for traceability:
 %   [DC-1] same-region suppression: E3a used "last enqueued region"; the
 %          handoff says E3a-2 has an 8-slot region history. Confirm which
 %          the E3a-2 module (33FD42E6) implements and its exact rule.
@@ -58,7 +69,8 @@ At the start of servicing each batch, before the address-space lock is
 taken, the driver walks the batch's coalesced faults and asks a
 \emph{policy} for one predicted page per fault. A policy may decline. When it
 returns a page, the hook allocates a small work item, takes a reference on the
-GPU, and queues the item on a kernel workqueue. The queue is capped at 1{,}024
+GPU, and queues the item on a kernel workqueue. (The hook is active whenever the
+module's telemetry is enabled, which it was in every run.) The queue is capped at 1{,}024
 outstanding items; a prediction that arrives when the queue is full is
 dropped and counted. This hook is the only part of the mechanism that runs on
 the fault-servicing thread, and it runs on every fault, whether or not a
@@ -69,7 +81,7 @@ A kernel worker thread takes items from the queue. For each, it takes the
 address space's lock in read mode, finds the VA block containing the
 predicted page, and \emph{tries} to take that block's lock. It never waits:
 if the block is locked, typically because the servicing thread is working on
-it, the item is abandoned and counted as throttled. With the lock held, it
+it, the item is abandoned and logged as throttled. With the lock held, it
 calls the driver's \texttt{make\_resident} routine with the predicted region,
 the GPU as destination, and a prefetch cause. The worker therefore performs
 exactly the operation that Section~\ref{sec:bg-resident-mapped} showed cannot
@@ -87,7 +99,8 @@ speculation result reported here uses one policy, the first-touch oracle of
 Section~\ref{sec:design-oracle}, against a control with speculation disabled.
 
 A \emph{depth} parameter selects how much of the worker's work is done:
-depth~0 performs the lookup without migrating, and depth~1 migrates. All
+at depth~0 the worker locates the block and records the prediction without
+migrating anything, and at depth~1 it migrates. All
 reported configurations use depth~1.
 
 \subsection{Staging Width}
@@ -100,9 +113,10 @@ $W$ addresses this. For a predicted page at index $i$ in its VA block, the
 worker stages the aligned region
 $[\,\lfloor i/W \rfloor W,\; \min(\lfloor i/W \rfloor W + W,\; n)\,)$, where $n$
 is the number of pages in the block; at $W = 512$ the region is the whole
-2\,MB block. On the prediction side, a prediction whose region was already
-enqueued recently is not enqueued again, so that one item covers a region
-rather than one item per page of it. % [DC-1] exact suppression rule.
+2\,MB block. On the prediction side, at $W > 1$ a prediction is not enqueued if its
+region matches that of any of the last eight enqueued predictions, so that one
+item covers a region rather than one item per page of it; a prediction dropped
+at a full queue does not enter this history. At $W = 1$ nothing is suppressed.
 
 $W$ is a load-time module parameter, accepted only as a power of two from 1
 to 512; any other value makes the module load fail. Every region bound is
@@ -110,9 +124,10 @@ checked explicitly before the worker builds its page mask, because the
 driver's own helpers check some of them only with assertions that are
 non-fatal in release builds, and one of them writes the mask without any
 check. The worker also re-checks, under the block lock, that the block has
-not been destroyed. At $W = 1$ every new code path is bypassed and the
-mechanism behaves exactly as it did before width was added; we verified this
-counter for counter against the previously verified module.
+not been destroyed. At $W = 1$ every new code path is bypassed, by inspection, and the mechanism
+behaves as it did before width was added; on a short probe every counter
+matched the previously verified module, although that probe did not reach the
+migration call.
 
 \subsection{The First-Touch Oracle}
 \label{sec:design-oracle}
@@ -120,11 +135,13 @@ counter for counter against the previously verified module.
 To separate what off-path staging can achieve from how well a heuristic
 predicts, we give the worker knowledge of the future taken from the workload
 itself. In a collection run with address-space randomisation disabled, the
-driver records each coalesced fault's page in service order. A user-space
+driver records each coalesced fault's page in service order. Collection
+runs with the in-path prefetcher disabled, so that every page faults; the
+same table is then used with the prefetcher on or off. A user-space
 tool reduces this record to its \emph{first-touch order}: the list of
 distinct pages in the order each was first faulted, ranked
 $0, 1, \ldots, N-1$. The table is loaded into the module before a measured
-run. % [DC-3]
+run.
 
 During the measured run the policy keeps a cursor $c$, the rank of the next
 page it may predict. On a fault to a page of rank $r$:
@@ -142,7 +159,7 @@ bounds how far ahead staging can run.
 
 This oracle is as good as the workload's run-to-run stability allows, and
 no better. On our stencil workload, the first-touch order of 1{,}125{,}000
-pages differs between independent runs by at most 107 ranks, so the table is
+pages differs between independent runs by about a hundred ranks at most, so the table is
 a near-perfect forecast. On graph traversal the order is much looser, and
 because the cursor skips forward whenever a fault arrives ahead of it, one
 out-of-order fault can jump the cursor past pages that have not yet been
@@ -157,11 +174,15 @@ The original implementation found a page's rank by binary search over a
 sorted copy of the table and updated the cursor under a global spinlock with
 interrupts disabled, once for every coalesced fault. That cost falls on the
 servicing thread, so an oracle meant to bound speculation's benefit was
-itself reducing it. A second implementation computes the rank in constant
-time and advances the cursor without a lock. At load time the module checks
-the fast lookup against the original for every entry in the table, and
-records whether the check passed; every measured run with the fast lookup
-requires it to have passed. % [DC-2] mechanism and failure behaviour.
+itself reducing it. A second implementation exploits the table's structure:
+sorted by address, its pages form a few maximal runs of consecutive pages
+(two for the stencil workload, nineteen for graph traversal), so a page's rank
+follows from finding its run, by a short scan when there are few runs. The
+cursor advances by compare-and-swap with a bounded number of retries, and a
+give-up is counted; it never occurred. At load time the module checks the fast
+lookup against the original for every table entry and records the result. A
+failed check silently falls back to the original lookup, so our run harness
+refuses any fast configuration whose check did not pass.
 
 \subsection{Telemetry}
 \label{sec:design-telemetry}
@@ -174,8 +195,7 @@ drops. Three kinds of record matter for the results.
 Every coalesced fault is either predicted, held back, unknown, past the end
 of the table, or abandoned by the lock-free update; and every prediction is
 either suppressed as a repeat region, enqueued, or dropped at a full queue.
-Both identities are checked on every run, and held exactly on every run we
-report.
+Both identities are checked on every run, and held exactly on all 250 speculation runs we report.
 
 \paragraph{Phase timing}
 Timestamps at the boundaries of Table~\ref{tab:phases} give the

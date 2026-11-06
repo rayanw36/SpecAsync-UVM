@@ -34,14 +34,28 @@
 %     C1, carried), CS2-3 (D3 <0.2%; 0.05-0.14% on 5070 Ti).
 %
 % OPEN:
-%   [SRC-1] re-confirm the D5 classification on 595.91.07 (read-only diff of
-%           service_copy / make_resident_copy / block_copy_end_push).
-%   [SRC-2] eviction granularity and policy (LRU over 2 MB root chunks) is
-%           cited from [go2023earlyadaptor, ganguly2019interplay], not read
-%           from the 595.91.07 source. Read uvm_pmm_gpu.c before submission.
-%   [SRC-3] whether CPU-destination faults run the same density rule with the
-%           same threshold (E9's CPU-fault counts suggest so; C4 step 5).
-%           The text below makes NO claim about it.
+%   [SRC-1..3] RESOLVED by C5 (consolidation/SECTION3_SOURCE_CHECKS.md):
+%     SRC-1 D5 verdict holds on 595.91.07 (line/quote comparison; 595.71.05
+%       tree not on disk). Other waits in the chain are Confidential-
+%       Computing-only or CPU-to-CPU; wording below adjusted.
+%     SRC-2 eviction unit = 2 MB root chunk, done per VA block; victims =
+%       free root chunks, then heads of UNUSED/DISCARDED/USED lists in
+%       ALLOCATION order; access recency not tracked (uvm_pmm_gpu.c:1510 TODO).
+%       So NOT access-based LRU, unlike the description in Go et al.
+%     SRC-3 CPU faults reach the same g_uvm_perf_prefetch_threshold
+%       (uvm.c:573 -> uvm_perf_prefetch.c:118).
+%     Statement "non-resident pages are added" was WRONG: every page of the
+%       prefetch region except the faulted ones is added; only the copy skips
+%       resident pages. Fixed below.
+%   [HMM] new subsection sec:bg-hmm (2026-11-06) from gate_e/h0/H0_REPORT.md
+%     and H0_MAPPING.md: prefetch hint before the HMM branch
+%     (uvm_va_block.c:12046 vs :12051-12060); mask copied to migrate_vma
+%     (uvm_hmm.c:2961-2962); mapped by the shared uvm_va_block_service_finish
+%     (uvm_hmm.c:3028); region clamped to VMA/policy (uvm_hmm.c:1553-1583);
+%     PAGE_SIZE GPU chunks (uvm_va_block.c:3396-3397); un-migratable pages
+%     dropped (uvm_hmm.c:2856-2858). Verdict MAPS.
+%   [LABEL] main.tex:80 also defines sec:background (old inline Background);
+%       delete the old section when this file is wired in.
 %   [FIG]   Fig. 1 (fault path + where each mechanism acts) to be drawn.
 % =====================================================================
 
@@ -106,9 +120,10 @@ lock \emph{hold}, dominated by D5, is the largest phase (63--74\% of the
 batch window on the T4, 52--77\% on the RTX~5070~Ti with driver 595.84).
 Second, D5 is CPU work, not a wait for the GPU. Its cost is fault
 classification, residency bookkeeping, and the construction of copy commands,
-which are submitted asynchronously and tracked rather than waited on; the one
-blocking wait in this call chain applies only when the destination is the CPU,
-which is never the case for the GPU faults we measure. Moving a fault's
+which are submitted asynchronously and tracked rather than waited on. The
+blocking waits in this call chain apply only when the destination is the CPU
+or in confidential-computing configurations, neither of which arises for the
+GPU faults we measure. Moving a fault's
 discovery earlier does not, by itself, remove this work.
 
 \subsection{Residency Is Not Mapping}
@@ -158,8 +173,11 @@ subregion's size. The largest subregion for which
   100 \cdot \textit{count} \;>\; \textit{threshold} \cdot \textit{size}
   \label{eq:density}
 \end{equation}
-becomes the prefetch region. Its non-resident pages are added to the batch's
-destination set and marked as prefetches.
+becomes the prefetch region. Every page of that region other than the
+faulted ones is added to the batch's destination set and marked as a
+prefetch; pages already resident there are kept in the set but need no copy.
+The same rule and the same threshold also govern prefetching when the CPU
+faults on managed memory.
 
 Three details of this rule drive Sections~VI and~VII.
 
@@ -196,9 +214,11 @@ can fire for applications that issue \texttt{cudaMemAdvise}.
 \subsection{Prefetch Aggressiveness Under Memory Pressure}
 \label{sec:bg-oversub}
 
-When GPU memory is full, servicing a fault requires evicting another block's
-data to the host, and the driver selects victims at block granularity
-\cite{go2023earlyadaptor,ganguly2019interplay}. The density threshold
+When GPU memory is full, servicing a fault requires evicting data to the
+host. The driver evicts whole 2\,MB root chunks, one VA block at a time, and
+picks victims in allocation order rather than by recency of access: free
+chunks first, then the oldest chunks on its unused, discarded and used
+lists. The density threshold
 therefore trades one cost against another. A low threshold migrates large
 regions early, which reduces the number of faults when most of a region will
 be used. When only a few pages of each region are used, the same setting
@@ -209,6 +229,26 @@ an adaptive threshold controller on it \cite{go2023earlyadaptor}. Section~VII
 measures it on newer hardware and driver releases, and Section~VI shows that
 off-path speculation, as we built it, acts on performance only through this
 same rule.
+
+\subsection{Managed and System-Allocated Memory}
+\label{sec:bg-hmm}
+
+Everything above describes memory allocated with \texttt{cudaMallocManaged}.
+The open driver also services GPU faults on ordinary \texttt{malloc}'d memory
+through the kernel's Heterogeneous Memory Management (HMM) interface. The
+prefetcher is the same: the hint, with the same threshold, is computed before
+the driver branches to its HMM path, and the resulting set of pages is then
+migrated through the kernel's \texttt{migrate\_vma} interface and mapped for
+the faulting GPU by the same service-finish step as managed memory. Three
+differences matter. The prefetch region is clipped to the virtual memory area
+that contains the fault, which affects only the first and last blocks of a
+large allocation. Pages the kernel cannot migrate, such as file-backed,
+swapped or pinned pages, are dropped from the set and fault again if touched.
+Most important for cost, the GPU side of an HMM allocation is managed in
+4\,KB device-private pages rather than 2\,MB chunks, so each prefetched page
+is migrated and mapped as its own unit. The density rule therefore decides the
+same set of pages on both kinds of memory, but what it costs to move them can
+differ. Section~VII measures both.
 
 \subsection{Where Off-Path Work Can Act}
 \label{sec:bg-where}

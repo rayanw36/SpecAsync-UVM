@@ -1,49 +1,37 @@
-allocator,K,threshold,run,residency_gib
-managed,1,0,1,7.2266
-managed,1,0,2,7.6016
-managed,1,0,3,7.6016
-managed,8,0,1,7.6016
-managed,8,0,2,7.6016
-managed,8,0,3,7.4766
-managed,64,0,1,6.7285
-managed,64,0,2,8.1035
-managed,64,0,3,8.1035
-managed,512,0,1,7.3672
-managed,512,0,2,6.7422
-managed,512,0,3,7.9922
-managed,1,51,1,7.4395
-managed,1,51,2,5.8516
-managed,1,51,3,6.8516
-managed,8,51,1,7.2266
-managed,8,51,2,7.8984
-managed,8,51,3,7.3516
-managed,64,51,1,7.6562
-managed,64,51,2,7.2676
-managed,64,51,3,7.8535
-managed,512,51,1,8.2422
-managed,512,51,2,7.8672
-managed,512,51,3,7.8672
-malloc,1,0,1,8.2422
-malloc,1,0,2,8.2422
-malloc,1,0,3,8.2422
-malloc,8,0,1,8.2422
-malloc,8,0,2,8.2422
-malloc,8,0,3,8.2422
-malloc,64,0,1,8.2441
-malloc,64,0,2,8.2441
-malloc,64,0,3,8.2441
-malloc,512,0,1,8.2578
-malloc,512,0,2,8.2578
-malloc,512,0,3,8.2578
-malloc,1,51,1,0.4902
-malloc,1,51,2,0.4902
-malloc,1,51,3,0.4902
-malloc,8,51,1,2.2422
-malloc,8,51,2,2.1289
-malloc,8,51,3,2.2402
-malloc,64,51,1,8.2441
-malloc,64,51,2,8.2441
-malloc,64,51,3,8.2441
-malloc,512,51,1,8.2578
-malloc,512,51,2,8.2578
-malloc,512,51,3,8.2578
+allocator,instrument,K,threshold,run,fraction_of_8GiB
+malloc (HMM),memory.used residency,1,0,1,1.0303
+malloc (HMM),memory.used residency,1,0,2,1.0303
+malloc (HMM),memory.used residency,1,0,3,1.0303
+malloc (HMM),memory.used residency,8,0,1,1.0303
+malloc (HMM),memory.used residency,8,0,2,1.0303
+malloc (HMM),memory.used residency,8,0,3,1.0303
+malloc (HMM),memory.used residency,64,0,1,1.0305
+malloc (HMM),memory.used residency,64,0,2,1.0305
+malloc (HMM),memory.used residency,64,0,3,1.0305
+malloc (HMM),memory.used residency,512,0,1,1.0322
+malloc (HMM),memory.used residency,512,0,2,1.0322
+malloc (HMM),memory.used residency,512,0,3,1.0322
+managed,traced HtoD (E9),1,0,1,1.0000
+managed,traced HtoD (E9),1,0,2,1.0000
+managed,traced HtoD (E9),1,0,3,1.0000
+managed,traced HtoD (E9),512,0,1,0.9552
+managed,traced HtoD (E9),512,0,2,0.9315
+managed,traced HtoD (E9),512,0,3,0.9544
+malloc (HMM),memory.used residency,1,51,1,0.0613
+malloc (HMM),memory.used residency,1,51,2,0.0613
+malloc (HMM),memory.used residency,1,51,3,0.0613
+malloc (HMM),memory.used residency,8,51,1,0.2803
+malloc (HMM),memory.used residency,8,51,2,0.2661
+malloc (HMM),memory.used residency,8,51,3,0.2800
+malloc (HMM),memory.used residency,64,51,1,1.0305
+malloc (HMM),memory.used residency,64,51,2,1.0305
+malloc (HMM),memory.used residency,64,51,3,1.0305
+malloc (HMM),memory.used residency,512,51,1,1.0322
+malloc (HMM),memory.used residency,512,51,2,1.0322
+malloc (HMM),memory.used residency,512,51,3,1.0322
+managed,traced HtoD (E9),1,51,1,0.0312
+managed,traced HtoD (E9),1,51,2,0.0312
+managed,traced HtoD (E9),1,51,3,0.0312
+managed,traced HtoD (E9),512,51,1,0.9815
+managed,traced HtoD (E9),512,51,2,1.0000
+managed,traced HtoD (E9),512,51,3,0.9926
