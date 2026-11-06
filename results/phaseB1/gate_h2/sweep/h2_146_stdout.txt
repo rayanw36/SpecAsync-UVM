@@ -1,0 +1,8 @@
+[RESULT] pages_touched=4096 blocks=4096 K=1 passes=3 seed=202610081
+distinct_pages=4096 total_pages=2097152
+checksum=000007e77c3c23b1 expected_checksum=000007e77c3c23b1
+page_list_hash=8033df96e71bf8eb
+pass 1 kernel_ms=213.492
+pass 2 kernel_ms=0.032
+pass 3 kernel_ms=0.006
+CHECKSUM OK

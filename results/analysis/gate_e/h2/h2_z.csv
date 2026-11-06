@@ -1,0 +1,9 @@
+id,criterion,outcome,detail
+Z1,t0 flat in K on malloc: max/min of t0 medians <= 1.10,HELD,max/min = 1.028
+Z2,t51 strictly increasing in K on malloc,FAILED,"t51 medians 2.160, 4.365, 8.778, 8.386"
+Z3,malloc delta strictly decreasing in K; K=1 Holm-sig and positive; K=512 Holm-sig and negative,FAILED,"deltas +203.65%, +50.39%, -24.66%, -19.56%"
+Z4,malloc K=1 t0 residency >= 0.8 x 8 GiB,HELD,8440 MiB = 1.030 of 8 GiB
+Z5,malloc K=1 t51 residency <= 0.1 x 8 GiB,HELD,502 MiB = 0.061 of 8 GiB
+Z6,managed K=1 t0 residency >= 0.8 x 8 GiB,HELD,7784 MiB = 0.950 of 8 GiB
+Z7,K=1 delta larger on malloc than managed; 95% bootstrap CI of the difference has lower bound > 0,HELD,"difference +199.73 points, 95% CI [+198.06, +201.66] (10000 resamples within cells, seed 20261106)"
+verdict,,MECHANISM SUPPORTED,

@@ -10,7 +10,7 @@ FILES = ["results/analysis/CLAIM_SCOPE.md", "results/analysis/ARTIFACT_CATALOG.m
         "CLAIM_SCOPE_v2_PROPOSED.md", "ARTIFACT_CATALOG_ADDITIONS_PROPOSED.md", "HITRATE_REREAD.md",
         "SUPERSEDED_VALUES.md", "OPEN_DECISIONS.md", "FLAG_LEDGER.md", "C1_REVIEW.md",
         "REVIEW_NOTES_E7_E9.md", "CPU_FAULT_CHECK.md")]
-PREFIX = r"(?:E09b|E1PartB|E1b|E1|E3b|E4|E5|E6|E7|E8|E9|T4|D6|claim\d+|T1B5|T4hit|A1|B9|B10|H1)"
+PREFIX = r"(?:E09b|E1PartB|E1b|E1|E3b|E4|E5|E6|E7|E8|E9|T4|D6|claim\d+|T1B5|T4hit|A1|B9|B10|H1|H2)"
 ids = set(re.findall(r"^\| `([^`]+)` \|", open(EXTRACT).read(), re.M))
 tok = re.compile(r"`(" + PREFIX + r"\.[A-Za-z0-9_.()\-+]+)`")
 ok = bad = 0

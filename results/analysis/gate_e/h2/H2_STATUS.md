@@ -9,3 +9,4 @@
 - 16:21:39 SWEEP COMPLETE
 - 16:21:53 Timed sweep complete: 160 rows, runner exit 0. NAMING SLIP (not a protocol departure): the orchestrator wrote the runs CSV as h1_runs.csv inside the h2 directory (a missed rename in the copied orchestrator); renamed to h2_runs.csv after the run, content unchanged.
 - 16:21:53 Residency pre-checks OK (dmesg 0 lines, stock srcversion, MemAvailable ok); launching h2res.
+- 16:27:48 Residency pass complete: 48 rows, exit 0, 0 dmesg stop lines. Threshold restored to 51 (module reloaded with defaults).
