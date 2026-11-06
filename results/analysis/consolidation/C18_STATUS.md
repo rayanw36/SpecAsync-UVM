@@ -16,9 +16,25 @@ No GPU, no module loads. Section text not edited. Finished 22:02 (+03).
 5. `tests/h2_report.py`: no longer draws any figure (the output code is removed, the report text points to `supplementary/`), so a rerun cannot bring back the old encoding. Not rerun here (it would overwrite `GATE_H2_REPORT.md` and the superseded marker on `CS2_N12_PROPOSED.md`).
 6. All figures regenerated; previews of `fig_h2_hmm` and `fig_e8_sparse_access` are in `consolidation/c18_previews/`.
 
-## 3. First full compile: NOT DONE
-`pdflatex` and `latexmk` are not installed, and `sudo` requires a password (`sudo: a password is required`), so the TeX Live install was not attempted and the compile was skipped as instructed. Nothing was compiled: no error, warning, overfull-hbox or page-count data exists. `.gitignore` already lists `results/analysis/consolidation/c18_build/` for the PDFs. To compile, run `! sudo apt-get install -y texlive-latex-extra texlive-science texlive-fonts-recommended latexmk` here, then ask for the compile.
+## 3. First full compile (run later the same day, after `pdflatex` and `latexmk` were installed)
+Built with `latexmk -g -pdf` (bibtex included) into `consolidation/c18_build/` (gitignored; PDFs not committed). `IEEEtran.cls` and `IEEEtran.bst` are not in the installed TeX Live (`texlive-publishers` is missing and `sudo` needs a password), so the CTAN copy (IEEEtran 1.8b, 2015/08/26) was downloaded into `c18_build/ieeetran/` and put on `TEXINPUTS`/`BSTINPUTS` for the build only.
+
+| document | result | pages |
+|---|---|---|
+| `paper/main_v2.tex` | **compiles, 0 errors** | **19** |
+| `paper/supplementary.tex` | **compiles, 0 errors** | **26** |
+
+- **Undefined citations / references:** 0 and 0 in both; no multiply defined labels; no "labels may have changed" after the final pass; BibTeX 0 warnings.
+- **LaTeX errors found and fixed (all mechanical, below):** `main_v2`: `\makecell` undefined (Section II table; package missing). `supplementary`: catalog table #1-#11 has 10 cells in rows #7-#11 against 9 header cells ("Extra alignment tab", 15 errors), and its float was too large for a page.
+- **Overfull `\hbox` over 10 pt (not fixed: layout, not mechanical; paragraph line numbers are those of the file named):**
+  - `main_v2`: `section5_protocol.tex:239-256` 17.2 pt; `tables/t_mech.tex` (Section VI, single column) 176.7 pt; `tables/t_e7.tex` (Section VII) 105.3 pt; `tables/t_cat.tex:17` 11.4 pt.
+  - `supplementary`: `tables/t_hand.tex` 75.6 pt; 28 more over 10 pt, all in the first catalog table (`supplementary.tex:141-149`, entries #4-#11: long `\texttt` file names in narrow columns; worst 74.6 and 55.5 pt at line 145).
+- **Other warnings that need an author decision:** `main_v2`: `LaTeX Warning: Float too large for page by 62.5499pt` on `section8_pitfalls.tex:131` (the T-CAT table is longer than a page; the table does not fit as a float).
+- Only 4 overfull boxes over 10 pt in the main paper, three of them wide tables that need `\resizebox`/column changes or `table*`; that is a layout decision left to the author.
 
 ## Mechanical fixes made
+- `\usepackage{makecell}` added to `main_v2.tex` (Section II table uses `\makecell`).
+- `tests/make_supplementary.py`: `longtable` package; catalog tables set as `longtable` inside `\onecolumn ... \twocolumn` (a float of 11 long rows cannot fit a page); rows with one more cell than the header (#7-#11) get an empty header cell, text unchanged. `supplementary.tex` regenerated.
+- `IEEEtran.cls`/`.bst` from CTAN used for the build only (not added to the repo).
 - TikZ files moved from `paper/` to `paper/figures/` (path).
 - `tikz` package and libraries added to `main_v2.tex`.

@@ -30,6 +30,7 @@ PRE = r"""\documentclass[journal]{IEEEtran}
 \usepackage{graphicx}
 \usepackage{booktabs}
 \usepackage{tabularx}
+\usepackage{longtable}
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{url}
@@ -105,8 +106,12 @@ while i < len(lines):
         while i < len(lines) and lines[i].startswith("|"):
             rows.append([c.strip() for c in re.split(r"(?<!\\)\|", lines[i].strip().strip("|"))]); i += 1
         hdr, body = rows[0], [r for r in rows[2:]]
-        out += [r"\begin{table*}[t]", r"\centering\footnotesize", r"\begin{tabularx}{\textwidth}{" + "X" * len(hdr) + "}", r"\toprule", " & ".join(inline(c) for c in hdr) + r" \\", r"\midrule"]
-        out += [" & ".join(inline(c) for c in r) + r" \\" for r in body] + [r"\bottomrule", r"\end{tabularx}", r"\end{table*}", ""]
+        ncol = max(len(r) for r in rows)   # rows #7-#11 of the first table have one more cell than the header: pad, do not change the text
+        pad = lambda r: r + [""] * (ncol - len(r))   # noqa: E731
+        hdr, body = pad(hdr), [pad(r) for r in body]
+        colspec = "".join(r"p{\dimexpr(\textwidth-" + str(2 * ncol) + r"\tabcolsep)/" + str(ncol) + r"\relax}" for _ in range(ncol))
+        out += [r"\onecolumn", r"{\footnotesize", r"\begin{longtable}{" + colspec + "}", r"\toprule", " & ".join(inline(c) for c in hdr) + r" \\", r"\midrule", r"\endhead"]
+        out += [" & ".join(inline(c) for c in r) + r" \\" for r in body] + [r"\bottomrule", r"\end{longtable}", "}", r"\twocolumn", ""]
         continue
     b = re.match(r"^(\s*)([-*]|\d+\.) (.*)$", l)
     if b:
