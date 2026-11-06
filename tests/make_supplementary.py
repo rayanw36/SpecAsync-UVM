@@ -6,12 +6,18 @@ Nothing from paper/figures/legacy or paper/figures/retired is used. No TeX toolc
 import re, os
 os.chdir(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 SPECIAL = {"\\": r"\textbackslash{}", "&": r"\&", "%": r"\%", "$": r"\$", "#": r"\#", "_": r"\_", "{": r"\{", "}": r"\}", "~": r"\textasciitilde{}", "^": r"\textasciicircum{}"}
+def esc_raw(t): return "".join(SPECIAL.get(c, c) for c in t)
 def esc(t):
-    t = "".join(SPECIAL.get(c, c) for c in t)
+    t = esc_raw(t)
+    t = t.replace("=", "=\\allowbreak{}").replace("-", "-\\allowbreak{}").replace("/", "/\\allowbreak{}").replace("\\_", "\\_\\allowbreak{}")   # plain-text slash-joined tokens may break
     return re.sub(r'"([^"\n]*)"', r"``\1''", t)   # straight double quotes -> TeX quotes (markup only)
 def code(t):
-    e = esc(t)
-    for ch in ("/", r"\_", ".", "-", "=", ","): e = e.replace(ch, ch + r"\allowbreak{}")
+    """File names, paths and identifiers may break anywhere (the effect of \\path/\\url with xurl, without the argument restrictions of \\url)."""
+    e = esc_raw(t)
+    if len(t) > 8:
+        e = re.sub(r"(\\[\\{}%&$#_^~]|\\textasciitilde\{\}|\\textasciicircum\{\}|\\textbackslash\{\}|.)", lambda m: m.group(1) + r"\allowbreak{}", e)
+    else:
+        for ch in ("/", r"\_", ".", "-", "=", ","): e = e.replace(ch, ch + r"\allowbreak{}")
     return r"\texttt{" + e + "}"
 TOK = re.compile(r"(`[^`]+`|\*\*.+?\*\*|(?<![*\w])\*[^*\n]+?\*(?![*\w]))")
 def inline(t):
@@ -34,6 +40,7 @@ PRE = r"""\documentclass[journal]{IEEEtran}
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{url}
+\usepackage{adjustbox}
 \usepackage{xcolor}
 \DeclareUnicodeCharacter{2192}{\ensuremath{\rightarrow}}
 \DeclareUnicodeCharacter{2248}{\ensuremath{\approx}}
@@ -72,7 +79,7 @@ for frag, tid, where in TABS:
     cap = tmd[tid]
     if tid == "T-E9":
         cap = cap.split(" The second fragment")[0] if frag == "t_e9" else "Second fragment of T-E9: " + (cap.split("The second fragment gives, ")[1] if "The second fragment gives, " in cap else cap)
-    out += [r"\begin{table*}[t]", r"\centering\footnotesize", r"\caption{" + inline(cap) + " Supports " + inline(where) + ".}", r"\label{tab:s-" + frag + "}", r"\input{tables/" + frag + "}", r"\end{table*}", ""]
+    out += [r"\begin{table*}[t]", r"\centering\footnotesize", r"\caption{" + inline(cap) + " Supports " + inline(where) + ".}", r"\label{tab:s-" + frag + "}", r"\adjustbox{max width=\textwidth}{\input{tables/" + frag + "}}", r"\end{table*}", ""]
 # ---------------- S2
 FIGS = [("fig_e4_wallclock_by_arm", "figures/fig_e4_wallclock_by_arm", "figure*", "0.95\\textwidth"), ("fig_e7_threshold_by_workload_two_platforms", "figures/fig_e7_threshold_by_workload_two_platforms", "figure*", "0.95\\textwidth"),
         ("fig_ph_phase_medians", "figures/fig_ph_phase_medians", "figure", "\\columnwidth"), ("fig_h1", "figures/supplementary/F-H1", "figure", "\\columnwidth"),
@@ -110,7 +117,7 @@ while i < len(lines):
         pad = lambda r: r + [""] * (ncol - len(r))   # noqa: E731
         hdr, body = pad(hdr), [pad(r) for r in body]
         colspec = "".join(r"p{\dimexpr(\textwidth-" + str(2 * ncol) + r"\tabcolsep)/" + str(ncol) + r"\relax}" for _ in range(ncol))
-        out += [r"\onecolumn", r"{\footnotesize", r"\begin{longtable}{" + colspec + "}", r"\toprule", " & ".join(inline(c) for c in hdr) + r" \\", r"\midrule", r"\endhead"]
+        out += [r"\onecolumn", r"{\footnotesize\emergencystretch=3em", r"\begin{longtable}{" + colspec + "}", r"\toprule", " & ".join(inline(c) for c in hdr) + r" \\", r"\midrule", r"\endhead"]
         out += [" & ".join(inline(c) for c in r) + r" \\" for r in body] + [r"\bottomrule", r"\end{longtable}", "}", r"\twocolumn", ""]
         continue
     b = re.match(r"^(\s*)([-*]|\d+\.) (.*)$", l)

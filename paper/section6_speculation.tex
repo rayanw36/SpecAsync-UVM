@@ -31,7 +31,7 @@ observed: a staged page is resident, but still unmapped, so the GPU faults on
 it anyway. Table~\ref{tab:mech} gives the mechanism counters for every
 configuration of this section.
 
-\begin{table}[t]
+\begin{table*}[t]
 \centering
 \footnotesize
 \caption{Mechanism of speculation on Stencil-24K (E4, E5; medians of 10
@@ -39,7 +39,7 @@ runs): demand faults, faults on pages the worker had already made resident,
 pages requested by the worker, and D5 in total and per demand fault.}
 \label{tab:mech}
 \input{tables/t_mech}
-\end{table}
+\end{table*}
 
 The faults become cheaper. Stencil-24K runs 23.29\% faster than C1 at
 $W = 512$ and 21.62\% faster at $W = 64$ (\texttt{E4.F3.stencil.C6-W512\_vs\_C1},

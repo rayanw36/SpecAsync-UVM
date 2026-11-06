@@ -44,7 +44,7 @@ memory was smaller than the array (Section~\ref{sec:protocol}). The T4's lower
 run-to-run variance makes small effects significant: GraphBFS-23 is 0.14\%
 faster, a significant but negligible change.
 
-\begin{table}[t]
+\begin{table*}[t]
 \centering
 \footnotesize
 \caption{Stock driver, threshold 0 against 51 (E7, RTX~5070~Ti).
@@ -52,7 +52,7 @@ $\delta$: change in median wall-clock; MDE at the family's level
 ($m = 16$). Bold: Holm-significant.}
 \label{tab:e7}
 \input{tables/t_e7}
-\end{table}
+\end{table*}
 
 Tracing shows where the dense gain comes from. On Stencil-24K the bytes moved to
 the GPU are the same at both thresholds, within 0.74\%, but the GPU raises
