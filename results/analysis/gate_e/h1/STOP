@@ -1,0 +1,12 @@
+H1 STOPPED during the smoke pass at smoke idx 7 (cell "ov_k1 stock-t0": sparse 24 GiB K=1, --alloc malloc, stock nvidia_uvm 6284DA42..., threshold 0).
+Stop conditions fired (E8's verbatim list): new dmesg lines matching "BUG", "Oops", "exited with irqs disabled" and "soft lockup".
+Evidence (system journal, previous boot; excerpt in h1_lockup_excerpt.txt):
+  21:48:59  the runner reloaded the stock module (rmmod/insmod, threshold 0) for idx 7 and started the benchmark.
+  21:49:23  BUG: kernel NULL pointer dereference, address 0000000000000000; Oops 0000 [#1] SMP; RIP free_chunk+0x4d/0xd0 [nvidia_uvm];
+            comm "vidmem lazy fre" (kernel thread); call trace process_lazy_free -> process_lazy_free_entry -> _main_loop;
+            "note: vidmem lazy fre[15722] exited with irqs disabled" / "exited with preempt_count 1".
+  21:49:48 -> 22:16:40  watchdog: BUG: soft lockup - CPU#2 stuck for 26 s ... 1527 s [UVM GPU1 BH:15723]; trace uvm_pmm_gpu_unpin_allocated
+            (spin lock) <- sync_page_and_chunk_state <- uvm_hmm_va_block_service_locked <- uvm_va_block_service_locked <- service_fault_batch_block_locked
+            <- uvm_parent_gpu_service_replayable_faults (the HMM GPU-fault path).
+  The journal ends at 22:17:01; the machine was power-cycled (next boot 2026-11-06 13:34). The chain unit died with the boot.
+No retry; no further run; the sweep never started (no h1_runs.csv). End state after the reboot: stock module, threshold 51, graphical.target.

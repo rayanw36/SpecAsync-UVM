@@ -1,0 +1,129 @@
+# Kernel journal of the previous boot (excerpt of tests' stop evidence; the full journal is in the system journal, boot -1 of 2026-11-06 listing)
+Nov 05 21:49:14 LinuxPC kernel: nvidia 0000:01:00.0: Using 52-bit DMA addresses
+Nov 05 21:49:23 LinuxPC kernel: BUG: kernel NULL pointer dereference, address: 0000000000000000
+Nov 05 21:49:23 LinuxPC kernel: #PF: supervisor read access in kernel mode
+Nov 05 21:49:23 LinuxPC kernel: #PF: error_code(0x0000) - not-present page
+Nov 05 21:49:23 LinuxPC kernel: PGD 0 P4D 0 
+Nov 05 21:49:23 LinuxPC kernel: Oops: Oops: 0000 [#1] SMP NOPTI
+Nov 05 21:49:23 LinuxPC kernel: CPU: 4 UID: 0 PID: 15722 Comm: vidmem lazy fre Tainted: G           OE       7.0.0-34-generic #34~24.04.1-Ubuntu PREEMPT(lazy) 
+Nov 05 21:49:23 LinuxPC kernel: Tainted: [O]=OOT_MODULE, [E]=UNSIGNED_MODULE
+Nov 05 21:49:23 LinuxPC kernel: Hardware name: ASRock B850I Lightning WiFi/B850I Lightning WiFi, BIOS 3.30 06/16/2025
+Nov 05 21:49:23 LinuxPC kernel: RIP: 0010:free_chunk+0x4d/0xd0 [nvidia_uvm]
+Nov 05 21:49:23 LinuxPC kernel: Code: 0f b6 6e 09 44 0f b6 76 08 41 d0 ed e8 cc 37 e1 c5 48 8b 43 28 80 63 08 f7 41 83 e5 1f 41 83 e6 03 48 85 c0 74 09 48 8b 40 30 <83> 38 01 74 2e 4c 89 e7 48 89 de e
+Nov 05 21:49:23 LinuxPC kernel: RSP: 0018:ffffcf4e852f3dc0 EFLAGS: 00010282
+Nov 05 21:49:23 LinuxPC kernel: RAX: 0000000000000000 RBX: ffff8d3dde156620 RCX: 0000000000000000
+Nov 05 21:49:23 LinuxPC kernel: RDX: 0000000000000000 RSI: 0000000000000000 RDI: 0000000000000000
+Nov 05 21:49:23 LinuxPC kernel: RBP: ffffcf4e852f3de8 R08: 0000000000000000 R09: 0000000000000000
+Nov 05 21:49:23 LinuxPC kernel: R10: 0000000000000000 R11: 0000000000000000 R12: ffff8d3d872ef9f8
+Nov 05 21:49:23 LinuxPC kernel: R13: 000000000000000c R14: 0000000000000000 R15: ffff8d3d872efae0
+Nov 05 21:49:23 LinuxPC kernel: FS:  0000000000000000(0000) GS:ffff8d4a937e3000(0000) knlGS:0000000000000000
+Nov 05 21:49:23 LinuxPC kernel: CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+Nov 05 21:49:23 LinuxPC kernel: CR2: 0000000000000000 CR3: 0000000160255000 CR4: 0000000000f50ef0
+Nov 05 21:49:23 LinuxPC kernel: PKRU: 55555554
+Nov 05 21:49:23 LinuxPC kernel: Call Trace:
+Nov 05 21:49:23 LinuxPC kernel:  <TASK>
+Nov 05 21:49:23 LinuxPC kernel:  process_lazy_free+0x6f/0xb0 [nvidia_uvm]
+Nov 05 21:49:23 LinuxPC kernel:  process_lazy_free_entry+0x8f/0xb0 [nvidia_uvm]
+Nov 05 21:49:23 LinuxPC kernel:  _main_loop+0x9c/0x170 [nvidia_uvm]
+Nov 05 21:49:23 LinuxPC kernel:  ? __pfx__main_loop+0x10/0x10 [nvidia_uvm]
+Nov 05 21:49:23 LinuxPC kernel:  kthread+0xfb/0x140
+Nov 05 21:49:23 LinuxPC kernel:  ? __pfx_kthread+0x10/0x10
+Nov 05 21:49:23 LinuxPC kernel:  ret_from_fork+0x1f8/0x2b0
+Nov 05 21:49:23 LinuxPC kernel:  ? __pfx_kthread+0x10/0x10
+Nov 05 21:49:23 LinuxPC kernel:  ret_from_fork_asm+0x1a/0x30
+Nov 05 21:49:23 LinuxPC kernel:  </TASK>
+Nov 05 21:49:23 LinuxPC kernel: Modules linked in: nvidia_uvm(OE) ccm rfcomm snd_seq_dummy snd_hrtimer qrtr cmac algif_hash algif_skcipher af_alg bnep binfmt_misc amd_atl intel_rapl_msr ntfs3 nls_iso8
+Nov 05 21:49:23 LinuxPC kernel:  lp parport efi_pstore nfnetlink dmi_sysfs ip_tables x_tables autofs4 hid_logitech_hidpp hid_logitech_dj hid_multitouch hid_generic nvme usbhid hid r8169 nvme_core ahci
+Nov 05 21:49:23 LinuxPC kernel: CR2: 0000000000000000
+Nov 05 21:49:23 LinuxPC kernel: ---[ end trace 0000000000000000 ]---
+Nov 05 21:49:23 LinuxPC kernel: RIP: 0010:free_chunk+0x4d/0xd0 [nvidia_uvm]
+Nov 05 21:49:23 LinuxPC kernel: Code: 0f b6 6e 09 44 0f b6 76 08 41 d0 ed e8 cc 37 e1 c5 48 8b 43 28 80 63 08 f7 41 83 e5 1f 41 83 e6 03 48 85 c0 74 09 48 8b 40 30 <83> 38 01 74 2e 4c 89 e7 48 89 de e
+Nov 05 21:49:23 LinuxPC kernel: RSP: 0018:ffffcf4e852f3dc0 EFLAGS: 00010282
+Nov 05 21:49:23 LinuxPC kernel: RAX: 0000000000000000 RBX: ffff8d3dde156620 RCX: 0000000000000000
+Nov 05 21:49:23 LinuxPC kernel: RDX: 0000000000000000 RSI: 0000000000000000 RDI: 0000000000000000
+Nov 05 21:49:23 LinuxPC kernel: RBP: ffffcf4e852f3de8 R08: 0000000000000000 R09: 0000000000000000
+Nov 05 21:49:23 LinuxPC kernel: R10: 0000000000000000 R11: 0000000000000000 R12: ffff8d3d872ef9f8
+Nov 05 21:49:23 LinuxPC kernel: R13: 000000000000000c R14: 0000000000000000 R15: ffff8d3d872efae0
+Nov 05 21:49:23 LinuxPC kernel: FS:  0000000000000000(0000) GS:ffff8d4a937e3000(0000) knlGS:0000000000000000
+Nov 05 21:49:23 LinuxPC kernel: CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+Nov 05 21:49:23 LinuxPC kernel: CR2: 0000000000000000 CR3: 000000096a444000 CR4: 0000000000f50ef0
+Nov 05 21:49:23 LinuxPC kernel: PKRU: 55555554
+Nov 05 21:49:23 LinuxPC kernel: note: vidmem lazy fre[15722] exited with irqs disabled
+Nov 05 21:49:23 LinuxPC kernel: note: vidmem lazy fre[15722] exited with preempt_count 1
+Nov 05 21:49:48 LinuxPC kernel: watchdog: BUG: soft lockup - CPU#2 stuck for 26s! [UVM GPU1 BH:15723]
+Nov 05 21:49:48 LinuxPC kernel: Modules linked in: nvidia_uvm(OE) ccm rfcomm snd_seq_dummy snd_hrtimer qrtr cmac algif_hash algif_skcipher af_alg bnep binfmt_misc amd_atl intel_rapl_msr ntfs3 nls_iso8
+...
+Nov 05 21:50:16 LinuxPC kernel: watchdog: BUG: soft lockup - CPU#2 stuck for 52s! [UVM GPU1 BH:15723]
+Nov 05 21:50:16 LinuxPC kernel: Modules linked in: nvidia_uvm(OE) ccm rfcomm snd_seq_dummy snd_hrtimer qrtr cmac algif_hash algif_skcipher af_alg bnep binfmt_misc amd_atl intel_rapl_msr ntfs3 nls_iso8
+Nov 05 21:50:16 LinuxPC kernel:  lp parport efi_pstore nfnetlink dmi_sysfs ip_tables x_tables autofs4 hid_logitech_hidpp hid_logitech_dj hid_multitouch hid_generic nvme usbhid hid r8169 nvme_core ahci
+Nov 05 21:50:16 LinuxPC kernel: CPU: 2 UID: 0 PID: 15723 Comm: UVM GPU1 BH Tainted: G      D    OEL      7.0.0-34-generic #34~24.04.1-Ubuntu PREEMPT(lazy) 
+Nov 05 21:50:16 LinuxPC kernel: Tainted: [D]=DIE, [O]=OOT_MODULE, [E]=UNSIGNED_MODULE, [L]=SOFTLOCKUP
+Nov 05 21:50:16 LinuxPC kernel: Hardware name: ASRock B850I Lightning WiFi/B850I Lightning WiFi, BIOS 3.30 06/16/2025
+Nov 05 21:50:16 LinuxPC kernel: RIP: 0010:native_queued_spin_lock_slowpath+0x81/0x320
+Nov 05 21:50:16 LinuxPC kernel: Code: 00 00 f0 0f ba 2b 08 0f 92 c2 8b 03 0f b6 d2 c1 e2 08 30 e4 09 d0 3d ff 00 00 00 77 6c 85 c0 74 10 0f b6 03 84 c0 74 09 f3 90 <0f> b6 03 84 c0 75 f7 b8 01 00 00 0
+Nov 05 21:50:16 LinuxPC kernel: RSP: 0018:ffffcf4e852fb898 EFLAGS: 00000202
+Nov 05 21:50:16 LinuxPC kernel: RAX: 0000000000000001 RBX: ffff8d3d872efae0 RCX: fffff6563faa0000
+Nov 05 21:50:16 LinuxPC kernel: RDX: 0000000000000000 RSI: 0000000000000001 RDI: ffff8d3d872efae0
+Nov 05 21:50:16 LinuxPC kernel: RBP: ffffcf4e852fb8c0 R08: 0000000000000000 R09: 0000000000000000
+Nov 05 21:50:16 LinuxPC kernel: R10: 0000000000000000 R11: 0000000000000000 R12: ffff8d3dde1542a0
+Nov 05 21:50:16 LinuxPC kernel: R13: ffff8d3d872ef9f8 R14: ffff8d3dde1542a0 R15: ffff8d3de1dfb1e8
+Nov 05 21:50:16 LinuxPC kernel: FS:  0000000000000000(0000) GS:ffff8d4a936e3000(0000) knlGS:0000000000000000
+Nov 05 21:50:16 LinuxPC kernel: CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+Nov 05 21:50:16 LinuxPC kernel: CR2: 000002bab8a00a00 CR3: 000000096a444000 CR4: 0000000000f50ef0
+Nov 05 21:50:16 LinuxPC kernel: PKRU: 55555554
+Nov 05 21:50:16 LinuxPC kernel: Call Trace:
+Nov 05 21:50:16 LinuxPC kernel:  <TASK>
+Nov 05 21:50:16 LinuxPC kernel:  _raw_spin_lock+0x3f/0x60
+Nov 05 21:50:16 LinuxPC kernel:  uvm_pmm_gpu_unpin_allocated+0x23/0x90 [nvidia_uvm]
+Nov 05 21:50:16 LinuxPC kernel:  sync_page_and_chunk_state+0x1a7/0x250 [nvidia_uvm]
+Nov 05 21:50:16 LinuxPC kernel:  uvm_hmm_va_block_service_locked+0x53f/0x650 [nvidia_uvm]
+Nov 05 21:50:16 LinuxPC kernel:  uvm_va_block_service_locked+0x8e/0x310 [nvidia_uvm]
+Nov 05 21:50:16 LinuxPC kernel:  service_fault_batch_block_locked+0x443/0xb40 [nvidia_uvm]
+Nov 05 21:50:16 LinuxPC kernel:  service_fault_batch_dispatch.isra.0+0x234/0x740 [nvidia_uvm]
+Nov 05 21:50:16 LinuxPC kernel:  ? service_fault_batch_dispatch.isra.0+0x234/0x740 [nvidia_uvm]
+Nov 05 21:50:16 LinuxPC kernel:  uvm_parent_gpu_service_replayable_faults+0x1c4/0xe10 [nvidia_uvm]
+Nov 05 21:50:16 LinuxPC kernel:  replayable_faults_isr_bottom_half+0x49/0x70 [nvidia_uvm]
+Nov 05 21:50:16 LinuxPC kernel:  replayable_faults_isr_bottom_half_entry+0x8f/0xb0 [nvidia_uvm]
+Nov 05 21:50:16 LinuxPC kernel:  _main_loop+0x9c/0x170 [nvidia_uvm]
+Nov 05 21:50:16 LinuxPC kernel:  ? __pfx__main_loop+0x10/0x10 [nvidia_uvm]
+Nov 05 21:50:16 LinuxPC kernel:  kthread+0xfb/0x140
+Nov 05 21:50:16 LinuxPC kernel:  ? __pfx_kthread+0x10/0x10
+Nov 05 21:50:16 LinuxPC kernel:  ret_from_fork+0x1f8/0x2b0
+Nov 05 21:50:16 LinuxPC kernel:  ? __pfx_kthread+0x10/0x10
+Nov 05 21:50:16 LinuxPC kernel:  ret_from_fork_asm+0x1a/0x30
+Nov 05 21:50:16 LinuxPC kernel:  </TASK>
+Nov 05 21:50:23 LinuxPC kernel: rcu: INFO: rcu_preempt self-detected stall on CPU
+Nov 05 21:50:23 LinuxPC kernel: rcu:         2-....: (59680 ticks this GP) idle=9c14/1/0x4000000000000000 softirq=114541/114541 fqs=14876
+Nov 05 21:50:23 LinuxPC kernel: rcu:                  hardirqs   softirqs   csw/system
+Nov 05 21:50:23 LinuxPC kernel: rcu:          number:    57761        589            0
+Nov 05 21:50:23 LinuxPC kernel: rcu:         cputime:        0          0        29991   ==> 29999(ms)
+Nov 05 21:50:23 LinuxPC kernel: rcu:         (t=60001 jiffies g=527469 q=1321 ncpus=24)
+...
+Nov 05 22:16:40 LinuxPC kernel: watchdog: BUG: soft lockup - CPU#2 stuck for 1527s! [UVM GPU1 BH:15723]
+Nov 05 22:16:40 LinuxPC kernel: Modules linked in: nvidia_uvm(OE) ccm rfcomm snd_seq_dummy snd_hrtimer qrtr cmac algif_hash algif_skcipher af_alg bnep binfmt_misc amd_atl intel_rapl_msr ntfs3 nls_iso8
+Nov 05 22:16:40 LinuxPC kernel:  lp parport efi_pstore nfnetlink dmi_sysfs ip_tables x_tables autofs4 hid_logitech_hidpp hid_logitech_dj hid_multitouch hid_generic nvme usbhid hid r8169 nvme_core ahci
+Nov 05 22:16:40 LinuxPC kernel: CPU: 2 UID: 0 PID: 15723 Comm: UVM GPU1 BH Tainted: G      D    OEL      7.0.0-34-generic #34~24.04.1-Ubuntu PREEMPT(lazy) 
+Nov 05 22:16:40 LinuxPC kernel: Tainted: [D]=DIE, [O]=OOT_MODULE, [E]=UNSIGNED_MODULE, [L]=SOFTLOCKUP
+Nov 05 22:16:40 LinuxPC kernel: Hardware name: ASRock B850I Lightning WiFi/B850I Lightning WiFi, BIOS 3.30 06/16/2025
+Nov 05 22:16:40 LinuxPC kernel: RIP: 0010:native_queued_spin_lock_slowpath+0x81/0x320
+Nov 05 22:16:40 LinuxPC kernel: Code: 00 00 f0 0f ba 2b 08 0f 92 c2 8b 03 0f b6 d2 c1 e2 08 30 e4 09 d0 3d ff 00 00 00 77 6c 85 c0 74 10 0f b6 03 84 c0 74 09 f3 90 <0f> b6 03 84 c0 75 f7 b8 01 00 00 0
+Nov 05 22:16:40 LinuxPC kernel: RSP: 0018:ffffcf4e852fb898 EFLAGS: 00000202
+Nov 05 22:16:40 LinuxPC kernel: RAX: 0000000000000001 RBX: ffff8d3d872efae0 RCX: fffff6563faa0000
+Nov 05 22:16:40 LinuxPC kernel: RDX: 0000000000000000 RSI: 0000000000000001 RDI: ffff8d3d872efae0
+Nov 05 22:16:40 LinuxPC kernel: RBP: ffffcf4e852fb8c0 R08: 0000000000000000 R09: 0000000000000000
+Nov 05 22:16:40 LinuxPC kernel: R10: 0000000000000000 R11: 0000000000000000 R12: ffff8d3dde1542a0
+Nov 05 22:16:40 LinuxPC kernel: R13: ffff8d3d872ef9f8 R14: ffff8d3dde1542a0 R15: ffff8d3de1dfb1e8
+Nov 05 22:16:40 LinuxPC kernel: FS:  0000000000000000(0000) GS:ffff8d4a936e3000(0000) knlGS:0000000000000000
+Nov 05 22:16:40 LinuxPC kernel: CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+Nov 05 22:16:40 LinuxPC kernel: CR2: 000002bab8a00a00 CR3: 000000096a444000 CR4: 0000000000f50ef0
+Nov 05 22:16:40 LinuxPC kernel: PKRU: 55555554
+Nov 05 22:16:40 LinuxPC kernel: Call Trace:
+Nov 05 22:16:40 LinuxPC kernel:  <TASK>
+Nov 05 22:16:40 LinuxPC kernel:  _raw_spin_lock+0x3f/0x60
+Nov 05 22:16:40 LinuxPC kernel:  uvm_pmm_gpu_unpin_allocated+0x23/0x90 [nvidia_uvm]
+Nov 05 22:16:40 LinuxPC kernel:  sync_page_and_chunk_state+0x1a7/0x250 [nvidia_uvm]
+Nov 05 22:16:40 LinuxPC kernel:  uvm_hmm_va_block_service_locked+0x53f/0x650 [nvidia_uvm]
+Nov 05 22:16:40 LinuxPC kernel:  uvm_va_block_service_locked+0x8e/0x310 [nvidia_uvm]
+Nov 05 22:16:40 LinuxPC kernel:  service_fault_batch_block_locked+0x443/0xb40 [nvidia_uvm]
+Nov 05 22:16:40 LinuxPC kernel:  service_fault_batch_dispatch.isra.0+0x234/0x740 [nvidia_uvm]
+Nov 05 22:16:40 LinuxPC kernel:  ? service_fault_batch_dispatch.isra.0+0x234/0x740 [nvidia_uvm]
