@@ -25,7 +25,7 @@ E8_RUNS = "results/analysis/gate_e/e8/e8_runs.csv"
 E7_FAM_A = "results/analysis/gate_e/e7/family_a.csv"
 E8_TESTS = "results/analysis/gate_e/e8/primary_tests.csv"
 DATA = "results/analysis/gate_e/h1"
-FIG = "paper/figures/F-H1"
+FIG = "paper/figures/supplementary/F-H1"   # (C17) the figure itself is drawn by tests/make_paper_figures.py (fig_h1)
 
 
 def lines(path):
@@ -121,35 +121,11 @@ def analyze(data_dir, fig):
 
 
 def figure(rows, T, man, fig):
-    """F-H1: wall-clock of every run relative to the median t51 of its cell (t0 blue, t51 grey: the paper's colour map); every run a point, median a marker,
-    filled when Holm-significant, hollow otherwise. HMM (malloc'd) memory only; the managed deltas are in the report table, not drawn."""
-    import matplotlib
-    matplotlib.use("Agg")
-    import matplotlib.pyplot as plt
+    """(C17) F-H1 is drawn by tests/make_paper_figures.py (fig_h1; paper marker convention: HMM = triangles). Kept as a pointer so the analysis script still regenerates it."""
     sys.path.insert(0, os.path.dirname(__file__))
     import make_paper_figures as M
     M.style()
-    names = [("stencil", "Stencil-24K"), ("in_k512", "sparse in memory\nK=512"), ("in_k1", "sparse in memory\nK=1")]
-    fig_, ax = plt.subplots(figsize=(M.COL1 * 1.25, 2.5))
-    for i, (w, lab) in enumerate(names):
-        if w not in T:
-            continue
-        b = st.median(walls(rows, w, 51))
-        M.pts(ax, i + 0.17, [100 * (x / b - 1) for x in walls(rows, w, 0)], M.THR[0], "o", jitter=0.06, size=6, alpha=0.5)
-        M.med_marker(ax, i + 0.17, T[w]["delta_pct"], M.THR[0], "o", "sig" if T[w]["holm_sig"] else "ns", size=22)
-        M.pts(ax, i - 0.17, [100 * (x / b - 1) for x in walls(rows, w, 51)], M.THR[51], "s", jitter=0.06, size=6, alpha=0.5)
-        M.med_marker(ax, i - 0.17, 0.0, M.THR[51], "s", "ns", size=22)
-    ax.axhline(0, color=M.THR[51], lw=0.8)
-    ax.set_xticks(range(len(names))); ax.set_xticklabels([n[1] for n in names], fontsize=6.3)
-    ax.set_ylabel("wall-clock vs t51 median (%)")
-    from matplotlib.lines import Line2D
-    ax.legend(handles=[Line2D([], [], marker="o", ls="", color=M.THR[0], ms=4, label="threshold 0"), Line2D([], [], marker="s", ls="", color=M.THR[51], ms=4, label="threshold 51 (shipped)"),
-                       Line2D([], [], marker="o", ls="", mfc="k", mec="k", ms=4, label="filled: Holm-significant"), Line2D([], [], marker="o", ls="", mfc="w", mec="k", ms=4, label="hollow: not significant")],
-              frameon=False, loc="upper center", bbox_to_anchor=(0.5, -0.22), ncol=2, fontsize=6.3)
-    fig_.tight_layout()
-    for ext in ("png", "pdf"):
-        fig_.savefig(f"{fig}.{ext}", bbox_inches="tight", dpi=300)
-    plt.close(fig_)
+    M.fig_h1()
 
 
 if __name__ == "__main__":

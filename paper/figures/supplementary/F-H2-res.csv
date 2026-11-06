@@ -1,0 +1,37 @@
+panel,allocator,instrument,K,threshold,run,value
+b,malloc,memory.used residency,1,0,1,1.0303
+b,malloc,memory.used residency,1,0,2,1.0303
+b,malloc,memory.used residency,1,0,3,1.0303
+b,malloc,memory.used residency,8,0,1,1.0303
+b,malloc,memory.used residency,8,0,2,1.0303
+b,malloc,memory.used residency,8,0,3,1.0303
+b,malloc,memory.used residency,64,0,1,1.0305
+b,malloc,memory.used residency,64,0,2,1.0305
+b,malloc,memory.used residency,64,0,3,1.0305
+b,malloc,memory.used residency,512,0,1,1.0322
+b,malloc,memory.used residency,512,0,2,1.0322
+b,malloc,memory.used residency,512,0,3,1.0322
+b,malloc,memory.used residency,1,51,1,0.0613
+b,malloc,memory.used residency,1,51,2,0.0613
+b,malloc,memory.used residency,1,51,3,0.0613
+b,malloc,memory.used residency,8,51,1,0.2803
+b,malloc,memory.used residency,8,51,2,0.2661
+b,malloc,memory.used residency,8,51,3,0.2800
+b,malloc,memory.used residency,64,51,1,1.0305
+b,malloc,memory.used residency,64,51,2,1.0305
+b,malloc,memory.used residency,64,51,3,1.0305
+b,malloc,memory.used residency,512,51,1,1.0322
+b,malloc,memory.used residency,512,51,2,1.0322
+b,malloc,memory.used residency,512,51,3,1.0322
+b,managed,traced HtoD (E9),1,0,1,1.0000
+b,managed,traced HtoD (E9),1,0,2,1.0000
+b,managed,traced HtoD (E9),1,0,3,1.0000
+b,managed,traced HtoD (E9),512,0,1,0.9552
+b,managed,traced HtoD (E9),512,0,2,0.9315
+b,managed,traced HtoD (E9),512,0,3,0.9544
+b,managed,traced HtoD (E9),1,51,1,0.0312
+b,managed,traced HtoD (E9),1,51,2,0.0312
+b,managed,traced HtoD (E9),1,51,3,0.0312
+b,managed,traced HtoD (E9),512,51,1,0.9815
+b,managed,traced HtoD (E9),512,51,2,1.0000
+b,managed,traced HtoD (E9),512,51,3,0.9926
