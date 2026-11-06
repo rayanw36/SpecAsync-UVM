@@ -2,3 +2,10 @@
 - 16:06:12 isolate multi-user.target exit 0; timed chain launched as unit h2.
 - 16:06:12 orchestrator smoke: phase0 16:03:52, now 16:06:12, session cap 20:03:52, latest sweep end (cap - 25 min reserve) 19:38:52
 - 16:07:35 smoke complete: 16 rows; h2_timeouts.csv written
+- 16:07:39 push after smoke: ok
+- 16:07:39 orchestrator sweep: phase0 16:03:52, now 16:07:39, session cap 20:03:52, latest sweep end (cap - 25 min reserve) 19:38:52
+- 16:21:35 timed cells: idx 1-160: runner exit 0 (836 s)
+- 16:21:39 push after timed cells: ok
+- 16:21:39 SWEEP COMPLETE
+- 16:21:53 Timed sweep complete: 160 rows, runner exit 0. NAMING SLIP (not a protocol departure): the orchestrator wrote the runs CSV as h1_runs.csv inside the h2 directory (a missed rename in the copied orchestrator); renamed to h2_runs.csv after the run, content unchanged.
+- 16:21:53 Residency pre-checks OK (dmesg 0 lines, stock srcversion, MemAvailable ok); launching h2res.
