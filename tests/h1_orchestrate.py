@@ -90,16 +90,7 @@ def sweep(start, cap, last_start):
     rc = run_range("in-memory cells", 1, 60)
     if rc:
         return rc
-    est = sum(10 * (wall[r["label"]] + OVERHEAD_S) for r in order if r["family"] == "OV" and int(r["block"]) == 1 and r["label"] in wall)
-    now = dt.datetime.now(start.tzinfo)
-    if now + dt.timedelta(seconds=est) > last_start:
-        open(f"{H1}/ov_skipped.txt", "w").write(f"oversubscribed cells skipped at {now:%H:%M:%S}: est {est:.0f} s would pass {last_start:%H:%M:%S}\n")
-        log(f"SKIP (pre-registered rule): oversubscribed cells (est {est:.0f} s)")
-    else:
-        log(f"oversubscribed cells: est {est:.0f} s, starting")
-        rc = run_range("oversubscribed cells", 61, 100)
-        if rc:
-            return rc
+    # Amendment 1: no oversubscribed stage (removed cells)
     log("SWEEP COMPLETE")
     return 0
 

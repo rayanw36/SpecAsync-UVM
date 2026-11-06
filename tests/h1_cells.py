@@ -12,8 +12,8 @@ WL = {
     "ov_k512": ("sparse 24 GiB K=512", "sparse", ["24", "512"]),
 }
 IN_KEYS = ["stencil", "in_k1", "in_k512"]
-OV_KEYS = ["ov_k1", "ov_k512"]
-TESTED = ["stencil", "in_k512", "in_k1", "ov_k1", "ov_k512"]     # one Holm family of 5 (t0 vs t51 per workload)
+OV_KEYS = []                      # Amendment 1 (2026-11-06): the oversubscribed cells ov_k1 and ov_k512 are REMOVED (stock-driver oops, see GATE_H1_REPORT.md)
+TESTED = ["stencil", "in_k512", "in_k1"]     # Amendment 1: one Holm family of 3 (t0 vs t51 per workload); original family of 5 included ov_k1, ov_k512
 
 
 def command(repo, key):

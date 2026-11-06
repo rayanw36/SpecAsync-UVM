@@ -62,3 +62,21 @@ The H1 runner also stops if the benchmark's output is incomplete (sparse: 3 pass
 - The malloc-mode and managed-mode runs are from different sessions; the descriptive comparison is not a test.
 - Pages that `migrate_vma` cannot move (file-backed, swapped, pinned) would be dropped from the service set (`h0/H0_MAPPING.md` section 3); none is expected for host-initialised anonymous memory, and the benchmark has no counter for it.
 - The stock module has no counters: only wall-clock is analysed.
+
+
+## Amendment 1 (2026-11-06, before any timed run)
+Made 2026-11-06 13:47; no timed run of any H1 cell exists (the C9 smoke pass produced no analysed data), so the amendment is blind to outcomes.
+
+**Reason.** The smoke pass stopped on a stock-driver oops (NULL dereference in `free_chunk`, kernel thread "vidmem lazy free") followed by a soft lockup in the HMM GPU-fault path, on the first oversubscribed malloc-mode cell (`ov_k1 stock-t0`); the host had to be power-cycled (`GATE_H1_REPORT.md`, `h1/STOP`). Retrying risks another host hang.
+
+**Cells removed:** every oversubscribed cell: `ov_k1` (sparse 24 GiB K=1) at t0 and t51, `ov_k512` (sparse 24 GiB K=512) at t0 and t51.
+**Cells kept:** the in-memory cells, each at t0 and t51: `stencil` (Stencil-24K), `in_k1` (sparse 8 GiB K=1), `in_k512` (sparse 8 GiB K=512); 60 timed runs, n = 10 per cell. Repetition count, interleaving (seeded permutation blocks, seed 202611051), the per-run procedure, the statistic of record (median), the two-sided Mann-Whitney U and the outlier reporting are unchanged. The in-memory permutations are drawn first, so the new timed order equals idx 1-60 of the original order.
+**Family:** Holm over the kept t0-vs-t51 comparisons only: **3 tests** (`stencil`, `in_k512`, `in_k1`), family alpha 0.05 (smallest Holm threshold 0.05/3); MDE at the family alpha uses m = 3.
+**Expectations.** Kept word for word: Y1 "Stencil-24K: t0 faster than t51, Holm-significant (moderate-high)"; Y2 "Stencil-24K: the malloc-mode gain is smaller than E7's managed -9.57% (moderate; the CPU-side part is absent)"; Y4 "sparse in-memory K = 512: t0 faster than t51 (moderate)". **WITHDRAWN (Amendment 1), not scored:** Y3 "sparse oversubscribed K = 1: t0 slower than t51, Holm-significant (moderate)".
+**Verdict rule (replaces the original).**
+- `DENSE REPLICATED ON HMM` if at least one dense cell (Stencil-24K, or bench_sparse in memory at the largest K kept, K = 512) is significantly faster at t0 than at t51 after Holm.
+- `NOT REPLICATED` if no kept dense cell is significantly faster at t0, and each dense cell's MDE at the family alpha is no larger than the managed-memory gain for the same workload (`E8.in.K512.stock-t0_vs_stock-t51` for K = 512; Stencil-24K is not an E8 workload, so its managed gain is `E7.A.stencil.stock-t0_vs_stock-t51` from E7, the nearest committed managed measurement: a conservative reading).
+- `INCONCLUSIVE` otherwise.
+- The sparse half of the trade-off is explicitly **not tested on HMM**, whatever the result.
+**Stop rule:** unchanged (new `dmesg` lines matching `BUG`, `Oops`, `exited with irqs disabled`, `soft lockup`), plus: stop if host available memory drops below 4 GiB at any point.
+**Files regenerated with this commit:** `h1_order.csv` (60 rows), `h1_smoke_order.csv` (6 rows), `h1_order.sha256` with **both** hashes (sweep `db141599b11dbfa2...`, smoke `359f40a260b9c09d...`); the runner accepts both orders in a dry run (`--dry-run`, executes nothing); the earlier 6-row `h1_smoke.csv` of the stopped C9 smoke (excluded data) was removed from the working tree (it stays in git history) so that the new smoke pass starts empty. **Analyzer control (reduced family, m = 3):** PASS on the control input (E8 oversubscribed K = 1: +84.96%, p 1.08e-05) and FAIL on the perturbed copy (+103.46%): `h1/h1_control_amendment1.txt`.

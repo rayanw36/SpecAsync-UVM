@@ -1,0 +1,9 @@
+# H1 analyzer positive control (E8 committed e8_runs.csv, oversubscribed K = 1, stock-t0 vs stock-t51)
+n = 10 / 10; median t51 = 5.0537 s; median t0 = 9.3473 s
+delta = +84.96%  (E8 reported +84.96%)   MWU p = 1.08e-05  (E8 reported 1.08e-05)
+CONTROL: PASS - reproduces E8
+# H1 analyzer positive control (E8 committed e8_runs.csv, oversubscribed K = 1, stock-t0 vs stock-t51) -- PERTURBED copy (t0 wall-clock x 1.10)
+n = 10 / 10; median t51 = 5.0537 s; median t0 = 10.2821 s
+delta = +103.46%  (E8 reported +84.96%)   MWU p = 1.08e-05  (E8 reported 1.08e-05)
+CONTROL: FAIL - does not reproduce E8
+control can fail: True

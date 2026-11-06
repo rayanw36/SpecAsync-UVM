@@ -95,6 +95,7 @@ def main():
     ap.add_argument("--through", type=int, default=0)
     ap.add_argument("--commit-every", type=int, default=10)
     ap.add_argument("--order-sha256", default="")
+    ap.add_argument("--dry-run", action="store_true", help="check the order hash and the row count, then exit before any module load or run")
     args = ap.parse_args()
     os.makedirs(args.out_dir, exist_ok=True)
     stop_file = os.path.join(args.out_dir, "STOP")
@@ -106,6 +107,10 @@ def main():
         if h not in open(args.order_sha256).read():
             print(f"REFUSING: sha256 of {args.order} ({h[:16]}...) is not in {args.order_sha256}")
             return 4
+    if args.dry_run:
+        n = sum(1 for _ in csv.DictReader(open(args.order)))
+        print(f"DRY RUN ok: {args.order} accepted (hash check passed: {bool(args.order_sha256)}), {n} rows; nothing executed")
+        return 0
     drop = dropped()
     order = [r for r in csv.DictReader(open(args.order)) if r["label"] not in drop]
     tmo_map = timeouts(args.smoke)
