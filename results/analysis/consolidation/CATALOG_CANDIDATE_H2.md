@@ -1,3 +1,5 @@
+**APPLIED as ARTIFACT_CATALOG.md entry #31 (C13, 2026-11-06).**
+
 # Catalog candidate (proposal; ARTIFACT_CATALOG.md is not edited) - Gate C12
 
 ### #31? · `memory.used` read as migrated volume, validated on one allocator only

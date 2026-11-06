@@ -32,5 +32,6 @@
 \#28 & LFS pointer patch swallowed & A driver-source problem was misdiagnosed; a wrong module could pass as verified. & failed compile & Operational hazards \\ % ARTIFACT_CATALOG.md#28
 \#29 & Session killed by its own session kill & None in data; lost time, and a half-run gate read as complete. & the session ended & Operational hazards \\ % ARTIFACT_CATALOG.md#29
 \#30 & VRAM-only sizing, no host-RAM check & An out-of-memory thrashing run timed as an oversubscription measurement. & pre-registered smoke pass (OOM kill) & Operational hazards \\ % ARTIFACT_CATALOG.md#30
+\#31 & memory.used read as migrated volume & The volume moved is the same on both allocators (a measure valid on one only). & inspection after the gate; E9 traced bytes & Validation that could not fail \\ % ARTIFACT_CATALOG.md#31
 \bottomrule
 \end{tabular}

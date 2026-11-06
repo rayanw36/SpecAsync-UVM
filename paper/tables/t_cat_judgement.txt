@@ -12,3 +12,4 @@
 #28: J: second clause is the entry's counterfactual
 #29: J: the entry says no data conclusion
 #30: J: the entry says no result was reached
+#31: J: the entry's false conclusion is a scored expectation (Z6) and its consequence for the managed t51 cell, merged into one sentence

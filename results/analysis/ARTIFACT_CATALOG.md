@@ -505,16 +505,23 @@ Appended from `results/analysis/consolidation/ARTIFACT_CATALOG_ADDITIONS_PROPOSE
   The earlier near-OOM from a host leak is #11.
 - **Family:** Operational hazards (peer of #11).
 
+### #31 · `memory.used` read as migrated volume, validated on one allocator only *(appended C13, 2026-11-06)*
+- **What was measured (H2):** the peak of `nvidia-smi memory.used` minus a pre-launch baseline, used as "GPU memory made resident" on both `malloc` (HMM) and managed memory. C9's validation covered malloc mode only (memory.used rose about 2288 MiB during a 2 GiB malloc run).
+- **False conclusion it would have produced:** "the volume moved at threshold 0 is the same on both allocators" (H2 expectation **Z6**, scored **HELD** at 0.950), and, through the managed t51 value (0.856 of the array at K = 1), the impression that managed memory migrates almost everything even at the shipped threshold. Traced bytes (E9) give 0.031 of the array at that cell. On managed memory the driver allocates a whole 2 MB chunk per VA block on the first fault (`uvm_va_block.c:1011-1035`, `:2842`), so `memory.used` tracks allocation, not migration; on HMM chunks are 4 KB (`:1174-1182`) and it tracks migration.
+- **How caught:** by inspection of the managed t51 cell against the density rule after the gate (a faulted page widened to 64 KB, the next level failing the 51% test, predicts a small fraction), then confirmed against E9's traced bytes. The gate's own scoring did not catch it (the expectation held).
+- **Evidence:** `E9.htod_frac.in_k1.t51`, `E9.htod_frac.in_k1.t0`, `H2.res.managed.k1.t51`, `H2.res.managed.k1.t0`, `H2.res.malloc.k1.t51`, `H2.Z6`, `h2/RESIDENCY_SEMANTICS.md`. The residency instrument and its managed readings were from different sessions than E9; not a same-session comparison.
+- **Family:** Validation that could not fail (the validation covered malloc only, where the instrument works, so it could not fail for the managed case). *Secondary note:* instrument blindness, since on managed memory the instrument measured a different quantity (allocated 2 MB chunks) than the one it was named for.
+
 ---
 
 ## Families and synthesis
 
-Each entry, old (#1–#11) and new (#12–#30), is assigned one primary family. **C6 update (2026-10-10):** #26–#30 appended (30 entries in all); a new family, **Record integrity**, holds #26 and #23, and **#23 was moved into it from Operational hazards** (the original assignment is recorded in the amendment at the end of this file).
+Each entry, old (#1–#11) and new (#12–#31), is assigned one primary family. **C13 update (2026-11-06):** #31 appended (31 entries in all; family Validation that could not fail). **C6 update (2026-10-10):** #26–#30 appended; a new family, **Record integrity**, holds #26 and #23, and **#23 was moved into it from Operational hazards** (the original assignment is recorded in the amendment at the end of this file).
 
 | family | entries | caught by the original analysis | caught only by a later, independent pass or review | caught by a pre-registered test | caught by the failure itself (crash / loud harness / preflight) |
 |---|---|---|---|---|---|
 | **Aggregation-level mismatch** | #7, #8, #9, #13, #16, #17, #18, #25, #27 | — | #7, #8, #9, #13, #16, #17, #18 (E0.7 → E0.8; E0.8's recurrence → external review), #27 (a later gate's author) | #25 | — |
-| **Validation that could not fail** | #1, #2, #12, #14, #15 | #14 (instance 3, group_probe) | #1, #2 (Gate B re-investigation), #12 (verification pass mandated by the trigger policy), #14 (instances 1–2), #15 | — | — |
+| **Validation that could not fail** | #1, #2, #12, #14, #15, #31 | #14 (instance 3, group_probe) | #1, #2 (Gate B re-investigation), #12 (verification pass mandated by the trigger policy), #14 (instances 1–2), #15, #31 (inspection after the gate, confirmed against E9) | — | — |
 | **Instrument cost and instrument blindness** | #4, #5, #19, #20, #21 | #5 (Phase C's same-session accounting-closure check), #20 (a second counter disagreed in the same table) | #4, #19, #21 (E1b, forced by review) | #21 (E3b) | — |
 | **Operational hazards** | #3, #10, #11, #22, #24, #28, #29, #30 | — | #3 (interleaved re-run) | #10 (A2b was pre-registered to test it), #30 (the pre-registered smoke pass) | #11 (near-OOM forced a stop), #22 (crash), #24 (loud harness failure), #28 (failed compile), #29 (the session ended) |
 | **Record integrity** *(new, C6)* | #23, #26 | — | #26 (journal re-account; E8 review) | — | #23 (preflight) |
@@ -557,6 +564,7 @@ In each case a control or comparison passed by construction:
 - a probe whose access pattern never exercised the bug (#14);
 - a ratio of single-digit counts (#15);
 - a comparison against a baseline built to be beaten (#12);
+- an instrument validated on one allocator (HMM) and then used on the other, where it measures allocation and not migration (#31);
 - and, earlier, an oracle whose collection and replay never overlapped in address
   space (#1, #2).
 
@@ -661,3 +669,6 @@ families table, the Operational hazards and "loud failure" lists were updated; "
 Totals after C6: **30 entries** (#1-#30; #6 remains uncategorised): Aggregation-level mismatch 9 (#7, #8, #9, #13, #16, #17, #18, #25, #27),
 Validation that could not fail 5 (#1, #2, #12, #14, #15), Instrument cost and instrument blindness 5 (#4, #5, #19, #20, #21),
 Operational hazards 8 (#3, #10, #11, #22, #24, #28, #29, #30), Record integrity 2 (#23, #26), uncategorised 1 (#6).
+
+**Amendment D (C13, 2026-11-06) — #31 appended.** `memory.used` read as migrated volume (H2's Z6 scored HELD on an instrument that cannot see the difference on managed memory); source `consolidation/CATALOG_CANDIDATE_H2.md`, applied by author decision. Family: Validation that could not fail (single family; instrument blindness as a secondary note in the entry).
+Totals after C13: **31 entries** (#1-#31; #6 remains uncategorised): Aggregation-level mismatch 9, Validation that could not fail 6 (#1, #2, #12, #14, #15, #31), Instrument cost and instrument blindness 5, Operational hazards 8, Record integrity 2, uncategorised 1.

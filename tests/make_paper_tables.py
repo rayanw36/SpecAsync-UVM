@@ -286,14 +286,15 @@ CAT = {  # n: (short name, false conclusion, <= 15 words, how caught, family, ju
     28: ("LFS pointer patch swallowed", "A driver-source problem was misdiagnosed; a wrong module could pass as verified.", "failed compile", "Operational hazards", "J: second clause is the entry's counterfactual"),
     29: ("Session killed by its own session kill", "None in data; lost time, and a half-run gate read as complete.", "the session ended", "Operational hazards", "J: the entry says no data conclusion"),
     30: ("VRAM-only sizing, no host-RAM check", "An out-of-memory thrashing run timed as an oversubscription measurement.", "pre-registered smoke pass (OOM kill)", "Operational hazards", "J: the entry says no result was reached"),
+    31: ("memory.used read as migrated volume", "The volume moved is the same on both allocators (a measure valid on one only).", "inspection after the gate; E9 traced bytes", "Validation that could not fail", "J: the entry's false conclusion is a scored expectation (Z6) and its consequence for the managed t51 cell, merged into one sentence"),
 }
 
 
 def t_cat():
     s = open("results/analysis/ARTIFACT_CATALOG.md").read()
     nums = sorted(int(x) for x in re.findall(r"^### #(\d+) ", s, re.M)) + [int(m.group(1)) for m in re.finditer(r"^\| (\d+) \|", s, re.M)]
-    assert sorted(set(nums)) == list(range(1, 31)), "catalog entries are not #1-#30"
-    assert sorted(CAT) == list(range(1, 31))
+    assert sorted(set(nums)) == list(range(1, 32)), "catalog entries are not #1-#31"
+    assert sorted(CAT) == list(range(1, 32))
     for n, v in CAT.items():
         assert len(v[1].split()) <= 15, (n, len(v[1].split()))
     fam_tab = s.split("| family | entries")[1].split("\n\n")[0]
@@ -306,14 +307,14 @@ def t_cat():
                 famof[int(x)] = f
     rows = []
     flagged = []
-    for n in range(1, 31):
+    for n in range(1, 32):
         nm, fc, hc, fam, flag = CAT[n]
         if flag:
             flagged.append(f"#{n}: {flag}")
         rows.append(([f"\\#{n}", tex(nm), tex(fc), tex(hc), tex(fam)], [f"ARTIFACT_CATALOG.md#{n}"]))
     p = emit("t_cat", ["\\#", "Artifact", "False conclusion it would have produced", "How caught", "Family"], rows, "@{}rp{2.3cm}p{4.2cm}p{2.2cm}p{2.2cm}@{}")
     open(f"{OUT}/t_cat_judgement.txt", "w").write("\n".join(flagged) + "\n")
-    META["T-CAT"] = dict(file=p, csv="results/analysis/ARTIFACT_CATALOG.md", cap="The 30 catalogued measurement artifacts, condensed: the false conclusion each would have produced (shortened to at most 15 words), how it was caught, and its family. Entries are listed in catalog order.")
+    META["T-CAT"] = dict(file=p, csv="results/analysis/ARTIFACT_CATALOG.md", cap="The 31 catalogued measurement artifacts, condensed: the false conclusion each would have produced (shortened to at most 15 words), how it was caught, and its family. Entries are listed in catalog order.")
     return len(flagged)
 
 
