@@ -71,11 +71,13 @@
   doi = {10.1145/3650200.3656608}
 }
 
-@misc{diehl2018hpxcl,
-  author = {Diehl and others},
-  title = {Integration of {CUDA} Processing within {HPX} ({HPXCL})},
+@inproceedings{diehl2018hpxcl,
+  author = {Diehl, P. and Seshadri, M. and Heller, T. and Kaiser, H.},
+  title = {Integration of {CUDA} Processing within the C++ Library for Parallelism and Concurrency ({HPX})},
+  booktitle = {2018 IEEE/ACM 4th International Workshop on Extreme Scale Programming Models and Middleware (ESPM2)},
+  pages = {19--28},
   year = {2018},
-  howpublished = {arXiv preprint},
+  doi = {10.1109/espm2.2018.00006},
   x-note = {note: Asynchronous task/future-based GPU execution interface enabling overlap.}
 }
 
@@ -193,10 +195,12 @@
 }
 
 @inproceedings{li2019oversubframework,
-  author = {Li and others},
-  title = {A Framework for Memory Oversubscription Management in {GPU}s},
-  booktitle = {Architectural Support for Programming Languages and Operating Systems (ASPLOS)},
+  author = {Li, C. and Ausavarungnirun, R. and Rossbach, C. J. and Zhang, Y. and Mutlu, O. and Guo, Y. and Yang, J.},
+  title = {A Framework for Memory Oversubscription Management in Graphics Processing Units},
+  booktitle = {Proceedings of the Twenty-Fourth International Conference on Architectural Support for Programming Languages and Operating Systems},
+  pages = {49--63},
   year = {2019},
+  doi = {10.1145/3297858.3304044},
   x-note = {note: Coordinated policies to reduce thrashing under GPU memory oversubscription.}
 }
 
@@ -245,21 +249,23 @@
   x-note = {note: Was cited as anonymous2022learningoversub (arXiv 2204.02974, author field "Anonymous") -- real authors and peer-reviewed venue recovered by this audit.}
 }
 
-@misc{nazaraliyev2024gpuvm,
+@inproceedings{nazaraliyev2024gpuvm,
   author = {Nazaraliyev, N. and Sadredini, E. and Abu-Ghazaleh, N.},
-  title = {{GPUVM}: {GPU}-driven Unified Virtual Memory},
-  year = {2024},
-  howpublished = {arXiv preprint arXiv:2411.05309},
-  eprint = {2411.05309},
-  archiveprefix = {arXiv},
-  x-note = {note: GPU-driven paging control using RDMA/RNIC mechanisms.}
+  title = {{DREAM}: Device-Driven Efficient Access to Virtual Memory},
+  booktitle = {Proceedings of the 39th ACM International Conference on Supercomputing},
+  pages = {1190--1205},
+  year = {2025},
+  doi = {10.1145/3721145.3725748},
+  x-note = {Preprint: arXiv:2411.05309 (GPUVM) | note: GPU-driven paging control using RDMA/RNIC mechanisms.}
 }
 
 @inproceedings{nihaal2024compression,
-  author = {Nihaal and Mutyam},
-  title = {Selective Memory Compression for {GPU} {UVM}},
-  booktitle = {International Conference on Parallel Processing (ICPP)},
+  author = {Nihaal, A. and Mutyam, M.},
+  title = {Selective Memory Compression for {GPU} Memory Oversubscription Management},
+  booktitle = {Proceedings of the 53rd International Conference on Parallel Processing},
+  pages = {189--198},
   year = {2024},
+  doi = {10.1145/3673038.3673058},
   x-note = {note: Selective compression and packing to increase effective capacity under oversubscription (simulation).}
 }
 
