@@ -74,9 +74,9 @@ to detect exactly this outcome, and reversed this study's earlier conclusion
 (Section~\ref{sec:pitfalls}). Width matters: at $W = 1$ the oracle is 5.87\%
 \emph{slower} than C0, and at $W = 64$ the difference is not significant
 (\texttt{E4.F1.stencil.C7-W1\_vs\_C0}, \texttt{-W64\_vs\_C0}). On GraphBFS-23 no
-width differs detectably from C0; at $W = 512$ the difference is $-0.06\%$
-against a minimum detectable effect of 0.38\% at the family's level
-(\texttt{E4.F1.graphbfs.C7-W512\_vs\_C0}, \texttt{E4.mde\_family.graphbfs.F1}).
+width differs detectably from C0; at $W = 512$ the difference is $-0.06\%$,
+with a 95\% confidence interval of $-0.40$ to $+0.20\%$
+(\texttt{E4.F1.graphbfs.C7-W512\_vs\_C0.ci}).
 This null says little about speculation: on GraphBFS-23 the fault-servicing
 window is 0.19\% of the run under the shipped driver, so no mechanism acting on
 fault service could change it detectably. The speculation result is therefore a
@@ -120,9 +120,11 @@ If staging gains only by helping regions pass the threshold, it should add
 little once the threshold is already low. E6 tested this directly, by comparing
 speculation with no speculation at the same threshold. Speculation adds little.
 Its gain is $-0.85\%$ at threshold 0 and $-0.28\%$ at 10, neither significant,
-against minimum detectable effects of 2.04\% and 2.28\% at the family's level,
-and 2.76\% at 25, which is significant (\texttt{E6.wall.C7W512-t0\_vs\_C0-t0},
-\texttt{-t10}, \texttt{-t25}, \texttt{E6.mde\_family.stencil\_wall}). Staging
+with 95\% confidence intervals of $-2.02$ to $+1.49\%$ and $-1.91$ to
+$+1.72\%$, and 2.76\% at 25, which is significant
+(\texttt{E6.wall.C7W512-t0\_vs\_C0-t0.ci}, \texttt{-t10.ci}, \texttt{-t25}).
+At thresholds 0 and 10, any benefit of speculation larger than about 2\% is
+excluded. Staging
 still removes faults at every threshold, 5.3\% of them at 0 and 22.1\% at 25
 (\texttt{E6.demand.*}), but at low thresholds the prefetcher has already taken
 most regions, and the faults that remain are too few to matter: one

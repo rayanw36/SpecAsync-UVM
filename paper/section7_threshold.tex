@@ -28,10 +28,12 @@ E6 had found the effect with our module loaded.
 
 Table~\ref{tab:e7} gives the eight further workloads. At threshold 0, four are
 significantly faster, by 2.49--16.95\%, and none is significantly slower; the
-same holds at 25. The four without a significant change are short runs whose
-minimum detectable effects are large, 7--12\% for three of them, so they are
-not evidence of no effect; the exception is GraphBFS-23, which runs long,
-changes by $-0.26\%$ and could have shown an effect of 0.86\%. The largest gain
+same holds at 25. Three of the four without a significant change are short runs
+whose 95\% confidence intervals span 11 to 23 percentage points, so they are not
+evidence of no effect (\texttt{E7.B.stencil8k.*.ci}, \texttt{sweep4k},
+\texttt{cufft}). The fourth, GraphBFS-23, runs long and changes by $-0.26\%$,
+with an interval of $-1.05$ to $-0.02\%$: any effect larger than about 1\% is
+excluded (\texttt{E7.B.graphbfs.stock-t0\_vs\_stock-t51.ci}). The largest gain
 is on a one-pass oversubscribed Stencil, whose array exceeds GPU memory, 16.95\%; a pre-registered
 expectation that oversubscription would make the low threshold slower failed
 (XB3). For dense access, oversubscription does not reverse the effect.
@@ -115,7 +117,13 @@ array and $K = 1$, a run moves 129.8\,GiB to the GPU at threshold 0 and
 brings in the whole region; with one useful page per block, nearly all of it is
 evicted unused and brought back on the next pass. At $K \ge 64$ the traffic is
 the same at both thresholds, about 72\,GiB, because the density rule takes whole
-regions at 51 too. The slowdown is on the GPU side: the time outside the kernels
+regions at 51 too. The rule of Eq.~(\ref{eq:density}) predicts these volumes:
+simulated on the benchmark's page list, it gives 3.12\% of the in-memory array
+at $K = 1$ and threshold 51, the fraction E9 traced. On the oversubscribed array
+the first pass moves twice the predicted volume at $K = 1$ and 8, which the rule
+does not explain, and the rule does not explain the two failed expectations
+about ordering (XS4, XS5).
+% [CHECK] C22_VII4_DENSITY_SIM.md: 3.12% predicted = measured; oversub 2.00x. The slowdown is on the GPU side: the time outside the kernels
 falls slightly at threshold 0 even in the slowest cell
 (\texttt{E8.outside\_kernels.sparse\_ov}).
 

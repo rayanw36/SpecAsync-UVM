@@ -42,6 +42,22 @@ SHA-256 against the published packages. The stock module has the same
 source version on both machines. Every timed run on the T4 was made
 with no remote-desktop or graphical session active.
 
+Table~\ref{tab:workloads} lists the workloads. All allocate with
+\texttt{cudaMallocManaged} unless stated, initialise their data on the host,
+and run the stated passes over it; H1 and H2 run the same sparse benchmark and
+Stencil-24K on \texttt{malloc}'d memory.
+% [CHECK] CC: confirm every workload allocates managed memory and initialises
+% on the host (SGEMM via cuBLAS, cuFFT, STREAM, GraphBFS); reword if not.
+
+\begin{table*}[t]
+\centering
+\footnotesize
+\caption{Workloads. Footprint: managed memory allocated. Wall t51: median
+process wall-clock at the shipped threshold on the RTX~5070~Ti (E7, E8).}
+\label{tab:workloads}
+\input{tables/t_workloads}
+\end{table*}
+
 \subsection{One Timed Run}
 \label{sec:protocol:run}
 
@@ -148,10 +164,18 @@ minimum detectable effect at the family's corrected level:
 \label{eq:mde}
 \end{equation}
 where $m$ is the family size and $s_i$, $n_i$ are the standard deviation
-and number of runs of the two cells. A non-significant comparison whose
-MDE is smaller than an effect of interest is evidence that the effect is
-absent at that size. A comparison whose MDE is larger is not evidence
-either way.
+and number of runs of the two cells. Eq.~(\ref{eq:mde}) uses standard deviations, so a single slow run
+can inflate it far beyond what the rank test sees; on the T4, one cold
+SGEMM run raised its MDE from about 0.2\% to 7.7\%. Where we rely on a null
+result we therefore argue from a 95\% bootstrap confidence interval of the
+difference of medians, with 10{,}000 resamples within cells, as a
+percentage of the baseline median. A null whose interval excludes an effect
+of interest is evidence that the effect is absent at that size; a wide
+interval is not evidence either way. Of the 84 comparisons in this paper,
+the interval and the Holm decision disagree in two, both borderline: one interval end lies
+within 0.15 percentage points of zero.
+% [CHECK] 0.2% / 7.7%: C22_BOOTSTRAP_CI.md (b), helper not rerun (~0.19%).
+% [CHECK] 84 and the two disagreements: C22_BOOTSTRAP_CI.md (c).
 
 Early analysis scripts hard-coded the correction for a family of 16
 (\texttt{Z\_MDE\_BONF}). E4 and E5 overrode it for their own families;

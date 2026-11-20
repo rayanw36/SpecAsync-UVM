@@ -103,8 +103,8 @@ this: the fault reduction grows from 40\% to 53\% as the threshold is raised fro
 \paragraph{The same lever is available without speculation}
 If speculation's benefit runs through the density threshold, the threshold can
 be moved directly. At matched thresholds, speculation adds at most 2.8\%, and
-nothing detectable at threshold 0 or 10 (minimum detectable effects 2.0\% and
-2.3\% at the family's corrected level). Lowering the threshold from the shipped
+nothing detectable at threshold 0 or 10 (95\% confidence intervals $-2.0$ to
+$+1.5\%$ and $-1.9$ to $+1.7\%$). Lowering the threshold from the shipped
 51 to 0, with no speculation, makes the stock driver 9.57\% faster on the same
 stencil workload (confirmatory test). Part of that gain is not on the GPU fault
 path: the same threshold governs prefetching for CPU faults, and at threshold 0
@@ -154,33 +154,37 @@ written before the measurement it tested.
 \subsection{Contributions}
 
 \begin{itemize}
-  \item \textbf{An in-driver off-path staging prototype with a usable oracle.}
-  A modification of NVIDIA's open-source UVM driver with a fast,
-  lock-free first-touch oracle and a configurable staging width, whose kernel
-  changes passed a review protocol of compile-only review, a precondition table
-  for every driver call, and an attended first load.
+  \item \textbf{A mechanistic account of what off-path staging does in the
+  shipped driver.} A stager that makes pages resident cannot prevent faults,
+  because only fault service maps a page (verified from source and by
+  counters). Its gain against the shipped driver comes through the
+  prefetcher's density rule, which counts staged pages as resident, confirmed
+  by a pre-registered dose--response test; about 86\% of the drop in dispatch
+  time is fewer faults rather than cheaper ones. At matched thresholds it adds
+  at most 2.8\%. Copy offload is large only when the prefetcher is off.
 
-  \item \textbf{A mechanistic account of what off-path staging can and cannot
-  do.} Staging cannot prevent faults because it cannot map (verified from
-  source and by counters). Its only route to fault prevention is the
-  prefetcher's density rule, confirmed by a pre-registered dose--response
-  test. Its other effect, copy offload, is large only when the prefetcher is
-  off. We also measure the cost of handing work to the worker
-  (54--75\,ns per enqueue on the stencil workload, on the critical path) and show that most of the
-  per-fault overhead in our first oracle was its own lookup.
+  \item \textbf{New measurements of the prefetch threshold.} On system-allocated
+  (HMM) memory, a low threshold slows sparse access by up to 204\% with the
+  array in GPU memory, where managed memory shows only a few percent. With
+  access density isolated by a synthetic benchmark and migrated bytes traced, the
+  density rule reproduces the measured volume exactly. These measurements also
+  replicate, on two newer GPU generations and a newer driver, both directions
+  of the trade-off that Go \emph{et al.}\ reported.
 
-  \item \textbf{An independent replication of the threshold trade-off.}
-  Pre-registered tests on the stock driver reproduce Go \emph{et al.}'s finding
-  in both directions on a newer driver: the gain from a lower threshold on
-  dense and streaming access, on two GPU generations, and the loss on sparse
-  access to an oversubscribed array, with the migrated bytes traced and minimum
-  detectable effects reported for every null.
+  \item \textbf{An in-driver off-path staging prototype with a first-touch
+  oracle.} A modification of NVIDIA's open-source UVM driver with a fast,
+  lock-free oracle and a configurable staging width, and the measured cost of
+  each part on the critical path (54--75\,ns per enqueue on the stencil
+  workload). Its kernel changes passed a review protocol of compile-only review,
+  a precondition table for every driver call, and an attended first load.
 
   \item \textbf{A falsifiable measurement protocol, exercised.} Every gate fixed
   its families, statistic, test, minimum detectable effect, and falsification
-  trigger in a committed file before running. Three triggers fired, and each changed the paper's conclusion. Analysis uses medians, two-sided Mann--Whitney $U$, Holm
-  correction across pre-declared families, and reports outliers with and
-  without removal.
+  trigger in a committed file before running. Three triggers fired, and each
+  changed the paper's conclusion. Analysis uses medians, two-sided
+  Mann--Whitney $U$, Holm correction across pre-declared families, bootstrap
+  confidence intervals for the null results we rely on, and reports outliers
+  with and without removal.
 
   \item \textbf{A catalog of UVM measurement artifacts.} Thirty-one artifacts
   met in this study, each with the false conclusion it would have produced,
@@ -190,6 +194,10 @@ written before the measurement it tested.
   independent pass. In all, eleven of the 31 were caught inside the gate that
   made them, three by a check written before the measurement.
 \end{itemize}
+% [CHECK] "about 86%" = C23.vi1.stencil.fault_count_share (85.9%).
+% [CHECK] "reproduces the measured volume exactly": C22_VII4_DENSITY_SIM.md,
+%   in-memory K=1 t51 3.12% predicted = 3.12% measured (E9); needs an
+%   evidence id and the sentence in Section VII (added in this edit set).
 
 \subsection{Scope}
 
