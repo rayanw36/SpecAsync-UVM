@@ -59,9 +59,9 @@ decomposition (Section~\ref{sec:background}) follows their approach, measured
 inside the driver, and agrees with their conclusion that the lock-held service
 phase is CPU work. We use it for a different purpose: to locate where an
 off-path mechanism can act at all. Kim \emph{et al.}\ act on the same batch
-path for irregular workloads, running additional thread blocks while faults are
-outstanding so that batches grow, and overlapping eviction with migration
-\cite{kim2020batchaware}.
+path for irregular workloads: they propose thread-block context switching, with
+runtime and hardware support, so that more faults are handled per batch, and
+overlap eviction with migration \cite{kim2020batchaware}.
 
 The same group derived locality metrics from driver fault telemetry to guide
 allocation under oversubscription \cite{jones2025helm}; our telemetry comes

@@ -1,0 +1,14 @@
+[
+ {
+  "id": "III-3b",
+  "file": "section3_background.tex",
+  "old": "(\\emph{nsys}) are CUPTI's GPU page-fault records, which group several faults;\nthe two counts differ by a factor of three to four for the same run.\n% [CHECK] CC: confirm what nsys's GPU page-fault count records (fault groups?)\n% and the ratio for Stencil-24K t51 (339,386 demand vs 91,935 nsys).",
+  "new": "(\\emph{nsys}) count CUPTI's page-fault groups, each of which may cover many\nfaults. On Stencil-24K the two counts differ by a factor of about four; on the\nsparse benchmark the profiler's count is not a per-fault count at all, so we use\nit only to compare thresholds on Stencil-24K.\n% C23: CUPTI GPU_PAGE_FAULT = fault groups; Stencil-24K t51 3.69x, t0 4.84x\n% (different module and session); sparse 70-269x (C23.nsys_vs_demand.*)."
+ },
+ {
+  "id": "II-2b",
+  "file": "section2_related_work.tex",
+  "old": "Kim \\emph{et al.}\\ act on the same batch\npath for irregular workloads, running additional thread blocks while faults are\noutstanding so that batches grow, and overlapping eviction with migration\n\\cite{kim2020batchaware}.",
+  "new": "Kim \\emph{et al.}\\ act on the same batch\npath for irregular workloads: they propose thread-block context switching, with\nruntime and hardware support, so that more faults are handled per batch, and\noverlap eviction with migration \\cite{kim2020batchaware}."
+ }
+]

@@ -123,10 +123,12 @@ D7 & Residual & --- \\
 We report two fault counts, and say which at each use. \emph{Demand faults}
 are the fault entries the driver services on the demand path, counted by our
 instrumentation after coalescing. Faults reported by the NVIDIA profiler
-(\emph{nsys}) are CUPTI's GPU page-fault records, which group several faults;
-the two counts differ by a factor of three to four for the same run.
-% [CHECK] CC: confirm what nsys's GPU page-fault count records (fault groups?)
-% and the ratio for Stencil-24K t51 (339,386 demand vs 91,935 nsys).
+(\emph{nsys}) count CUPTI's page-fault groups, each of which may cover many
+faults. On Stencil-24K the two counts differ by a factor of about four; on the
+sparse benchmark the profiler's count is not a per-fault count at all, so we use
+it only to compare thresholds on Stencil-24K.
+% C23: CUPTI GPU_PAGE_FAULT = fault groups; Stencil-24K t51 3.69x, t0 4.84x
+% (different module and session); sparse 70-269x (C23.nsys_vs_demand.*).
 
 Two properties of this path matter later. First, the lock is rarely
 contended in our single-stream workloads: lock \emph{wait} (D3) is below
