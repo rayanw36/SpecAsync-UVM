@@ -37,26 +37,28 @@ expectation that oversubscription would make the low threshold slower failed
 (XB3). For dense access, oversubscription does not reverse the effect.
 
 On the Tesla~T4, with the same driver release, Stencil-24K is 5.07\% faster at
-threshold 0 and 3.21\% at 10 (\texttt{T4.A.stencil.*}), and 12 of the 14 further
-tests are significantly faster with none slower (\texttt{T4.B.count}). The
+threshold 0 and 3.21\% at 10 (\texttt{T4.A.stencil.*}), and of the 14 further
+tests, 10 are significantly faster, two are significant but negligible changes
+on GraphBFS-23 of about 0.1\%, and none is slower (\texttt{T4.B.count}). The
 oversubscribed workload could not be run there, because the instance's host
 memory was smaller than the array (Section~\ref{sec:protocol}). The T4's lower
-run-to-run variance makes small effects significant: GraphBFS-23 is 0.14\%
-faster, a significant but negligible change.
+run-to-run variance is what makes those GraphBFS-23 changes significant.
 
 \begin{table*}[t]
 \centering
 \footnotesize
-\caption{Stock driver, threshold 0 against 51 (E7, RTX~5070~Ti).
-$\delta$: change in median wall-clock; MDE at the family's level
-($m = 16$). Bold: Holm-significant.}
+\caption{Stock driver, thresholds 0, 10 and 25 against the shipped 51, on the
+RTX~5070~Ti (E7) and the Tesla~T4 (E7-T4), analysed separately. $\delta$: change
+in median wall-clock; MDE at each family's level. $^{\ast}$Holm-significant.
+$^{\dagger}$Holm-significant but smaller than the MDE. n/r: not run on the T4
+(host memory). Full results with $p$-values are in the supplementary material.}
 \label{tab:e7}
 \input{tables/t_e7}
 \end{table*}
 
 Tracing shows where the dense gain comes from. On Stencil-24K the bytes moved to
 the GPU are the same at both thresholds, within 0.74\%, but the GPU raises
-27{,}876 faults at threshold 0 against 91{,}935 at 51 (\texttt{E9.ratio.stencil}).
+27{,}876 profiler-reported faults at threshold 0 against 91{,}935 at 51 (\texttt{E9.ratio.stencil}).
 The lower threshold does not move less data; it moves it in fewer, larger
 steps. Part of the gain is not on the GPU at all. The same threshold governs
 prefetching when the CPU faults on managed memory (Section~\ref{sec:bg-prefetcher}),
@@ -157,7 +159,9 @@ The volume moved does not explain the difference between the allocators
 threshold 0 a $K = 1$ pass moves essentially the whole array on both: on HMM,
 measured as GPU memory in use, 1.03 of the array (\texttt{H2.res.malloc.k1.t0});
 on managed memory, measured as traced bytes in E9, 1.00 (\texttt{E9.htod\_frac.in\_k1.t0}).
-At 51 the same pass moves 0.061 and 0.031 of it. The cost of moving it differs:
+At 51 the same pass moves 0.061 and 0.031 of it; the HMM reading includes about
+0.03 of the array that the driver allocates ahead of use (Fig.~\ref{fig:h2}), so
+the two agree. The cost of moving it differs:
 the $K = 1$ slowdown is 199.7 percentage points larger on HMM, with a 95\%
 bootstrap interval of 198.1 to 201.7 (\texttt{H2.Z7}). This is consistent with
 HMM's migration in 4\,KB units through \texttt{migrate\_vma}, against 2\,MB

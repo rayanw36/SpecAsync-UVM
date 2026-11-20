@@ -76,11 +76,18 @@ to detect exactly this outcome, and reversed this study's earlier conclusion
 width differs detectably from C0; at $W = 512$ the difference is $-0.06\%$
 against a minimum detectable effect of 0.38\% at the family's level
 (\texttt{E4.F1.graphbfs.C7-W512\_vs\_C0}, \texttt{E4.mde\_family.graphbfs.F1}).
+This null says little about speculation: on GraphBFS-23 the fault-servicing
+window is 0.19\% of the run under the shipped driver, so no mechanism acting on
+fault service could change it detectably. The speculation result is therefore a
+Stencil-24K result, where the window is 17.2\% of the run.
+% [CHECK] 0.19% and 17.2%: C22_M3_DISPATCH_SHARE.md (evidence ids).
 
-The gain is not the copy offload of Section~\ref{sec:spec-off}. With the
-prefetcher on, the worker finishes first for only 2.07\% of distinct pages
-(\texttt{E5.mech.t51.C7W512}), yet demand faults fall from 339{,}386 to
-203{,}331, a 40.1\% reduction (\texttt{E5.D(51)}). Section~\ref{sec:bg-prefetcher}
+The gain is mostly not the copy offload of Section~\ref{sec:spec-off}. Demand
+faults fall by about 40\%, from 339{,}251 to 204{,}641 in E4 (Table~\ref{tab:mech})
+and from 339{,}386 to 203{,}331 in E5 (\texttt{E5.D(51)}). Splitting the fall in
+D5 into fewer faults and cheaper faults, 85.9\% of it comes from the smaller
+number of faults.
+% [CHECK] 85.9%: C22_VI1_DECOMPOSITION.md (E4 Stencil; evidence id). Section~\ref{sec:bg-prefetcher}
 predicts how: staged pages count toward the density rule, so regions pass the
 threshold sooner, and the prefetcher maps them during ordinary fault service.
 
@@ -108,23 +115,28 @@ threshold; 10 runs per cell).}
 \subsection{The Same Lever Without Speculation}
 \label{sec:spec-matched}
 
-If staging gains only by helping regions pass the threshold, lowering the
-threshold should gain at least as much without staging. E6 tested this with a
-second pre-registered trigger: it would fire if any stock configuration at a
-lower threshold was not significantly slower than C7-W512 at 51. It fired. C0 at
-threshold 0 is faster than C7-W512 at 51, which is 6.39\% slower than it; at
-threshold 10 the oracle is 4.72\% slower, and at 25 the two do not differ
-detectably (\texttt{E6.F1.C7W512-t51\_vs\_C0-t0}, \texttt{-t10}, \texttt{-t25}).
+If staging gains only by helping regions pass the threshold, it should add
+little once the threshold is already low. E6 tested this directly, by comparing
+speculation with no speculation at the same threshold. Speculation adds little.
+Its gain is $-0.85\%$ at threshold 0 and $-0.28\%$ at 10, neither significant,
+against minimum detectable effects of 2.04\% and 2.28\% at the family's level,
+and 2.76\% at 25, which is significant (\texttt{E6.wall.C7W512-t0\_vs\_C0-t0},
+\texttt{-t10}, \texttt{-t25}, \texttt{E6.mde\_family.stencil\_wall}). Staging
+still removes faults at every threshold, 5.3\% of them at 0 and 22.1\% at 25
+(\texttt{E6.demand.*}), but at low thresholds the prefetcher has already taken
+most regions, and the faults that remain are too few to matter: one
+pre-registered expectation predicted a wall-clock gain from the 5.3\% at
+threshold 0, and it failed (X4).
 
-At matched thresholds, speculation adds little. Its gain is $-0.85\%$ at
-threshold 0 and $-0.28\%$ at 10, neither significant, against minimum detectable
-effects of 2.04\% and 2.28\% at the family's level, and 2.76\% at 25, which is
-significant (\texttt{E6.wall.C7W512-t0\_vs\_C0-t0}, \texttt{-t10}, \texttt{-t25},
-\texttt{E6.mde\_family.stencil\_wall}). Staging still removes faults at every
-threshold, 5.3\% of them at 0 and 22.1\% at 25 (\texttt{E6.demand.*}), but at low
-thresholds the prefetcher has already taken most regions, and the faults that
-remain are too few to matter: one pre-registered expectation predicted a
-wall-clock gain from the 5.3\% at threshold 0, and it failed (X4).
+E6 also compared speculation at the shipped threshold with the stock driver at
+lower thresholds. A second pre-registered trigger would fire if any stock
+configuration at a lower threshold was not significantly slower than C7-W512 at
+51. It fired. C0 at threshold 0 is faster than C7-W512 at 51, which is 6.39\%
+slower than it; at threshold 10 the oracle is 4.72\% slower, and at 25 the two do
+not differ detectably (\texttt{E6.F1.C7W512-t51\_vs\_C0-t0}, \texttt{-t10},
+\texttt{-t25}). This comparison is less clean than the matched one: part of the
+gain from a lower threshold comes from fewer CPU faults during initialisation
+(Section~\ref{sec:thr-dense}), which GPU-side staging cannot obtain.
 
 \begin{figure}[t]
 \centering

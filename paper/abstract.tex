@@ -23,13 +23,13 @@ pages ahead of demand left the run $2.92\times$ slower than the shipped driver.
 With the prefetcher on, staging beats the shipped driver by 3.4--5.3\% on a
 stencil workload across three sessions, but only because staged pages count
 toward the prefetcher's density threshold; a pre-registered dose--response test
-confirms the mechanism. Lowering that threshold from 51 to 0, without
-speculation, is faster still: 9.57\% on an RTX~5070~Ti and 5.1\% on a Tesla~T4,
-and at matched thresholds speculation adds at most 2.8\%. The threshold cuts
+confirms the mechanism. At matched thresholds speculation adds at most
+2.8\%, and nothing detectable at thresholds 0 and 10; lowering the threshold
+from 51 to 0 without speculation is faster than speculating at 51, by 9.57\% on
+an RTX~5070~Ti and 5.1\% on a Tesla~T4. The threshold cuts
 both ways. For sparse access to an oversubscribed array the low threshold is
 41--85\% slower, moving up to $32.8\times$ more data, and on system-allocated
-(HMM) memory, which the driver migrates in 4\,KB units, sparse access is 204\%
-slower even in memory. These results replicate and extend an earlier report of
+(HMM) memory sparse access is 204\% slower even in memory. These results replicate and extend an earlier report of
 the threshold trade-off. We also catalog 31 measurement artifacts met in this
 study, including the misaligned oracle that had led an earlier version of this
 work to the opposite conclusion.

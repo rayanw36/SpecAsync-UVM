@@ -120,6 +120,14 @@ D7 & Residual & --- \\
 \label{tab:phases}
 \end{table}
 
+We report two fault counts, and say which at each use. \emph{Demand faults}
+are the fault entries the driver services on the demand path, counted by our
+instrumentation after coalescing. Faults reported by the NVIDIA profiler
+(\emph{nsys}) are CUPTI's GPU page-fault records, which group several faults;
+the two counts differ by a factor of three to four for the same run.
+% [CHECK] CC: confirm what nsys's GPU page-fault count records (fault groups?)
+% and the ratio for Stencil-24K t51 (339,386 demand vs 91,935 nsys).
+
 Two properties of this path matter later. First, the lock is rarely
 contended in our single-stream workloads: lock \emph{wait} (D3) is below
 0.2\% of the batch in the typical case, while the lock \emph{hold} (D4),
@@ -224,9 +232,10 @@ can fire for applications that issue \texttt{cudaMemAdvise}.
 
 When GPU memory is full, servicing a fault requires evicting data to the
 host. The driver evicts whole 2\,MB root chunks, one VA block at a time, and
-picks victims in allocation order rather than by recency of access: free
-chunks first, then the oldest chunks on its unused, discarded and used
-lists. The density threshold
+picks victims by recency of migration, not of access: free chunks first, then
+the head of its unused, discarded and used lists. A chunk moves to the tail of
+the used list when it is allocated and each time data is migrated into it;
+access to data already resident does not move it. The density threshold
 therefore trades one cost against another. A low threshold migrates large
 regions early, which reduces the number of faults when most of a region will
 be used. When only a few pages of each region are used, the same setting

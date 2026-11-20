@@ -59,8 +59,7 @@ share of execution time. NVIDIA's driver already attacks it with an in-path
 prefetcher: when it services a fault, it also migrates neighbouring pages if
 enough of their surrounding region is already resident, using a density
 threshold over a tree of subregions within each 2\,MB block
-\cite{ganguly2019interplay}. A natural next step, proposed repeatedly in the
-literature and suggested explicitly by Allen \emph{et al.}\ after their
+\cite{ganguly2019interplay}. A natural next step, suggested explicitly by Allen \emph{et al.}\ after their
 fine-grained decomposition of the UVM fault path \cite{allen2024finegrain}, is
 to go further asynchronously: predict which pages will fault next and stage
 them \emph{off} the fault path, so the cost is paid before the fault arrives.
@@ -92,7 +91,8 @@ prefetcher off costs.
 \paragraph{Against the shipped driver, speculation helps only through the prefetcher}
 With the prefetcher on, whole-block staging with the oracle beats the shipped
 driver on a stencil workload by 3.4--5.3\% across three independent sessions,
-with no detectable gain on graph traversal. The gain does not come from the
+and no detectable change on graph traversal, where fault handling is under
+0.2\% of the run. The gain does not come from the
 staged pages themselves. The prefetcher's density rule counts \emph{resident}
 pages, so pages staged by the worker push regions over its threshold, and the
 prefetcher then maps whole regions during ordinary fault service, preventing
@@ -102,12 +102,14 @@ this: the fault reduction grows from 40\% to 53\% as the threshold is raised fro
 
 \paragraph{The same lever is available without speculation}
 If speculation's benefit runs through the density threshold, the threshold can
-be moved directly. Lowering it from the shipped 51 to 0, with no speculation,
-makes the stock driver 9.57\% faster on the same stencil workload (confirmatory
-test), and the oracle-driven speculation configuration at the shipped threshold
-is 6.4\% slower than it. At matched thresholds, speculation adds at most 2.8\%,
-and nothing detectable at threshold 0 or 10 (minimum detectable effects 2.0\%
-and 2.3\% at the family's corrected level). Across eight further dense or streaming workloads, the lower threshold sped up
+be moved directly. At matched thresholds, speculation adds at most 2.8\%, and
+nothing detectable at threshold 0 or 10 (minimum detectable effects 2.0\% and
+2.3\% at the family's corrected level). Lowering the threshold from the shipped
+51 to 0, with no speculation, makes the stock driver 9.57\% faster on the same
+stencil workload (confirmatory test). Part of that gain is not on the GPU fault
+path: the same threshold governs prefetching for CPU faults, and at threshold 0
+the host faults six times less often while initialising the array, a saving
+GPU-side staging cannot obtain. Across eight further dense or streaming workloads, the lower threshold sped up
 four, by 2.5--17\%, and significantly slowed none.
 
 \paragraph{But the lever cuts both ways}
@@ -118,11 +120,11 @@ shows why: at threshold 0 the prefetcher brings in whole regions for a few
 useful pages, and on the oversubscribed array a traced run migrates about
 130\,GiB into the GPU, against 4\,GiB at the shipped threshold. With the array
 in memory the effects are small and mixed, and with 64 or more pages touched per
-block the low threshold is faster again. On system-allocated memory, which the
-driver migrates in 4\,KB units through the kernel's HMM interface, the cost
-appears without oversubscription: at threshold 0 a pass that touches one or
+block the low threshold is faster again. On system-allocated (HMM) memory the cost
+appears even without oversubscription: at threshold 0 a pass that touches one or
 eight pages per block is 204\% and 50\% slower, while dense access still
-gains. No fixed lower threshold dominates the shipped one.
+gains. This is consistent with HMM's migration in 4\,KB units, but we have not
+isolated that cause. No fixed lower threshold dominates the shipped one.
 
 \paragraph{Relation to prior work on the threshold}
 Neither direction of this effect is new. Go \emph{et al.} varied the same
@@ -185,17 +187,19 @@ written before the measurement it tested.
   including the misaligned oracle. One pattern stands out, descriptively: of
   nine errors arising from a mismatch of aggregation level (per batch versus per
   fault, per trial versus per run), eight were caught only by a later,
-  independent pass; the four errors caught inside the gate that made them were
-  all caught by a pre-registered check.
+  independent pass. In all, eleven of the 31 were caught inside the gate that
+  made them, three by a check written before the measurement.
 \end{itemize}
 
 \subsection{Scope}
 
 Our speculation results use a near-perfect oracle on the stencil workload and a
-weaker one on graph traversal, so they bound what off-path staging can achieve
-and do not evaluate a practical predictor. The dense-access threshold gain
+weaker one on graph traversal. They measure one fault-triggered staging design,
+not an upper bound on off-path staging, and do not evaluate a practical
+predictor. The dense-access threshold gain
 replicates on a Tesla T4 (Turing) with the same driver: $-5.1\%$ on the stencil
-workload, and 12 of 14 further tests faster with none slower. The speculation,
+workload, and 10 of 14 further tests faster, plus two negligible changes, with
+none slower. The speculation,
 sparse-access, oversubscription and HMM results are from the RTX 5070 Ti alone,
 and the HMM results are for arrays that fit in GPU memory: the oversubscribed
 HMM case crashed the stock driver and was not measured. The

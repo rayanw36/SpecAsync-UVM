@@ -58,7 +58,10 @@ frequency but amplify synchronisation and tracker waits. Our seven-phase
 decomposition (Section~\ref{sec:background}) follows their approach, measured
 inside the driver, and agrees with their conclusion that the lock-held service
 phase is CPU work. We use it for a different purpose: to locate where an
-off-path mechanism can act at all.
+off-path mechanism can act at all. Kim \emph{et al.}\ act on the same batch
+path for irregular workloads, running additional thread blocks while faults are
+outstanding so that batches grow, and overlapping eviction with migration
+\cite{kim2020batchaware}.
 
 The same group derived locality metrics from driver fault telemetry to guide
 allocation under oversubscription \cite{jones2025helm}; our telemetry comes
@@ -93,10 +96,7 @@ with a synthetic benchmark whose pages per block we set, and we trace the bytes
 migrated. We also find, on system-allocated memory, that the sparse-access cost
 appears without oversubscription (Section~VII). And we connect the threshold to
 speculation: the measured benefit of our off-path staging is a side effect of
-the same density rule (Section~VI). One detail of the mechanism differs from
-the description in Go \emph{et al.}: in release 595.91.07 the driver picks
-eviction victims in allocation order, not by recency of access
-(Section~\ref{sec:bg-oversub}).
+the same density rule (Section~VI).
 
 Other work replaces or retunes the prefetcher. Forest configures tree
 prefetchers per data object at run time, on the observation that the
@@ -186,7 +186,7 @@ Granting a mechanism oracular knowledge of future accesses is an established
 way to bound what it can achieve. R-Max approximates an ideal prefetcher for
 CPU caches under realistic bandwidth and capacity limits in order to measure
 the headroom current designs leave \cite{wang2025rmax}. Our first-touch oracle
-plays the same role for off-path staging (Section~\ref{sec:design-oracle}),
+plays a similar role for one fault-triggered staging design (Section~\ref{sec:design-oracle}),
 with the difference that its accuracy is limited by the workload's run-to-run
 stability, which we report.
 

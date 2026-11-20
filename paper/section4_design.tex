@@ -163,8 +163,19 @@ pages differs between independent runs by about a hundred ranks at most, so the 
 a near-perfect forecast. On graph traversal the order is much looser, and
 because the cursor skips forward whenever a fault arrives ahead of it, one
 out-of-order fault can jump the cursor past pages that have not yet been
-touched. The graph oracle therefore stages only part of the working set, and
-we report its results as those of a weakened oracle. An index-based replay
+touched. The graph oracle therefore stages the same regions many times over,
+regions totalling 88.7 times its distinct pages, yet even with the prefetcher off
+it made at most 80.6\% of distinct pages resident before their first fault; we
+report its results as those of a weakened oracle.
+% [CHECK] 88.7x and 80.6%: C22_IV4_GRAPHBFS.md (needs evidence ids).
+
+Three properties limit what the oracle measures. It is fault-triggered: it
+predicts only when a fault arrives, one page per fault. It runs at most $L$ ranks
+ahead of demand, and we report only $L = 4096$. And with the prefetcher on, few
+faults arrive, so it issues few predictions: about 2{,}200 work items per
+Stencil-24K run. Our speculation results therefore measure one fault-triggered
+staging design with near-perfect knowledge of the future; they are not an upper
+bound on off-path staging in general. An index-based replay
 of the raw fault stream, which we used in earlier phases, is not robust in
 the same way: the number of repeated faults per page varies from run to run,
 so positions drift even when the order of first touches does not.

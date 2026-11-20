@@ -72,8 +72,10 @@ measurements raise but cannot answer.
 \paragraph{Scope of the speculation results}
 The oracle is near-perfect only for Stencil-24K, whose first-touch order varies
 by about a hundred ranks between runs; for GraphBFS-23 it is a weakened oracle.
-The speculation results therefore bound what off-path staging can achieve on
-one regular workload and do not evaluate a practical predictor. They come from
+The oracle is also fault-triggered, one page per fault, at one lookahead. The
+speculation results therefore measure one staging design on one regular
+workload; they are not an upper bound and do not evaluate a practical
+predictor. They come from
 one GPU and one driver release.
 
 \paragraph{Scope of the threshold results}
