@@ -30,10 +30,13 @@ for nm, key, src, cmd, size, gib, passes, wall, gate, alloc in rows:
     o.append(f"| {nm} | `{src}` | `{cmd}` | {size} | {gib:.3f} | {passes} | {wall:.3f} | {gate} | {alloc} |")
 o += ["", "Not recorded: the number of BFS levels of GraphBFS-23 (computed at run time and printed to stderr only). The T4 runs use the same commands; only the 5070 Ti medians are listed.", "", "Evidence ids (new): `C22.workloads.<workload key>` (footprint, median wall)."]
 open("results/analysis/consolidation/C22_WORKLOADS.md", "w").write("\n".join(o) + "\n")
-def tx(s): return s.replace("_", "\\_").replace("%", "\\%").replace("&", "\\&").replace("`", "")
-t = ["\\begin{tabular}{@{}lllrrr@{}}", "\\toprule", "Workload & Command & Problem size & Footprint (GiB) & Passes & Wall t51 (s) \\\\", "\\midrule"]
+import re as _re
+def tx(s):
+    s = s.replace("_", "\\_").replace("%", "\\%").replace("&", "\\&").replace("`", "")
+    return _re.sub(r"2\^(\d+)", r"$2^{\1}$", s)
+t = ["\\begin{tabular}{@{}lp{1.35in}p{1.65in}rp{0.95in}r@{}}", "\\toprule", "Workload & Command & Problem size & \\makecell[r]{Footprint\\\\(GiB)} & Passes & \\makecell[r]{Wall t51\\\\(s)} \\\\", "\\midrule"]
 for nm, key, src, cmd, size, gib, passes, wall, gate, alloc in rows:
-    t.append(f"{tx(nm)} & \\texttt{{{tx(cmd)}}} & {tx(size)} & {gib:.2f} & {tx(passes.split(' (')[0])} & {wall:.2f} \\\\ % C22.workloads.{key}")
+    t.append(f"{tx(nm)} & \\texttt{{{tx(cmd).replace('/', '/\\allowbreak{}').replace('\\_', '\\_\\allowbreak{}')}}} & {tx(size)} & {gib:.2f} & {tx(passes.split(' (')[0])} & {wall:.2f} \\\\ % C22.workloads.{key}")
 t += ["\\bottomrule", "\\end{tabular}", ""]
 open("paper/tables/t_workloads.tex", "w").write("\n".join(t))
 print("\n".join(o[5:16]))

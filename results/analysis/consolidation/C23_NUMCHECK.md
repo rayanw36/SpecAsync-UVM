@@ -11,16 +11,16 @@ Rule as C14: a token is MATCH if it equals a number in `paper/support/RESULTS_FA
 
 Not matched in RESULTS_FACTS: 0 (of which NOT FOUND anywhere: 0).
 
-## section3_background.tex (changed lines only: 12 lines)
+## section3_background.tex (changed lines only: 14 lines)
 
-0 tokens.
+2 tokens.
 
 | line | number | status | context |
 |---|---|---|---|
 
 Not matched in RESULTS_FACTS: 0 (of which NOT FOUND anywhere: 0).
 
-## section4_design.tex (changed lines only: 13 lines)
+## section4_design.tex (changed lines only: 12 lines)
 
 5 tokens.
 
@@ -28,28 +28,32 @@ Not matched in RESULTS_FACTS: 0 (of which NOT FOUND anywhere: 0).
 |---|---|---|---|
 | 167 | 88.7 | also in extract (string) | regions totalling 88.7 times its distinct pages, yet even with the prefetcher off |
 | 168 | 80.6\% | also in extract (string) | it made at most 80.6\% of distinct pages resident before their first fault; we |
-| 175 | 2,200 | NOT FOUND | faults arrive, so it issues few predictions: about 2{,}200 work items per |
+| 174 | 2,200 | NOT FOUND | faults arrive, so it issues few predictions: about 2{,}200 work items per |
 
 Not matched in RESULTS_FACTS: 3 (of which NOT FOUND anywhere: 1).
 
-## section6_speculation.tex (changed lines only: 36 lines)
+## section6_speculation.tex (changed lines only: 40 lines)
 
-33 tokens.
+44 tokens.
 
 | line | number | status | context |
 |---|---|---|---|
-| 89 | 85.9\% | also in extract (string) | D5 into fewer faults and cheaper faults, 85.9\% of it comes from the smaller |
+| 88 | 85.9\% | also in extract (string) | D5 into fewer faults and cheaper faults, 85.9\% of it comes from the smaller |
+| 122 | 2.02 | also in extract (string) | with 95\% confidence intervals of $-2.02$ to $+1.49\%$ and $-1.91$ to |
+| 122 | 1.91 | also in extract (string) | with 95\% confidence intervals of $-2.02$ to $+1.49\%$ and $-1.91$ to |
+| 123 | 1.72\% | also in extract (string) | $+1.72\%$, and 2.76\% at 25, which is significant |
+
+Not matched in RESULTS_FACTS: 4 (of which NOT FOUND anywhere: 0).
+
+## section7_threshold.tex (changed lines only: 26 lines)
+
+36 tokens.
+
+| line | number | status | context |
+|---|---|---|---|
+| 121 | 3.12\% | also in extract (string) | simulated on the benchmark's page list, it gives 3.12\% of the in-memory array |
 
 Not matched in RESULTS_FACTS: 1 (of which NOT FOUND anywhere: 0).
-
-## section7_threshold.tex (changed lines only: 13 lines)
-
-21 tokens.
-
-| line | number | status | context |
-|---|---|---|---|
-
-Not matched in RESULTS_FACTS: 0 (of which NOT FOUND anywhere: 0).
 
 ## section8_pitfalls.tex (changed lines only: 5 lines)
 

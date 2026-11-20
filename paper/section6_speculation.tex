@@ -81,14 +81,13 @@ This null says little about speculation: on GraphBFS-23 the fault-servicing
 window is 0.19\% of the run under the shipped driver, so no mechanism acting on
 fault service could change it detectably. The speculation result is therefore a
 Stencil-24K result, where the window is 17.2\% of the run.
-% [CHECK] 0.19% and 17.2%: C22_M3_DISPATCH_SHARE.md (evidence ids).
 
 The gain is mostly not the copy offload of Section~\ref{sec:spec-off}. Demand
 faults fall by about 40\%, from 339{,}251 to 204{,}641 in E4 (Table~\ref{tab:mech})
 and from 339{,}386 to 203{,}331 in E5 (\texttt{E5.D(51)}). Splitting the fall in
 D5 into fewer faults and cheaper faults, 85.9\% of it comes from the smaller
 number of faults.
-% [CHECK] 85.9%: C22_VI1_DECOMPOSITION.md (E4 Stencil; evidence id). Section~\ref{sec:bg-prefetcher}
+Section~\ref{sec:bg-prefetcher}
 predicts how: staged pages count toward the density rule, so regions pass the
 threshold sooner, and the prefetcher maps them during ordinary fault service.
 
