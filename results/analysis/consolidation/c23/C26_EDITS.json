@@ -1,0 +1,14 @@
+[
+ {
+  "id": "V-1b",
+  "file": "section5_protocol.tex",
+  "old": "All allocate with\n\\texttt{cudaMallocManaged} unless stated, initialise their data on the host,\nand run the stated passes over it;",
+  "new": "Each allocates its data\narrays with \\texttt{cudaMallocManaged}, initialises them on the host and runs\nthe stated passes over them; small scratch buffers (the BFS frontier queues, the\nsparse benchmark's page indices and accumulator) are not initialised on the\nhost, and cuBLAS and cuFFT allocate their own workspaces;"
+ },
+ {
+  "id": "M5b",
+  "file": "section5_protocol.tex",
+  "old": "disagree in two, both borderline: one interval end lies\nwithin 0.15 percentage points of zero.",
+  "new": "disagree in two, both borderline: in each, one end of the\ninterval lies within 0.15 percentage points of zero."
+ }
+]

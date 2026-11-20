@@ -42,12 +42,12 @@ SHA-256 against the published packages. The stock module has the same
 source version on both machines. Every timed run on the T4 was made
 with no remote-desktop or graphical session active.
 
-Table~\ref{tab:workloads} lists the workloads. All allocate with
-\texttt{cudaMallocManaged} unless stated, initialise their data on the host,
-and run the stated passes over it; H1 and H2 run the same sparse benchmark and
+Table~\ref{tab:workloads} lists the workloads. Each allocates its data
+arrays with \texttt{cudaMallocManaged}, initialises them on the host and runs
+the stated passes over them; small scratch buffers (the BFS frontier queues, the
+sparse benchmark's page indices and accumulator) are not initialised on the
+host, and cuBLAS and cuFFT allocate their own workspaces; H1 and H2 run the same sparse benchmark and
 Stencil-24K on \texttt{malloc}'d memory.
-% [CHECK] CC: confirm every workload allocates managed memory and initialises
-% on the host (SGEMM via cuBLAS, cuFFT, STREAM, GraphBFS); reword if not.
 
 \begin{table*}[t]
 \centering
@@ -172,9 +172,8 @@ difference of medians, with 10{,}000 resamples within cells, as a
 percentage of the baseline median. A null whose interval excludes an effect
 of interest is evidence that the effect is absent at that size; a wide
 interval is not evidence either way. Of the 84 comparisons in this paper,
-the interval and the Holm decision disagree in two, both borderline: one interval end lies
-within 0.15 percentage points of zero.
-% [CHECK] 84 comparisons and two disagreements confirmed (C22_BOOTSTRAP_CI.csv); NOTE: both disagreeing intervals have an end within 0.15 points of zero (-0.02 and +0.14), the text says "one".
+the interval and the Holm decision disagree in two, both borderline: in each, one end of the
+interval lies within 0.15 percentage points of zero.
 
 Early analysis scripts hard-coded the correction for a family of 16
 (\texttt{Z\_MDE\_BONF}). E4 and E5 overrode it for their own families;
