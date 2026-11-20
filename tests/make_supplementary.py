@@ -125,23 +125,26 @@ WH = {1: "The oracle's trace cursor advanced at a different rate from the fault 
  13: "The oracle trace was recorded at one granularity (per dispatch group) and consumed at another (per fault).",
  14: "A control meant to validate the oracle fix passed by construction: its granularities coincided or its accesses never exercised the bug.",
  15: "An improvement was accepted on single-digit counts without comparing it with an absolute ceiling.",
- 16: "A per-enqueued hit rate was compared with a per-fault ceiling.",
+ 16: "A hit rate per enqueued prediction was compared with a ceiling per fault.",
  17: "Duplicate-fault counts vary between runs, so positions in a recorded trace do not line up across runs.",
  18: "A forward-only agreement metric was asymmetric under a shift of the trace.",
  19: "The trace ring was read in physical-slot order, so the record came out truncated and rotated.",
- 20: "A counter named for successful speculation in fact counted a time window.",
+ 20: "A counter named for successful speculation in fact counted faults on pages predicted within the previous 10 ms.",
  21: "The oracle's own lookup cost was charged to the speculation arm it was meant to bound.",
  22: "A kernel helper guarded only by a non-fatal assertion returned NULL and crashed the kernel.",
  23: "Unattended upgrades silently changed the driver release between measurement campaigns.",
  24: "A line-count diff of the kernel log failed when the log buffer rotated.",
  25: "A pilot's ceiling prediction failed its own pre-registered test.",
- 26: "A status log claimed a state that the primary record contradicted, and times were typed as estimates.",
+ 26: "A status log recorded a platform state that the system journal contradicted, and its times were estimates entered by hand.",
  27: "A statistics helper hard-coded the multiplicity correction for one family size and was reused for others.",
  28: "A build script swallowed a failure when a patch file was only a Git-LFS pointer.",
  29: "A script ended its own run by killing the login that contained it.",
  30: "A pre-registration sized an array against GPU memory but not host memory.",
  31: "GPU memory in use was read as migrated volume after being validated on one allocator only."}
 REPL = []   # (entry, field, old, new) for review
+FIX = {(16, 'false conclusion'): [('One prediction per batch caps the hit rate at the reciprocal coalesce factor.', 'One prediction per batch caps the hit rate at one over the number of faults coalesced per batch.')],
+       (26, 'how caught'): [('journal re-account; E8 review', 'comparison with the system journal')],
+       (29, 'how caught'): [('the run ended', 'observed when the run stopped')]}
 def plain(n, field, t):
     o = t
     t = re.sub(r"\s*\((?:Gate [A-Z]\d?|E0(?:\.\d+)?)\)", " (an earlier gate)", t)
@@ -149,6 +152,9 @@ def plain(n, field, t):
     t = t.replace("Older-driver and Gate-E results are one platform; the platform table is current.", "Results from an earlier driver release and from the later gates were read as one platform; the platform table was assumed current.")
     t = t.replace("same-session", "same-run").replace("the session ended", "the run ended")
     t = t.replace("reproduction ", "later reproduction ") if t.startswith("reproduction") else t
+    for a, b in FIX.get((n, field), []):
+        assert a in t, (n, field, a, t)
+        t = t.replace(a, b)
     if t != o: REPL.append((n, field, o, t))
     return t
 OPEN = r"""We recorded 31 artifacts in the course of this study: errors in measurement,
@@ -167,13 +173,14 @@ that made them, three of them by a check written before the measurement, while
 six checks that could not have failed let errors through; this is why every
 analysis script now has a positive control that must also reject a perturbed
 copy of the data. Third,
-several instruments measured something other than what their names suggested,
-such as a hit counter that counted proximity rather than success and a memory
-counter that reads allocation rather than migration on managed memory; each was
-caught by comparing it with a second, independent instrument."""
+several instruments measured something other than what their names suggested.
+Two of them, a hit counter that counted proximity in time rather than success
+and a memory counter that reads allocation rather than migration on managed
+memory, were caught only when a second, independent instrument disagreed with
+them."""
 FAMN = {"Instrument cost and blindness": "Instrument cost and blindness"}
 out += [r"\onecolumn", r"\section{Artifact Catalog}", r"\label{sec:s3}", "", OPEN, "",
-        r"{\footnotesize", r"\begin{longtable}{@{}r p{0.27\textwidth} p{0.27\textwidth} p{0.17\textwidth} p{0.12\textwidth}@{}}", r"\toprule", r"\# & What happened & False conclusion & How caught & Family \\", r"\midrule", r"\endhead"]
+        r"{\footnotesize", r"\begin{longtable}{@{}r >{\raggedright\arraybackslash}p{0.27\textwidth} >{\raggedright\arraybackslash}p{0.27\textwidth} >{\raggedright\arraybackslash}p{0.17\textwidth} >{\raggedright\arraybackslash}p{0.12\textwidth}@{}}", r"\toprule", r"\# & What happened & False conclusion & How caught & Family \\", r"\midrule", r"\endhead"]
 for n in range(1, 32):
     nm, fc, hc, fam, flag = MT.CAT[n]
     out.append(f"{n} & {inline(WH[n])} & {inline(plain(n, 'false conclusion', fc))} & {inline(plain(n, 'how caught', hc))} & {inline(fam)} \\\\")
