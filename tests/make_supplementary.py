@@ -63,9 +63,10 @@ PRE = r"""\documentclass[journal]{IEEEtran}
 # ---------------- S1
 TABS = [("t_e4", "T-E4", "Section VI (speculation against the shipped driver, E4)"), ("t_e5", "T-E5", "Section VI (the prefetcher's density rule, E5)"), ("t_e6", "T-E6", "Section VI (matched-threshold comparisons, E6)"),
         ("t_hand", "T-HAND", "Section VI (cost of the hook, E1b and E3b)"), ("t_e8", "T-E8", "Section VII (sparse access, E8; the paper shows these cells as a figure)"),
-        ("t_e9", "T-E9", "Section VII (traced migration, E9)"), ("t_e9b", "T-E9", "Section VII (time outside the kernels, E8 untraced runs; second fragment of T-E9)")]
+        ("t_e9", "T-E9", "Section VII (traced migration, E9)"), ("t_e9b", "T-E9", "Section VII (time outside the kernels, E8 untraced runs; second fragment of T-E9)"),
+        ("t_e7_full", "T-E7-FULL", "Section VII-A (threshold on dense workloads, both GPUs, with p-values)"), ("t_h1", "T-H1", "Section VII-C (system-allocated memory, H1)"), ("t_h2", "T-H2", "Section VII-C (managed against system-allocated memory, H2)")]
 tmd = {}
-for l in open("paper/tables/TABLES.md"):
+for l in list(open("paper/tables/TABLES.md")) + list(open("paper/tables/TABLES_C22.md")):
     if l.startswith("| T-"):
         c = [x.strip() for x in l.strip().strip("|").split("|")]
         tmd[c[0]] = c[3]
@@ -75,15 +76,16 @@ for l in open("paper/figures/FIGURES.md"):
         c = [x.strip() for x in l.strip().strip("|").split("|")]
         fmd[re.search(r"`([^`]+)`", c[1]).group(1)] = (c[0], c[-1], c[-2])
 out = [PRE, r"\section{Full Test Tables}", r"\label{sec:s1}", ""]
+SUBS = {"t_e7_full": "Threshold comparisons on both GPUs (E7, E7-T4)", "t_h1": "System-allocated memory, H1", "t_h2": "Managed against system-allocated memory, H2"}
 for frag, tid, where in TABS:
     cap = tmd[tid]
+    if frag in SUBS: out += [r"\subsection{" + SUBS[frag] + "}", ""]
     if tid == "T-E9":
         cap = cap.split(" The second fragment")[0] if frag == "t_e9" else "Second fragment of T-E9: " + (cap.split("The second fragment gives, ")[1] if "The second fragment gives, " in cap else cap)
     out += [r"\begin{table*}[t]", r"\centering\footnotesize", r"\caption{" + inline(cap) + " Supports " + inline(where) + ".}", r"\label{tab:s-" + frag + "}", r"\adjustbox{max width=\textwidth}{\input{tables/" + frag + "}}", r"\end{table*}", ""]
 # ---------------- S2
 FIGS = [("fig_e4_wallclock_by_arm", "figures/fig_e4_wallclock_by_arm", "figure*", "0.95\\textwidth"), ("fig_e7_threshold_by_workload_two_platforms", "figures/fig_e7_threshold_by_workload_two_platforms", "figure*", "0.95\\textwidth"),
-        ("fig_ph_phase_medians", "figures/fig_ph_phase_medians", "figure", "\\columnwidth"), ("fig_h1", "figures/supplementary/F-H1", "figure", "\\columnwidth"),
-        ("fig_h2_time", "figures/supplementary/F-H2-time", "figure", "\\columnwidth"), ("fig_h2_res", "figures/supplementary/F-H2-res", "figure", "\\columnwidth")]
+        ("fig_ph_phase_medians", "figures/fig_ph_phase_medians", "figure", "\\columnwidth"), ("fig_h1", "figures/supplementary/F-H1", "figure", "\\columnwidth")]
 out += [r"\section{Further Figures}", r"\label{sec:s2}", ""]
 for key, path, env, width in FIGS:
     key_md = next(k for k in fmd if k == key or k.endswith(path.split("/")[-1]))

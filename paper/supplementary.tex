@@ -80,6 +80,33 @@
 \adjustbox{max width=\textwidth}{\input{tables/t_e9b}}
 \end{table*}
 
+\subsection{Threshold comparisons on both GPUs (E7, E7-T4)}
+
+\begin{table*}[t]
+\centering\footnotesize
+\caption{Stock driver, thresholds 0, 10 and 25 against the shipped 51, on the RTX 5070 Ti (E7: Family A, 2 tests; Family B, 16 tests) and the Tesla T4 (E7-\allowbreak{}T4: Family A, 2 tests; Family B, 14 tests); every comparison of both platforms, analysed separately. delta is (arm -\allowbreak{} t51) /\allowbreak{} t51; two-\allowbreak{}sided Mann-\allowbreak{}Whitney U, n =\allowbreak{} 10 per cell; Holm p is adjusted within the family; MDE at the family alpha. Supports Section VII-\allowbreak{}A (threshold on dense workloads, both GPUs, with p-\allowbreak{}values).}
+\label{tab:s-t_e7_full}
+\adjustbox{max width=\textwidth}{\input{tables/t_e7_full}}
+\end{table*}
+
+\subsection{System-allocated memory, H1}
+
+\begin{table*}[t]
+\centering\footnotesize
+\caption{H1 Amendment 1, system-\allowbreak{}allocated (HMM, malloc) memory, in memory, RTX 5070 Ti: threshold 0 against 51 on Stencil-\allowbreak{}24K and the sparse benchmark at K =\allowbreak{} 512 and K =\allowbreak{} 1. Two-\allowbreak{}sided Mann-\allowbreak{}Whitney U, one Holm family of 3, n =\allowbreak{} 10 per cell; MDE at the family alpha. Supports Section VII-\allowbreak{}C (system-\allowbreak{}allocated memory, H1).}
+\label{tab:s-t_h1}
+\adjustbox{max width=\textwidth}{\input{tables/t_h1}}
+\end{table*}
+
+\subsection{Managed against system-allocated memory, H2}
+
+\begin{table*}[t]
+\centering\footnotesize
+\caption{H2, sparse benchmark, 8 GiB in memory, managed against system-\allowbreak{}allocated (HMM) memory: threshold 0 against 51 for K =\allowbreak{} 1, 8, 64 and 512. Two-\allowbreak{}sided Mann-\allowbreak{}Whitney U, one Holm family of 8, n =\allowbreak{} 10 per cell; MDE at the family alpha; Cohen's d of the two cells. Supports Section VII-\allowbreak{}C (managed against system-\allowbreak{}allocated memory, H2).}
+\label{tab:s-t_h2}
+\adjustbox{max width=\textwidth}{\input{tables/t_h2}}
+\end{table*}
+
 \section{Further Figures}
 \label{sec:s2}
 
@@ -109,20 +136,6 @@
 \includegraphics[width=\columnwidth]{figures/supplementary/F-H1}
 \caption{RTX 5070 Ti, stock driver, system-\allowbreak{}allocated (HMM, malloc) memory, H1 Amendment 1: wall-\allowbreak{}clock of threshold 0 relative to the median at threshold 51, for Stencil-\allowbreak{}24K and the in-\allowbreak{}memory sparse benchmark at K =\allowbreak{} 512 and K =\allowbreak{} 1. Each run is a point; markers are medians, filled when Holm-\allowbreak{}significant (n =\allowbreak{} 10 per cell). At K =\allowbreak{} 1 the change is +200.52\% and on Stencil-\allowbreak{}24K -\allowbreak{}7.97\%.}
 \label{fig:s-F-H1}
-\end{figure}
-
-\begin{figure}[t]
-\centering
-\includegraphics[width=\columnwidth]{figures/supplementary/F-H2-time}
-\caption{RTX 5070 Ti, stock driver, 8 GiB array in memory: wall-\allowbreak{}clock change of threshold 0 against 51 on managed and HMM memory (panel (a) of fig\_\allowbreak{}h2\_\allowbreak{}hmm alone). Symmetric-\allowbreak{}logarithmic y axis (linear within +-\allowbreak{}20\%); each run is a point, markers are medians, filled when Holm-\allowbreak{}significant (n =\allowbreak{} 10 per cell). At K =\allowbreak{} 512 the change is -\allowbreak{}19.56\% on HMM and -\allowbreak{}7.19\% on managed memory.}
-\label{fig:s-F-H2-time}
-\end{figure}
-
-\begin{figure}[t]
-\centering
-\includegraphics[width=\columnwidth]{figures/supplementary/F-H2-res}
-\caption{RTX 5070 Ti, stock driver, 8 GiB array in memory: fraction of the array made resident (panel (b) of fig\_\allowbreak{}h2\_\allowbreak{}hmm alone). Two instruments from different sessions: HMM nvidia-\allowbreak{}smi memory.used (valid for 4 KB chunks) and managed nsys traced host-\allowbreak{}to-\allowbreak{}device bytes (E9, K =\allowbreak{} 1 and 512 only). Descriptive, no test; managed memory.used is not plotted because it measures allocated 2 MB chunks (catalog \#31).}
-\label{fig:s-F-H2-res}
 \end{figure}
 
 \section{Artifact Catalog}

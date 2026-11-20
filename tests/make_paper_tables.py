@@ -139,8 +139,8 @@ def t_mech():
             rows.append(row(wn if arm == "C0" else "", arm, m4[(wl, arm)], eid(f"E4.mech.{wl}.{arm}", f"{G}/e4/mechanism.csv#{wl}.{arm}")))
     for arm in ("C0", "C7W512"):
         rows.append(row("Stencil-24K, $t{=}100$" if arm == "C0" else "", f"{arm}-toff", m5[("100", arm)], eid(f"E5.mech.t100.{arm}", f"{G}/e5/mechanism.csv#100.{arm}")))
-    p = emit("t_mech", ["Workload", "Arm", "Demand faults", "Fault already resident", "Pages requested", "D5 (s)", r"D5 per fault ($\mu$s)"], rows, "@{}llrrrrr@{}", groups={4: "", 8: ""})
-    META["T-MECH"] = dict(file=p, csv=f"{G}/e4/mechanism.csv; {G}/e5/mechanism.csv", cap="Mechanism of speculation (E4, E5), RTX 5070 Ti: demand faults, faults on pages already resident on the GPU, pages requested by the worker, and D5 in total and per demand fault, for C0, C1, C6-W512 and C7-W512, and for the two cells with the density rule off (threshold 100). Medians of 10 runs; D5 per fault is the D5 median divided by the demand-fault median.")
+    p = emit("t_mech", ["Workload", "Arm", "Demand faults", "Fault already resident", "Pages in staged regions", "D5 (s)", r"D5 per fault ($\mu$s)"], rows, "@{}llrrrrr@{}", groups={4: "", 8: ""})
+    META["T-MECH"] = dict(file=p, csv=f"{G}/e4/mechanism.csv; {G}/e5/mechanism.csv", cap="Mechanism of speculation (E4, E5), RTX 5070 Ti: demand faults, faults on pages already resident on the GPU, pages in the regions the worker staged (a region requested again counts again), and D5 in total and per demand fault, for C0, C1, C6-W512 and C7-W512, and for the two cells with the density rule off (threshold 100). Medians of 10 runs; D5 per fault is the D5 median divided by the demand-fault median.")
 
 
 # ---------------------------------------------------------------- T-HAND
