@@ -1,0 +1,23 @@
+\begin{tabular}{@{}lllrrr@{}}
+\toprule
+Workload & Command & Problem size & Footprint (GiB) & Passes & Wall t51 (s) \\
+\midrule
+Stencil-24K & \texttt{bench\_stencil 24000} & 24000 x 24000 floats, 2 grids & 4.29 & 20 ping-pong iterations & 1.13 \\ % C22.workloads.stencil
+Stencil-8K & \texttt{bench\_stencil 8000} & 8000 x 8000, 2 grids & 0.48 & 20 iterations & 0.33 \\ % C22.workloads.stencil8k
+Sweep-4K & \texttt{bench\_stencil 4000} & 4000 x 4000, 2 grids & 0.12 & 20 iterations & 0.24 \\ % C22.workloads.sweep4k
+Sweep-16K & \texttt{bench\_stencil 16000} & 16000 x 16000, 2 grids & 1.91 & 20 iterations & 0.63 \\ % C22.workloads.sweep16k
+STREAM & \texttt{bench\_stream 268435456} & 2^28 floats x 3 arrays & 3.00 & one triad kernel launch & 0.62 \\ % C22.workloads.stream
+SGEMM & \texttt{bench\_sgemm 24000} & 24000 x 24000, 3 matrices & 6.44 & one cublasSgemm & 4.63 \\ % C22.workloads.sgemm
+cuFFT & \texttt{bench\_cufft 134217728} & 2^27 complex (8 B), in place & 1.00 & one forward C2C FFT & 0.39 \\ % C22.workloads.cufft
+GraphBFS-23 & \texttt{graph\_bfs/bench\_graph\_bfs 23} & R-MAT, 2^23 vertices, 131,168,515 unique edges (target 16 per vertex = 134,217,728) & 1.20 & level-synchronous BFS until the frontier is empty & 31.51 \\ % C22.workloads.graphbfs
+Stencil, oversubscribed & \texttt{stencil\_oversub/bench\_stencil\_oversub 48000 1} & 48000 x 48000, 2 grids & 17.17 & 1 iteration & 3.26 \\ % C22.workloads.oversub
+Sparse, in memory, K = 1 & \texttt{bench\_sparse 8 1 3 202610081} & 8 GiB array, 1 of 512 pages touched per 2 MB block & 8.00 & 3 passes over the same page list & 1.58 \\ % C22.workloads.in_k1
+Sparse, in memory, K = 8 & \texttt{bench\_sparse 8 8 3 202610081} & 8 GiB array, 8 of 512 pages touched per 2 MB block & 8.00 & 3 passes over the same page list & 1.69 \\ % C22.workloads.in_k8
+Sparse, in memory, K = 64 & \texttt{bench\_sparse 8 64 3 202610081} & 8 GiB array, 64 of 512 pages touched per 2 MB block & 8.00 & 3 passes over the same page list & 1.85 \\ % C22.workloads.in_k64
+Sparse, in memory, K = 512 & \texttt{bench\_sparse 8 512 3 202610081} & 8 GiB array, 512 of 512 pages touched per 2 MB block & 8.00 & 3 passes over the same page list & 1.97 \\ % C22.workloads.in_k512
+Sparse, oversubscribed, K = 1 & \texttt{bench\_sparse 24 1 3 202610081} & 24 GiB array, 1 of 512 pages touched per 2 MB block & 24.00 & 3 passes over the same page list & 5.05 \\ % C22.workloads.ov_k1
+Sparse, oversubscribed, K = 8 & \texttt{bench\_sparse 24 8 3 202610081} & 24 GiB array, 8 of 512 pages touched per 2 MB block & 24.00 & 3 passes over the same page list & 6.78 \\ % C22.workloads.ov_k8
+Sparse, oversubscribed, K = 64 & \texttt{bench\_sparse 24 64 3 202610081} & 24 GiB array, 64 of 512 pages touched per 2 MB block & 24.00 & 3 passes over the same page list & 7.67 \\ % C22.workloads.ov_k64
+Sparse, oversubscribed, K = 512 & \texttt{bench\_sparse 24 512 3 202610081} & 24 GiB array, 512 of 512 pages touched per 2 MB block & 24.00 & 3 passes over the same page list & 7.93 \\ % C22.workloads.ov_k512
+\bottomrule
+\end{tabular}
