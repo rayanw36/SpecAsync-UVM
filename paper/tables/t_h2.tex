@@ -1,0 +1,14 @@
+\begin{tabular}{@{}llrrrrrrcr@{}}
+\toprule
+Allocator & $K$ & Median $t51$ (s) & Median $t0$ (s) & $\Delta$ (\%) & MWU $p$ & Holm $p$ & MDE (\%) & Sig. & Cohen's $d$ \\
+\midrule
+managed & 1 & 1.581 & 1.643 & +3.92 & 1.08e-5 & 8.66e-5 & 0.75 & yes & +8.5 \\ % H2.managed_k1.t0_vs_t51
+managed & 8 & 1.678 & 1.654 & $-$1.49 & 2.09e-3 & 2.09e-3 & 1.38 & yes & $-$1.6 \\ % H2.managed_k8.t0_vs_t51
+managed & 64 & 1.854 & 1.669 & $-$9.99 & 1.08e-5 & 8.66e-5 & 0.85 & yes & $-$18.9 \\ % H2.managed_k64.t0_vs_t51
+managed & 512 & 1.962 & 1.821 & $-$7.19 & 1.08e-5 & 8.66e-5 & 1.54 & yes & $-$7.4 \\ % H2.managed_k512.t0_vs_t51
+HMM (malloc) & 1 & 2.160 & 6.559 & +203.65 & 1.08e-5 & 8.66e-5 & 1.87 & yes & +174.9 \\ % H2.malloc_k1.t0_vs_t51
+HMM (malloc) & 8 & 4.365 & 6.565 & +50.39 & 1.08e-5 & 8.66e-5 & 1.70 & yes & +47.5 \\ % H2.malloc_k8.t0_vs_t51
+HMM (malloc) & 64 & 8.778 & 6.613 & $-$24.66 & 1.08e-5 & 8.66e-5 & 0.77 & yes & $-$51.1 \\ % H2.malloc_k64.t0_vs_t51
+HMM (malloc) & 512 & 8.386 & 6.745 & $-$19.56 & 1.08e-5 & 8.66e-5 & 0.72 & yes & $-$43.3 \\ % H2.malloc_k512.t0_vs_t51
+\bottomrule
+\end{tabular}

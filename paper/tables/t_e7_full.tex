@@ -1,0 +1,41 @@
+\begin{tabular}{@{}llllrrrrrcr@{}}
+\toprule
+GPU & Family & Workload & Thr. & Median $t51$ (s) & Median arm (s) & $\Delta$ (\%) & MWU $p$ & Holm $p$ & Sig. & MDE (\%) \\
+\midrule
+RTX 5070 Ti & A & Stencil-24K & t0 & 1.134 & 1.025 & $-$9.57 & 1.08e-5 & 2.17e-5 & yes & 1.23 \\ % E7.A.stencil.stock-t0_vs_stock-t51
+ & A & Stencil-24K & t10 & 1.134 & 1.053 & $-$7.13 & 1.08e-5 & 2.17e-5 & yes & 1.28 \\ % E7.A.stencil.stock-t10_vs_stock-t51
+ & B & Stencil-8K & t0 & 0.332 & 0.317 & $-$4.65 & 1.23e-1 & 7.38e-1 & no & 10.41 \\ % E7.B.stencil8k.stock-t0_vs_stock-t51
+ & B & Stencil-8K & t25 & 0.332 & 0.322 & $-$3.13 & 1.23e-1 & 7.38e-1 & no & 10.20 \\ % E7.B.stencil8k.stock-t25_vs_stock-t51
+ & B & Sweep-4K & t0 & 0.242 & 0.250 & +3.34 & 9.71e-1 & 1.00e0 & no & 11.77 \\ % E7.B.sweep4k.stock-t0_vs_stock-t51
+ & B & Sweep-4K & t25 & 0.242 & 0.265 & +9.47 & 2.18e-1 & 8.70e-1 & no & 12.42 \\ % E7.B.sweep4k.stock-t25_vs_stock-t51
+ & B & Sweep-16K & t0 & 0.629 & 0.579 & $-$8.02 & 1.08e-5 & 1.73e-4 & yes & 2.19 \\ % E7.B.sweep16k.stock-t0_vs_stock-t51
+ & B & Sweep-16K & t25 & 0.629 & 0.604 & $-$3.98 & 1.50e-3 & 1.50e-2 & yes & 3.47 \\ % E7.B.sweep16k.stock-t25_vs_stock-t51
+ & B & STREAM & t0 & 0.618 & 0.542 & $-$12.37 & 1.08e-5 & 1.73e-4 & yes & 3.71 \\ % E7.B.stream.stock-t0_vs_stock-t51
+ & B & STREAM & t25 & 0.618 & 0.580 & $-$6.20 & 5.20e-3 & 4.68e-2 & yes & 5.41 \\ % E7.B.stream.stock-t25_vs_stock-t51
+ & B & SGEMM & t0 & 4.631 & 4.515 & $-$2.49 & 1.08e-5 & 1.73e-4 & yes & 0.41 \\ % E7.B.sgemm.stock-t0_vs_stock-t51
+ & B & SGEMM & t25 & 4.631 & 4.555 & $-$1.64 & 1.08e-5 & 1.73e-4 & yes & 0.32 \\ % E7.B.sgemm.stock-t25_vs_stock-t51
+ & B & cuFFT & t0 & 0.390 & 0.371 & $-$4.90 & 3.55e-2 & 2.48e-1 & no & 7.27 \\ % E7.B.cufft.stock-t0_vs_stock-t51
+ & B & cuFFT & t25 & 0.390 & 0.384 & $-$1.55 & 6.31e-1 & 1.00e0 & no & 8.38 \\ % E7.B.cufft.stock-t25_vs_stock-t51
+ & B & GraphBFS-23 & t0 & 31.507 & 31.424 & $-$0.26 & 1.85e-2 & 1.48e-1 & no & 0.86 \\ % E7.B.graphbfs.stock-t0_vs_stock-t51
+ & B & GraphBFS-23 & t25 & 31.507 & 31.524 & +0.06 & 1.00e0 & 1.00e0 & no & 1.14 \\ % E7.B.graphbfs.stock-t25_vs_stock-t51
+ & B & Stencil, oversubscribed & t0 & 3.258 & 2.706 & $-$16.95 & 1.08e-5 & 1.73e-4 & yes & 1.18 \\ % E7.B.oversub.stock-t0_vs_stock-t51
+ & B & Stencil, oversubscribed & t25 & 3.258 & 2.882 & $-$11.56 & 1.08e-5 & 1.73e-4 & yes & 1.10 \\ % E7.B.oversub.stock-t25_vs_stock-t51
+\midrule
+Tesla T4 & A & Stencil-24K & t0 & 5.808 & 5.514 & $-$5.07 & 1.08e-5 & 2.17e-5 & yes & 0.60 \\ % T4.A.stencil.stock-t0_vs_stock-t51
+ & A & Stencil-24K & t10 & 5.808 & 5.622 & $-$3.21 & 1.08e-5 & 2.17e-5 & yes & 0.61 \\ % T4.A.stencil.stock-t10_vs_stock-t51
+ & B & Stencil-8K & t0 & 2.426 & 2.389 & $-$1.54 & 3.89e-3 & 1.94e-2 & yes & 2.45 \\ % T4.B.stencil8k.stock-t0_vs_stock-t51
+ & B & Stencil-8K & t25 & 2.426 & 2.423 & $-$0.13 & 8.53e-1 & 8.72e-1 & no & 1.86 \\ % T4.B.stencil8k.stock-t25_vs_stock-t51
+ & B & Sweep-4K & t0 & 2.099 & 2.079 & $-$0.98 & 7.25e-4 & 5.08e-3 & yes & 1.17 \\ % T4.B.sweep4k.stock-t0_vs_stock-t51
+ & B & Sweep-4K & t25 & 2.099 & 2.095 & $-$0.19 & 4.36e-1 & 8.72e-1 & no & 1.43 \\ % T4.B.sweep4k.stock-t25_vs_stock-t51
+ & B & Sweep-16K & t0 & 3.687 & 3.535 & $-$4.12 & 1.08e-5 & 1.52e-4 & yes & 1.01 \\ % T4.B.sweep16k.stock-t0_vs_stock-t51
+ & B & Sweep-16K & t25 & 3.687 & 3.598 & $-$2.41 & 1.08e-5 & 1.52e-4 & yes & 0.87 \\ % T4.B.sweep16k.stock-t25_vs_stock-t51
+ & B & STREAM & t0 & 4.067 & 3.863 & $-$5.01 & 1.08e-5 & 1.52e-4 & yes & 1.19 \\ % T4.B.stream.stock-t0_vs_stock-t51
+ & B & STREAM & t25 & 4.067 & 3.969 & $-$2.41 & 1.08e-5 & 1.52e-4 & yes & 1.26 \\ % T4.B.stream.stock-t25_vs_stock-t51
+ & B & SGEMM & t0 & 16.959 & 16.578 & $-$2.24 & 1.08e-5 & 1.52e-4 & yes & 7.72 \\ % T4.B.sgemm.stock-t0_vs_stock-t51
+ & B & SGEMM & t25 & 16.959 & 16.776 & $-$1.08 & 1.08e-5 & 1.52e-4 & yes & 7.72 \\ % T4.B.sgemm.stock-t25_vs_stock-t51
+ & B & cuFFT & t0 & 2.739 & 2.681 & $-$2.09 & 4.33e-5 & 3.46e-4 & yes & 1.70 \\ % T4.B.cufft.stock-t0_vs_stock-t51
+ & B & cuFFT & t25 & 2.739 & 2.720 & $-$0.67 & 1.15e-2 & 3.45e-2 & yes & 1.68 \\ % T4.B.cufft.stock-t25_vs_stock-t51
+ & B & GraphBFS-23 & t0 & 54.284 & 54.210 & $-$0.14 & 7.25e-4 & 5.08e-3 & yes & 0.35 \\ % T4.B.graphbfs.stock-t0_vs_stock-t51
+ & B & GraphBFS-23 & t25 & 54.284 & 54.226 & $-$0.11 & 5.20e-3 & 2.08e-2 & yes & 0.30 \\ % T4.B.graphbfs.stock-t25_vs_stock-t51
+\bottomrule
+\end{tabular}

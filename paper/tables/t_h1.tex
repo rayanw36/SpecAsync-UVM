@@ -1,0 +1,9 @@
+\begin{tabular}{@{}lllrrrrcr@{}}
+\toprule
+Workload (HMM) & Thr. & Median $t51$ (s) & Median arm (s) & $\Delta$ (\%) & MWU $p$ & Holm $p$ & Sig. & MDE (\%) \\
+\midrule
+Stencil-24K & t0 & 3.971 & 3.654 & $-$7.97 & 1.08e-5 & 3.25e-5 & yes & 0.85 \\ % H1.stencil.stock-t0_vs_stock-t51
+Sparse in memory, $K=512$ & t0 & 8.311 & 6.701 & $-$19.37 & 1.08e-5 & 3.25e-5 & yes & 0.88 \\ % H1.in_k512.stock-t0_vs_stock-t51
+Sparse in memory, $K=1$ & t0 & 2.162 & 6.496 & +200.52 & 1.08e-5 & 3.25e-5 & yes & 2.41 \\ % H1.in_k1.stock-t0_vs_stock-t51
+\bottomrule
+\end{tabular}
