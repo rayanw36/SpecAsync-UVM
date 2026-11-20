@@ -1,0 +1,158 @@
+[
+ {
+  "id": "III-1",
+  "file": "section3_background.tex",
+  "old": "picks victims in allocation order rather than by recency of access: free\nchunks first, then the oldest chunks on its unused, discarded and used\nlists.",
+  "new": "picks victims by recency of migration, not of access: free chunks first, then\nthe head of its unused, discarded and used lists. A chunk moves to the tail of\nthe used list when it is allocated and each time data is migrated into it;\naccess to data already resident does not move it."
+ },
+ {
+  "id": "II-3",
+  "file": "section2_related_work.tex",
+  "old": "the same density rule (Section~VI). One detail of the mechanism differs from\nthe description in Go \\emph{et al.}: in release 595.91.07 the driver picks\neviction victims in allocation order, not by recency of access\n(Section~\\ref{sec:bg-oversub}).",
+  "new": "the same density rule (Section~VI)."
+ },
+ {
+  "id": "III-3",
+  "file": "section3_background.tex",
+  "old": "Two properties of this path matter later.",
+  "new": "We report two fault counts, and say which at each use. \\emph{Demand faults}\nare the fault entries the driver services on the demand path, counted by our\ninstrumentation after coalescing. Faults reported by the NVIDIA profiler\n(\\emph{nsys}) are CUPTI's GPU page-fault records, which group several faults;\nthe two counts differ by a factor of three to four for the same run.\n% [CHECK] CC: confirm what nsys's GPU page-fault count records (fault groups?)\n% and the ratio for Stencil-24K t51 (339,386 demand vs 91,935 nsys).\n\nTwo properties of this path matter later."
+ },
+ {
+  "id": "VII-2",
+  "file": "section7_threshold.tex",
+  "old": "27{,}876 faults at threshold 0 against 91{,}935 at 51",
+  "new": "27{,}876 profiler-reported faults at threshold 0 against 91{,}935 at 51"
+ },
+ {
+  "id": "I-1",
+  "file": "section1_introduction.tex",
+  "old": "A natural next step, proposed repeatedly in the\nliterature and suggested explicitly by Allen \\emph{et al.}\\ after their",
+  "new": "A natural next step, suggested explicitly by Allen \\emph{et al.}\\ after their"
+ },
+ {
+  "id": "M2/IV-2/IV-4",
+  "file": "section4_design.tex",
+  "old": "touched. The graph oracle therefore stages only part of the working set, and\nwe report its results as those of a weakened oracle.",
+  "new": "touched. The graph oracle therefore stages the same regions many times over,\nregions totalling 88.7 times its distinct pages, yet even with the prefetcher off\nit made at most 80.6\\% of distinct pages resident before their first fault; we\nreport its results as those of a weakened oracle.\n% [CHECK] 88.7x and 80.6%: C22_IV4_GRAPHBFS.md (needs evidence ids).\n\nThree properties limit what the oracle measures. It is fault-triggered: it\npredicts only when a fault arrives, one page per fault. It runs at most $L$ ranks\nahead of demand, and we report only $L = 4096$. And with the prefetcher on, few\nfaults arrive, so it issues few predictions: about 2{,}200 work items per\nStencil-24K run. Our speculation results therefore measure one fault-triggered\nstaging design with near-perfect knowledge of the future; they are not an upper\nbound on off-path staging in general."
+ },
+ {
+  "id": "M2/I-2",
+  "file": "section1_introduction.tex",
+  "old": "weaker one on graph traversal, so they bound what off-path staging can achieve\nand do not evaluate a practical predictor.",
+  "new": "weaker one on graph traversal. They measure one fault-triggered staging design,\nnot an upper bound on off-path staging, and do not evaluate a practical\npredictor."
+ },
+ {
+  "id": "M2",
+  "file": "section9_discussion.tex",
+  "old": "The speculation results therefore bound what off-path staging can achieve on\none regular workload and do not evaluate a practical predictor.",
+  "new": "The oracle is also fault-triggered, one page per fault, at one lookahead. The\nspeculation results therefore measure one staging design on one regular\nworkload; they are not an upper bound and do not evaluate a practical\npredictor."
+ },
+ {
+  "id": "M2",
+  "file": "section2_related_work.tex",
+  "old": "plays the same role for off-path staging",
+  "new": "plays a similar role for one fault-triggered staging design"
+ },
+ {
+  "id": "M3/VI-3",
+  "file": "section1_introduction.tex",
+  "old": "with no detectable gain on graph traversal.",
+  "new": "and no detectable change on graph traversal, where fault handling is under\n0.2\\% of the run."
+ },
+ {
+  "id": "M3",
+  "file": "section6_speculation.tex",
+  "old": "(\\texttt{E4.F1.graphbfs.C7-W512\\_vs\\_C0}, \\texttt{E4.mde\\_family.graphbfs.F1}).",
+  "new": "(\\texttt{E4.F1.graphbfs.C7-W512\\_vs\\_C0}, \\texttt{E4.mde\\_family.graphbfs.F1}).\nThis null says little about speculation: on GraphBFS-23 the fault-servicing\nwindow is 0.19\\% of the run under the shipped driver, so no mechanism acting on\nfault service could change it detectably. The speculation result is therefore a\nStencil-24K result, where the window is 17.2\\% of the run.\n% [CHECK] 0.19% and 17.2%: C22_M3_DISPATCH_SHARE.md (evidence ids)."
+ },
+ {
+  "id": "VI-1/VI-2",
+  "file": "section6_speculation.tex",
+  "old": "The gain is not the copy offload of Section~\\ref{sec:spec-off}. With the\nprefetcher on, the worker finishes first for only 2.07\\% of distinct pages\n(\\texttt{E5.mech.t51.C7W512}), yet demand faults fall from 339{,}386 to\n203{,}331, a 40.1\\% reduction (\\texttt{E5.D(51)}).",
+  "new": "The gain is mostly not the copy offload of Section~\\ref{sec:spec-off}. Demand\nfaults fall by about 40\\%, from 339{,}251 to 204{,}641 in E4 (Table~\\ref{tab:mech})\nand from 339{,}386 to 203{,}331 in E5 (\\texttt{E5.D(51)}). Splitting the fall in\nD5 into fewer faults and cheaper faults, 85.9\\% of it comes from the smaller\nnumber of faults.\n% [CHECK] 85.9%: C22_VI1_DECOMPOSITION.md (E4 Stencil; evidence id)."
+ },
+ {
+  "id": "VIII-1",
+  "file": "section8_pitfalls.tex",
+  "old": "it. Across all families, four errors were caught inside their own gate, and all\nfour by a check written before the measurement: a pre-registered test (\\#10,\n\\#21, \\#25) or a pre-registered smoke pass (\\#30).",
+  "new": "it. Across all families, eleven of the 31 errors were caught inside the gate\nthat made them; three of these were caught by a check written before the\nmeasurement, a pre-registered test (\\#10, \\#25) or smoke pass (\\#30), and the\nrest by the gate's own analysis. A fourth pre-registered test caught \\#21, but\nin a later gate."
+ },
+ {
+  "id": "I-4",
+  "file": "section1_introduction.tex",
+  "old": "eight were caught only by a later,\n  independent pass; the four errors caught inside the gate that made them were\n  all caught by a pre-registered check.",
+  "new": "eight were caught only by a later,\n  independent pass. In all, eleven of the 31 were caught inside the gate that\n  made them, three by a check written before the measurement."
+ },
+ {
+  "id": "VII-1",
+  "file": "section7_threshold.tex",
+  "old": "\\caption{Stock driver, threshold 0 against 51 (E7, RTX~5070~Ti).\n$\\delta$: change in median wall-clock; MDE at the family's level\n($m = 16$). Bold: Holm-significant.}",
+  "new": "\\caption{Stock driver, thresholds 0, 10 and 25 against the shipped 51, on the\nRTX~5070~Ti (E7) and the Tesla~T4 (E7-T4), analysed separately. $\\delta$: change\nin median wall-clock; MDE at each family's level. $^{\\ast}$Holm-significant.\n$^{\\dagger}$Holm-significant but smaller than the MDE. n/r: not run on the T4\n(host memory). Full results with $p$-values are in the supplementary material.}"
+ },
+ {
+  "id": "VII-8",
+  "file": "section7_threshold.tex",
+  "old": "and 12 of the 14 further\ntests are significantly faster with none slower (\\texttt{T4.B.count}).",
+  "new": "and of the 14 further\ntests, 10 are significantly faster, two are significant but negligible changes\non GraphBFS-23 of about 0.1\\%, and none is slower (\\texttt{T4.B.count})."
+ },
+ {
+  "id": "VII-8",
+  "file": "section7_threshold.tex",
+  "old": "The T4's lower\nrun-to-run variance makes small effects significant: GraphBFS-23 is 0.14\\%\nfaster, a significant but negligible change.",
+  "new": "The T4's lower\nrun-to-run variance is what makes those GraphBFS-23 changes significant."
+ },
+ {
+  "id": "VII-8",
+  "file": "section1_introduction.tex",
+  "old": "workload, and 12 of 14 further tests faster with none slower.",
+  "new": "workload, and 10 of 14 further tests faster, plus two negligible changes, with\nnone slower."
+ },
+ {
+  "id": "VII-6",
+  "file": "section7_threshold.tex",
+  "old": "At 51 the same pass moves 0.061 and 0.031 of it.",
+  "new": "At 51 the same pass moves 0.061 and 0.031 of it; the HMM reading includes about\n0.03 of the array that the driver allocates ahead of use (Fig.~\\ref{fig:h2}), so\nthe two agree."
+ },
+ {
+  "id": "M8",
+  "file": "section1_introduction.tex",
+  "old": "On system-allocated memory, which the\ndriver migrates in 4\\,KB units through the kernel's HMM interface, the cost\nappears without oversubscription:",
+  "new": "On system-allocated (HMM) memory the cost\nappears even without oversubscription:"
+ },
+ {
+  "id": "M8",
+  "file": "section1_introduction.tex",
+  "old": "eight pages per block is 204\\% and 50\\% slower, while dense access still\ngains.",
+  "new": "eight pages per block is 204\\% and 50\\% slower, while dense access still\ngains. This is consistent with HMM's migration in 4\\,KB units, but we have not\nisolated that cause."
+ },
+ {
+  "id": "M8/A-4",
+  "file": "abstract.tex",
+  "old": "and on system-allocated\n(HMM) memory, which the driver migrates in 4\\,KB units, sparse access is 204\\%\nslower even in memory.",
+  "new": "and on system-allocated\n(HMM) memory sparse access is 204\\% slower even in memory."
+ },
+ {
+  "id": "M4/A-5",
+  "file": "abstract.tex",
+  "old": "Lowering that threshold from 51 to 0, without\nspeculation, is faster still: 9.57\\% on an RTX~5070~Ti and 5.1\\% on a Tesla~T4,\nand at matched thresholds speculation adds at most 2.8\\%.",
+  "new": "At matched thresholds speculation adds at most\n2.8\\%, and nothing detectable at thresholds 0 and 10; lowering the threshold\nfrom 51 to 0 without speculation is faster than speculating at 51, by 9.57\\% on\nan RTX~5070~Ti and 5.1\\% on a Tesla~T4."
+ },
+ {
+  "id": "M4/I(c)",
+  "file": "section1_introduction.tex",
+  "old": "If speculation's benefit runs through the density threshold, the threshold can\nbe moved directly. Lowering it from the shipped 51 to 0, with no speculation,\nmakes the stock driver 9.57\\% faster on the same stencil workload (confirmatory\ntest), and the oracle-driven speculation configuration at the shipped threshold\nis 6.4\\% slower than it. At matched thresholds, speculation adds at most 2.8\\%,\nand nothing detectable at threshold 0 or 10 (minimum detectable effects 2.0\\%\nand 2.3\\% at the family's corrected level).",
+  "new": "If speculation's benefit runs through the density threshold, the threshold can\nbe moved directly. At matched thresholds, speculation adds at most 2.8\\%, and\nnothing detectable at threshold 0 or 10 (minimum detectable effects 2.0\\% and\n2.3\\% at the family's corrected level). Lowering the threshold from the shipped\n51 to 0, with no speculation, makes the stock driver 9.57\\% faster on the same\nstencil workload (confirmatory test). Part of that gain is not on the GPU fault\npath: the same threshold governs prefetching for CPU faults, and at threshold 0\nthe host faults six times less often while initialising the array, a saving\nGPU-side staging cannot obtain."
+ },
+ {
+  "id": "M4/VI-4",
+  "file": "section6_speculation.tex",
+  "old": "If staging gains only by helping regions pass the threshold, lowering the\nthreshold should gain at least as much without staging. E6 tested this with a\nsecond pre-registered trigger: it would fire if any stock configuration at a\nlower threshold was not significantly slower than C7-W512 at 51. It fired. C0 at\nthreshold 0 is faster than C7-W512 at 51, which is 6.39\\% slower than it; at\nthreshold 10 the oracle is 4.72\\% slower, and at 25 the two do not differ\ndetectably (\\texttt{E6.F1.C7W512-t51\\_vs\\_C0-t0}, \\texttt{-t10}, \\texttt{-t25}).\n\nAt matched thresholds, speculation adds little. Its gain is $-0.85\\%$ at\nthreshold 0 and $-0.28\\%$ at 10, neither significant, against minimum detectable\neffects of 2.04\\% and 2.28\\% at the family's level, and 2.76\\% at 25, which is\nsignificant (\\texttt{E6.wall.C7W512-t0\\_vs\\_C0-t0}, \\texttt{-t10}, \\texttt{-t25},\n\\texttt{E6.mde\\_family.stencil\\_wall}). Staging still removes faults at every\nthreshold, 5.3\\% of them at 0 and 22.1\\% at 25 (\\texttt{E6.demand.*}), but at low\nthresholds the prefetcher has already taken most regions, and the faults that\nremain are too few to matter: one pre-registered expectation predicted a\nwall-clock gain from the 5.3\\% at threshold 0, and it failed (X4).",
+  "new": "If staging gains only by helping regions pass the threshold, it should add\nlittle once the threshold is already low. E6 tested this directly, by comparing\nspeculation with no speculation at the same threshold. Speculation adds little.\nIts gain is $-0.85\\%$ at threshold 0 and $-0.28\\%$ at 10, neither significant,\nagainst minimum detectable effects of 2.04\\% and 2.28\\% at the family's level,\nand 2.76\\% at 25, which is significant (\\texttt{E6.wall.C7W512-t0\\_vs\\_C0-t0},\n\\texttt{-t10}, \\texttt{-t25}, \\texttt{E6.mde\\_family.stencil\\_wall}). Staging\nstill removes faults at every threshold, 5.3\\% of them at 0 and 22.1\\% at 25\n(\\texttt{E6.demand.*}), but at low thresholds the prefetcher has already taken\nmost regions, and the faults that remain are too few to matter: one\npre-registered expectation predicted a wall-clock gain from the 5.3\\% at\nthreshold 0, and it failed (X4).\n\nE6 also compared speculation at the shipped threshold with the stock driver at\nlower thresholds. A second pre-registered trigger would fire if any stock\nconfiguration at a lower threshold was not significantly slower than C7-W512 at\n51. It fired. C0 at threshold 0 is faster than C7-W512 at 51, which is 6.39\\%\nslower than it; at threshold 10 the oracle is 4.72\\% slower, and at 25 the two do\nnot differ detectably (\\texttt{E6.F1.C7W512-t51\\_vs\\_C0-t0}, \\texttt{-t10},\n\\texttt{-t25}). This comparison is less clean than the matched one: part of the\ngain from a lower threshold comes from fewer CPU faults during initialisation\n(Section~\\ref{sec:thr-dense}), which GPU-side staging cannot obtain."
+ },
+ {
+  "id": "II-2",
+  "file": "section2_related_work.tex",
+  "old": "phase is CPU work. We use it for a different purpose: to locate where an\noff-path mechanism can act at all.",
+  "new": "phase is CPU work. We use it for a different purpose: to locate where an\noff-path mechanism can act at all. Kim \\emph{et al.}\\ act on the same batch\npath for irregular workloads, running additional thread blocks while faults are\noutstanding so that batches grow, and overlapping eviction with migration\n\\cite{kim2020batchaware}."
+ }
+]
