@@ -1,0 +1,85 @@
+gate,comparison,delta %,CI low,CI high,MWU p,Holm-adjusted p,MDE % (family alpha),evidence id
+E4 F1,stencil C7-W1 vs C0,5.872,4.895,8.049,1.083e-05,1.949e-04,2.356,E4.F1.stencil.C7-W1_vs_C0
+E4 F1,stencil C7-W64 vs C0,-1.827,-2.951,0.270,8.921e-02,6.245e-01,2.430,E4.F1.stencil.C7-W64_vs_C0
+E4 F1,stencil C7-W512 vs C0,-4.929,-6.023,-3.452,1.083e-05,1.949e-04,1.747,E4.F1.stencil.C7-W512_vs_C0
+E4 F4,stencil C6-W512 vs C0,191.948,190.731,193.933,1.083e-05,1.949e-04,2.233,E4.F4.stencil.C6-W512_vs_C0
+E4 F1,graphbfs C7-W1 vs C0,-0.283,-0.644,0.311,3.527e-01,1.000e+00,0.586,E4.F1.graphbfs.C7-W1_vs_C0
+E4 F1,graphbfs C7-W64 vs C0,-0.099,-0.595,0.219,4.813e-01,1.000e+00,0.574,E4.F1.graphbfs.C7-W64_vs_C0
+E4 F1,graphbfs C7-W512 vs C0,-0.060,-0.398,0.197,5.288e-01,1.000e+00,0.378,E4.F1.graphbfs.C7-W512_vs_C0
+E4 F4,graphbfs C6-W512 vs C0,3.860,3.440,4.323,1.083e-05,1.949e-04,0.520,E4.F4.graphbfs.C6-W512_vs_C0
+E5,C7W512 vs C0 at t51,-5.258,-6.651,-3.381,1.083e-05,3.248e-05,3.598,E5.wall.t51
+E5,C7W512 vs C0 at t75,-10.120,-12.037,-9.273,1.083e-05,3.248e-05,1.872,E5.wall.t75
+E5,C7W512 vs C0 at t100,-21.037,-21.416,-20.563,1.083e-05,3.248e-05,0.590,E5.wall.t100
+E6 F1,stencil C7W512-t51 vs C0-t0,6.392,3.514,7.746,1.083e-05,4.330e-05,2.681,E6.F1.C7W512-t51_vs_C0-t0
+E6 F1,stencil C7W512-t51 vs C0-t10,4.723,1.601,6.207,2.057e-04,6.170e-04,2.716,E6.F1.C7W512-t51_vs_C0-t10
+E6 F1,stencil C7W512-t51 vs C0-t25,2.112,-0.963,3.488,2.799e-01,2.799e-01,2.752,E6.F1.C7W512-t51_vs_C0-t25
+E6 F1,stencil C7W512-t51 vs C0-t51,-3.363,-6.022,-2.036,3.248e-04,6.495e-04,2.493,E6.F1.C7W512-t51_vs_C0-t51
+E6 wall,stencil C7W512-t0 vs C0-t0,-0.845,-2.024,1.486,3.150e-01,6.300e-01,2.036,E6.wall.C7W512-t0_vs_C0-t0
+E6 wall,stencil C7W512-t10 vs C0-t10,-0.284,-1.914,1.717,5.288e-01,6.300e-01,2.275,E6.wall.C7W512-t10_vs_C0-t10
+E6 wall,stencil C7W512-t25 vs C0-t25,-2.756,-4.139,-0.949,1.299e-04,3.897e-04,1.705,E6.wall.C7W512-t25_vs_C0-t25
+E6 demand,stencil C7W512-t0 vs C0-t0,-5.318,-5.804,-4.793,1.083e-05,3.248e-05,1.005,E6.demand.C7W512-t0_vs_C0-t0
+E6 demand,stencil C7W512-t10 vs C0-t10,-8.449,-9.798,-7.433,1.083e-05,3.248e-05,1.369,E6.demand.C7W512-t10_vs_C0-t10
+E6 demand,stencil C7W512-t25 vs C0-t25,-22.131,-22.657,-20.846,1.083e-05,3.248e-05,1.615,E6.demand.C7W512-t25_vs_C0-t25
+E6 F2,graphbfs C0-t0 vs C0-t51,-0.056,-0.464,0.447,9.705e-01,9.705e-01,0.538,E6.F2.C0-t0_vs_C0-t51
+E6 F2,graphbfs C0-t25 vs C0-t51,0.119,-0.267,0.524,4.359e-01,8.717e-01,0.454,E6.F2.C0-t25_vs_C0-t51
+E7 A,stencil stock-t0 vs stock-t51,-9.570,-10.174,-8.824,1.083e-05,2.165e-05,1.232,E7.A.stencil.stock-t0_vs_stock-t51
+E7 A,stencil stock-t10 vs stock-t51,-7.129,-8.201,-6.347,1.083e-05,2.165e-05,1.282,E7.A.stencil.stock-t10_vs_stock-t51
+E7 B,stencil8k stock-t0 vs stock-t51,-4.647,-10.990,3.616,1.230e-01,7.380e-01,10.407,E7.B.stencil8k.stock-t0_vs_stock-t51
+E7 B,stencil8k stock-t25 vs stock-t51,-3.126,-8.661,3.580,1.230e-01,7.380e-01,10.196,E7.B.stencil8k.stock-t25_vs_stock-t51
+E7 B,sweep4k stock-t0 vs stock-t51,3.338,-9.588,13.000,9.705e-01,1.000e+00,11.765,E7.B.sweep4k.stock-t0_vs_stock-t51
+E7 B,sweep4k stock-t25 vs stock-t51,9.467,-3.675,16.119,2.176e-01,8.703e-01,12.416,E7.B.sweep4k.stock-t25_vs_stock-t51
+E7 B,sweep16k stock-t0 vs stock-t51,-8.018,-9.687,-6.460,1.083e-05,1.732e-04,2.189,E7.B.sweep16k.stock-t0_vs_stock-t51
+E7 B,sweep16k stock-t25 vs stock-t51,-3.975,-5.513,-2.227,1.505e-03,1.505e-02,3.472,E7.B.sweep16k.stock-t25_vs_stock-t51
+E7 B,stream stock-t0 vs stock-t51,-12.370,-14.246,-9.975,1.083e-05,1.732e-04,3.712,E7.B.stream.stock-t0_vs_stock-t51
+E7 B,stream stock-t25 vs stock-t51,-6.202,-8.099,-1.661,5.196e-03,4.676e-02,5.406,E7.B.stream.stock-t25_vs_stock-t51
+E7 B,sgemm stock-t0 vs stock-t51,-2.495,-2.806,-2.235,1.083e-05,1.732e-04,0.412,E7.B.sgemm.stock-t0_vs_stock-t51
+E7 B,sgemm stock-t25 vs stock-t51,-1.642,-1.811,-1.368,1.083e-05,1.732e-04,0.319,E7.B.sgemm.stock-t25_vs_stock-t51
+E7 B,cufft stock-t0 vs stock-t51,-4.904,-10.052,0.827,3.546e-02,2.482e-01,7.268,E7.B.cufft.stock-t0_vs_stock-t51
+E7 B,cufft stock-t25 vs stock-t51,-1.549,-7.652,6.305,6.305e-01,1.000e+00,8.383,E7.B.cufft.stock-t25_vs_stock-t51
+E7 B,graphbfs stock-t0 vs stock-t51,-0.262,-1.049,-0.021,1.854e-02,1.483e-01,0.860,E7.B.graphbfs.stock-t0_vs_stock-t51
+E7 B,graphbfs stock-t25 vs stock-t51,0.056,-0.718,0.585,1.000e+00,1.000e+00,1.137,E7.B.graphbfs.stock-t25_vs_stock-t51
+E7 B,oversub stock-t0 vs stock-t51,-16.952,-17.580,-15.805,1.083e-05,1.732e-04,1.180,E7.B.oversub.stock-t0_vs_stock-t51
+E7 B,oversub stock-t25 vs stock-t51,-11.562,-12.001,-10.440,1.083e-05,1.732e-04,1.096,E7.B.oversub.stock-t25_vs_stock-t51
+E7-T4 A,stencil stock-t0 vs stock-t51,-5.070,-5.570,-4.888,1.083e-05,2.165e-05,0.605,T4.A.stencil.stock-t0_vs_stock-t51
+E7-T4 A,stencil stock-t10 vs stock-t51,-3.211,-3.676,-2.856,1.083e-05,2.165e-05,0.613,T4.A.stencil.stock-t10_vs_stock-t51
+E7-T4 B,stencil8k stock-t0 vs stock-t51,-1.536,-2.859,-0.527,3.886e-03,1.943e-02,2.451,T4.B.stencil8k.stock-t0_vs_stock-t51
+E7-T4 B,stencil8k stock-t25 vs stock-t51,-0.135,-0.838,0.704,8.534e-01,8.717e-01,1.859,T4.B.stencil8k.stock-t25_vs_stock-t51
+E7-T4 B,sweep4k stock-t0 vs stock-t51,-0.980,-1.942,-0.683,7.253e-04,5.077e-03,1.172,T4.B.sweep4k.stock-t0_vs_stock-t51
+E7-T4 B,sweep4k stock-t25 vs stock-t51,-0.192,-0.978,0.408,4.359e-01,8.717e-01,1.425,T4.B.sweep4k.stock-t25_vs_stock-t51
+E7-T4 B,sweep16k stock-t0 vs stock-t51,-4.116,-4.836,-3.176,1.083e-05,1.516e-04,1.006,T4.B.sweep16k.stock-t0_vs_stock-t51
+E7-T4 B,sweep16k stock-t25 vs stock-t51,-2.407,-2.826,-1.603,1.083e-05,1.516e-04,0.868,T4.B.sweep16k.stock-t25_vs_stock-t51
+E7-T4 B,stream stock-t0 vs stock-t51,-5.010,-5.507,-4.238,1.083e-05,1.516e-04,1.193,T4.B.stream.stock-t0_vs_stock-t51
+E7-T4 B,stream stock-t25 vs stock-t51,-2.409,-3.052,-1.746,1.083e-05,1.516e-04,1.255,T4.B.stream.stock-t25_vs_stock-t51
+E7-T4 B,sgemm stock-t0 vs stock-t51,-2.243,-2.539,-2.212,1.083e-05,1.516e-04,7.720,T4.B.sgemm.stock-t0_vs_stock-t51
+E7-T4 B,sgemm stock-t25 vs stock-t51,-1.079,-1.394,-0.988,1.083e-05,1.516e-04,7.722,T4.B.sgemm.stock-t25_vs_stock-t51
+E7-T4 B,cufft stock-t0 vs stock-t51,-2.093,-3.168,-1.313,4.330e-05,3.464e-04,1.695,T4.B.cufft.stock-t0_vs_stock-t51
+E7-T4 B,cufft stock-t25 vs stock-t51,-0.668,-2.017,-0.072,1.150e-02,3.449e-02,1.683,T4.B.cufft.stock-t25_vs_stock-t51
+E7-T4 B,graphbfs stock-t0 vs stock-t51,-0.136,-0.241,-0.078,7.253e-04,5.077e-03,0.353,T4.B.graphbfs.stock-t0_vs_stock-t51
+E7-T4 B,graphbfs stock-t25 vs stock-t51,-0.107,-0.300,-0.034,5.196e-03,2.078e-02,0.300,T4.B.graphbfs.stock-t25_vs_stock-t51
+E8,in_k1 stock-t0 vs stock-t51,3.947,3.487,4.432,1.083e-05,1.732e-04,0.951,E8.in.K1.stock-t0_vs_stock-t51
+E8,in_k1 stock-t25 vs stock-t51,-0.604,-1.502,0.135,4.326e-02,4.326e-02,1.063,E8.in.K1.stock-t25_vs_stock-t51
+E8,in_k8 stock-t0 vs stock-t51,-2.319,-2.684,-1.461,1.083e-05,1.732e-04,0.866,E8.in.K8.stock-t0_vs_stock-t51
+E8,in_k8 stock-t25 vs stock-t51,0.782,0.211,1.712,6.841e-03,1.368e-02,1.129,E8.in.K8.stock-t25_vs_stock-t51
+E8,in_k64 stock-t0 vs stock-t51,-9.688,-10.021,-9.179,1.083e-05,1.732e-04,0.687,E8.in.K64.stock-t0_vs_stock-t51
+E8,in_k64 stock-t25 vs stock-t51,-7.407,-7.779,-6.792,1.083e-05,1.732e-04,0.714,E8.in.K64.stock-t25_vs_stock-t51
+E8,in_k512 stock-t0 vs stock-t51,-7.536,-7.991,-6.739,1.083e-05,1.732e-04,1.409,E8.in.K512.stock-t0_vs_stock-t51
+E8,in_k512 stock-t25 vs stock-t51,-6.264,-6.810,-5.108,1.083e-05,1.732e-04,2.131,E8.in.K512.stock-t25_vs_stock-t51
+E8,ov_k1 stock-t0 vs stock-t51,84.961,83.722,86.073,1.083e-05,1.732e-04,1.706,E8.ov.K1.stock-t0_vs_stock-t51
+E8,ov_k1 stock-t25 vs stock-t51,1.877,1.509,2.740,4.330e-05,1.732e-04,1.043,E8.ov.K1.stock-t25_vs_stock-t51
+E8,ov_k8 stock-t0 vs stock-t51,41.153,40.479,41.855,1.083e-05,1.732e-04,1.488,E8.ov.K8.stock-t0_vs_stock-t51
+E8,ov_k8 stock-t25 vs stock-t51,46.710,46.418,47.434,1.083e-05,1.732e-04,0.803,E8.ov.K8.stock-t25_vs_stock-t51
+E8,ov_k64 stock-t0 vs stock-t51,-9.668,-9.878,-9.538,1.083e-05,1.732e-04,0.520,E8.ov.K64.stock-t0_vs_stock-t51
+E8,ov_k64 stock-t25 vs stock-t51,-6.956,-7.132,-6.816,1.083e-05,1.732e-04,0.516,E8.ov.K64.stock-t25_vs_stock-t51
+E8,ov_k512 stock-t0 vs stock-t51,-7.657,-7.804,-7.335,1.083e-05,1.732e-04,0.762,E8.ov.K512.stock-t0_vs_stock-t51
+E8,ov_k512 stock-t25 vs stock-t51,-5.571,-5.757,-5.252,1.083e-05,1.732e-04,0.750,E8.ov.K512.stock-t25_vs_stock-t51
+H1,stencil t0 vs t51 (HMM),-7.971,-8.532,-7.457,1.083e-05,3.248e-05,0.847,H1.stencil.stock-t0_vs_stock-t51
+H1,in_k512 t0 vs t51 (HMM),-19.371,-20.047,-18.916,1.083e-05,3.248e-05,0.877,H1.in_k512.stock-t0_vs_stock-t51
+H1,in_k1 t0 vs t51 (HMM),200.519,197.932,202.540,1.083e-05,3.248e-05,2.413,H1.in_k1.stock-t0_vs_stock-t51
+H2,managed K=1 t0 vs t51,3.921,3.455,4.486,1.083e-05,8.660e-05,0.747,H2.managed_k1.t0_vs_t51
+H2,managed K=8 t0 vs t51,-1.485,-2.294,-0.582,2.089e-03,2.089e-03,1.378,H2.managed_k8.t0_vs_t51
+H2,managed K=64 t0 vs t51,-9.990,-10.433,-9.526,1.083e-05,8.660e-05,0.853,H2.managed_k64.t0_vs_t51
+H2,managed K=512 t0 vs t51,-7.192,-8.387,-5.849,1.083e-05,8.660e-05,1.539,H2.managed_k512.t0_vs_t51
+H2,malloc K=1 t0 vs t51,203.648,203.062,205.304,1.083e-05,8.660e-05,1.866,H2.malloc_k1.t0_vs_t51
+H2,malloc K=8 t0 vs t51,50.388,49.675,51.456,1.083e-05,8.660e-05,1.703,H2.malloc_k8.t0_vs_t51
+H2,malloc K=64 t0 vs t51,-24.664,-25.338,-24.276,1.083e-05,8.660e-05,0.774,H2.malloc_k64.t0_vs_t51
+H2,malloc K=512 t0 vs t51,-19.564,-20.106,-19.136,1.083e-05,8.660e-05,0.721,H2.malloc_k512.t0_vs_t51
